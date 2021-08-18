@@ -1,0 +1,4 @@
+mvn install:install-file "-Dfile=C:/spinnel-project/sabi.agent.core/lib/sabi-api.jar" "-DgroupId=com.sabi.framework" "-DartifactId=sabi-api" "-Dversion=1.0" "-Dpackaging=jar"
+
+
+mvn install:install-file "-Dfile=C:/spinnel-project/sabi.agent.core/lib/sabi-agent-core.jar" "-DgroupId=com.sabi.core" "-DartifactId=sabi-agent-core" "-Dversion=1.0" "-Dpackaging=jar"
