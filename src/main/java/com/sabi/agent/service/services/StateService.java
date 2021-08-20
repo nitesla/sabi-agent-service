@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.sabi.agent.core.dto.requestDto.StateDto;
 import com.sabi.agent.core.dto.responseDto.StateResponseDto;
+import com.sabi.agent.core.helpers.Validations;
 import com.sabi.agent.core.models.State;
 import com.sabi.agent.service.repositories.StateRepository;
 import com.sabi.framework.exceptions.ConflictException;
@@ -12,6 +13,7 @@ import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
 
 /**
  *
@@ -28,11 +30,13 @@ public class StateService {
     private StateRepository stateRepository;
     private final ModelMapper mapper;
     private final ObjectMapper objectMapper;
+    private final Validations validations;
 
-    public StateService(StateRepository stateRepository, ModelMapper mapper, ObjectMapper objectMapper) {
+    public StateService(StateRepository stateRepository, ModelMapper mapper, ObjectMapper objectMapper,Validations validations) {
         this.stateRepository = stateRepository;
         this.mapper = mapper;
         this.objectMapper = objectMapper;
+        this.validations = validations;
     }
 
     /** <summary>
@@ -42,11 +46,14 @@ public class StateService {
       */
 
     public StateResponseDto createState(StateDto request) {
+        validations.validateState(request);
         State state = mapper.map(request,State.class);
         State stateExist = stateRepository.findByName(request.getName());
         if(stateExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " State already exist");
         }
+        state.setCreatedBy(0l);
+        state.setIsactive(true);
         state = stateRepository.save(state);
         log.debug("Create new State - {}", new Gson().toJson(state));
         return mapper.map(state, StateResponseDto.class);
