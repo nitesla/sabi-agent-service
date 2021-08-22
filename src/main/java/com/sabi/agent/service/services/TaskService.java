@@ -2,6 +2,7 @@ package com.sabi.agent.service.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.TaskDto;
 import com.sabi.agent.core.dto.responseDto.TaskResponseDto;
 import com.sabi.agent.core.helpers.Validations;
@@ -12,9 +13,9 @@ import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
-import java.util.Date;
 
 
 @Slf4j
@@ -49,7 +50,7 @@ public class TaskService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Task already exist");
         }
         task.setCreatedBy(0l);
-        task.setIsactive(true);
+        task.setIsActive(true);
         task = taskRepository.save(task);
         log.debug("Create new Task - {}", new Gson().toJson(task));
         return mapper.map(task, TaskResponseDto.class);
@@ -69,9 +70,52 @@ public class TaskService {
                         "Requested Task Id does not exist!"));
         mapper.map(request, task);
         task.setUpdatedBy(0l);
-        task.setUpdatedDate(new Date());
         taskRepository.save(task);
         log.debug("task record updated - {}", new Gson().toJson(task));
         return mapper.map(task, TaskResponseDto.class);
+    }
+
+
+
+    /** <summary>
+     * Find Task
+     * </summary>
+     * <remarks>this method is responsible for getting a single record</remarks>
+     */
+    public TaskResponseDto findTask(Long id){
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested task Id does not exist!"));
+        return mapper.map(task,TaskResponseDto.class);
+    }
+
+
+    /** <summary>
+     * Find all Task
+     * </summary>
+     * <remarks>this method is responsible for getting all records in pagination</remarks>
+     */
+    public Page<Task> findAll(String name,String taskType, String priority, PageRequest pageRequest ){
+        Page<Task> task = taskRepository.findTask(name,taskType,priority,pageRequest);
+        if(task == null){
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
+        }
+        return task;
+    }
+
+    /** <summary>
+     * Enable disenable
+     * </summary>
+     * <remarks>this method is responsible for enabling and dis enabling a task</remarks>
+     */
+
+    public void enableDisEnableTask (EnableDisEnableDto request){
+        Task task = taskRepository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested Task Id does not exist!"));
+        task.setIsActive(request.getIsActive());
+        task.setUpdatedBy(0l);
+        taskRepository.save(task);
+
     }
 }

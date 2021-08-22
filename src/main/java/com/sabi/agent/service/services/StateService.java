@@ -2,6 +2,7 @@ package com.sabi.agent.service.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.StateDto;
 import com.sabi.agent.core.dto.responseDto.StateResponseDto;
 import com.sabi.agent.core.helpers.Validations;
@@ -12,9 +13,9 @@ import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
-import java.util.Date;
 
 
 /**
@@ -55,7 +56,7 @@ public class StateService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " State already exist");
         }
         state.setCreatedBy(0l);
-        state.setIsactive(true);
+        state.setIsActive(true);
         state = stateRepository.save(state);
         log.debug("Create new State - {}", new Gson().toJson(state));
         return mapper.map(state, StateResponseDto.class);
@@ -75,11 +76,56 @@ public class StateService {
                         "Requested State Id does not exist!"));
         mapper.map(request, state);
         state.setUpdatedBy(0l);
-        state.setUpdatedDate(new Date());
         stateRepository.save(state);
         log.debug("State record updated - {}", new Gson().toJson(state));
         return mapper.map(state, StateResponseDto.class);
     }
+
+
+    /** <summary>
+     * Find State
+     * </summary>
+     * <remarks>this method is responsible for getting a single record</remarks>
+     */
+    public StateResponseDto findState(Long id){
+        State state = stateRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested State Id does not exist!"));
+        return mapper.map(state,StateResponseDto.class);
+    }
+
+
+    /** <summary>
+     * Find all State
+     * </summary>
+     * <remarks>this method is responsible for getting all records in pagination</remarks>
+     */
+    public Page<State> findAll(String name, PageRequest pageRequest ){
+        Page<State> state = stateRepository.findStates(name,pageRequest);
+            if(state == null){
+                throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
+            }
+        return state;
+
+    }
+
+
+    /** <summary>
+     * Enable disenable
+     * </summary>
+     * <remarks>this method is responsible for enabling and dis enabling a state</remarks>
+     */
+    public void enableDisEnableState (EnableDisEnableDto request){
+        State state = stateRepository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested State Id does not exist!"));
+        state.setIsActive(request.getIsActive());
+        state.setUpdatedBy(0l);
+        stateRepository.save(state);
+
+    }
+
+
 
 
 }
