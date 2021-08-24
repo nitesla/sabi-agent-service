@@ -5,8 +5,8 @@ import com.google.gson.Gson;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.TaskDto;
 import com.sabi.agent.core.dto.responseDto.TaskResponseDto;
-import com.sabi.agent.core.helpers.Validations;
 import com.sabi.agent.core.models.Task;
+import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.TaskRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
@@ -52,7 +52,7 @@ public class TaskService {
         task.setCreatedBy(0l);
         task.setIsActive(true);
         task = taskRepository.save(task);
-        log.debug("Create new Task - {}", new Gson().toJson(task));
+        log.debug("Create new Task - {}"+ new Gson().toJson(task));
         return mapper.map(task, TaskResponseDto.class);
     }
 
@@ -71,7 +71,7 @@ public class TaskService {
         mapper.map(request, task);
         task.setUpdatedBy(0l);
         taskRepository.save(task);
-        log.debug("task record updated - {}", new Gson().toJson(task));
+        log.debug("task record updated - {}"+ new Gson().toJson(task));
         return mapper.map(task, TaskResponseDto.class);
     }
 

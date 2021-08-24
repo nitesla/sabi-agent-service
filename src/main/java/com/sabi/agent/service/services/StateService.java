@@ -5,8 +5,8 @@ import com.google.gson.Gson;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.StateDto;
 import com.sabi.agent.core.dto.responseDto.StateResponseDto;
-import com.sabi.agent.core.helpers.Validations;
 import com.sabi.agent.core.models.State;
+import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.StateRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
@@ -58,7 +58,7 @@ public class StateService {
         state.setCreatedBy(0l);
         state.setIsActive(true);
         state = stateRepository.save(state);
-        log.debug("Create new State - {}", new Gson().toJson(state));
+        log.debug("Create new State - {}"+ new Gson().toJson(state));
         return mapper.map(state, StateResponseDto.class);
     }
 
@@ -77,7 +77,7 @@ public class StateService {
         mapper.map(request, state);
         state.setUpdatedBy(0l);
         stateRepository.save(state);
-        log.debug("State record updated - {}", new Gson().toJson(state));
+        log.debug("State record updated - {}"+ new Gson().toJson(state));
         return mapper.map(state, StateResponseDto.class);
     }
 

@@ -1,11 +1,12 @@
 package com.sabi.agent.service.repositories;
 
 
-
-
-
 import com.sabi.agent.core.models.LGA;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -15,4 +16,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LGARepository extends JpaRepository<LGA, Long> {
+
+       LGA findByName (String name);
+
+       @Query("SELECT l FROM LGA l WHERE ((:name IS NULL) OR (:name IS NOT NULL AND l.name = :name))")
+       Page<LGA> findLgas(@Param("name")String name, Pageable pageable);
 }
