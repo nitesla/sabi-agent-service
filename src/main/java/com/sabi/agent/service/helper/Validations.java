@@ -1,9 +1,7 @@
 package com.sabi.agent.service.helper;
 
 
-import com.sabi.agent.core.dto.requestDto.LGADto;
-import com.sabi.agent.core.dto.requestDto.StateDto;
-import com.sabi.agent.core.dto.requestDto.TaskDto;
+import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.State;
 import com.sabi.agent.service.repositories.StateRepository;
 import com.sabi.framework.exceptions.BadRequestException;
@@ -45,5 +43,19 @@ public class Validations {
         State state = stateRepository.findById(lgaDto.getStateId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid State id!"));
+    }
+
+
+    public void validateCountry(CountryDto countryDto) {
+        if (countryDto.getName() == null || countryDto.getName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if(countryDto.getCode() == null || countryDto.getCode().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Code cannot be empty");
+    }
+
+
+    public void validateIdType(IdTypeDto idTypeDto) {
+        if (idTypeDto.getName() == null || idTypeDto.getName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
     }
 }

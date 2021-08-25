@@ -2,6 +2,7 @@ package com.sabi.agent.service.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.LGADto;
 import com.sabi.agent.core.dto.responseDto.LGAResponseDto;
 import com.sabi.agent.core.models.LGA;
@@ -126,6 +127,22 @@ public class LGAService {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
         return lga;
+
+    }
+
+
+    /** <summary>
+     * Enable disenable
+     * </summary>
+     * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
+     */
+    public void enableDisEnableState (EnableDisEnableDto request){
+        LGA lga = lgaRepository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested LGA Id does not exist!"));
+        lga.setIsActive(request.getIsActive());
+        lga.setUpdatedBy(0l);
+        lgaRepository.save(lga);
 
     }
 }
