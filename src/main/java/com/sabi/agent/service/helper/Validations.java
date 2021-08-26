@@ -1,6 +1,7 @@
 package com.sabi.agent.service.helper;
 
 
+import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryDto;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.State;
 import com.sabi.agent.service.repositories.StateRepository;
@@ -56,6 +57,20 @@ public class Validations {
 
     public void validateIdType(IdTypeDto idTypeDto) {
         if (idTypeDto.getName() == null || idTypeDto.getName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+    }
+
+
+    public void validateBank(BankDto bankDto) {
+        if (bankDto.getName() == null || bankDto.getName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (bankDto.getBankCode() == null || bankDto.getBankCode().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Bank code cannot be empty");
+    }
+
+
+    public void validateAgentCategory(AgentCategoryDto agentCategoryDto) {
+        if (agentCategoryDto.getName() == null || agentCategoryDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
     }
 }
