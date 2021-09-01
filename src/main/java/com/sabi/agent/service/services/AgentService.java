@@ -85,7 +85,6 @@ public class AgentService {
      * <remarks>this method is responsible for verifying OTP</remarks>
      */
       public void validateOTP (ValidateOTPRequest request){
-//          Agent agent = mapper.map(request,Agent.class);
           Agent otpExist = agentRepository.findByRegistrationToken(request.getRegistrationToken());
           if(otpExist ==null){
               throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " Invalid OTP supplied");
