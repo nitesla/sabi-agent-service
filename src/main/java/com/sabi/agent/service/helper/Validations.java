@@ -3,7 +3,9 @@ package com.sabi.agent.service.helper;
 
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryDto;
 import com.sabi.agent.core.dto.requestDto.*;
+import com.sabi.agent.core.models.LGA;
 import com.sabi.agent.core.models.State;
+import com.sabi.agent.service.repositories.LGARepository;
 import com.sabi.agent.service.repositories.StateRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
@@ -17,6 +19,14 @@ import org.springframework.stereotype.Service;
 public class Validations {
 
     private StateRepository stateRepository;
+    private LGARepository lgaRepository;
+
+    public Validations() {
+    }
+
+    public Validations(LGARepository lgaRepository) {
+        this.lgaRepository = lgaRepository;
+    }
 
     public Validations(StateRepository stateRepository) {
         this.stateRepository = stateRepository;
@@ -72,5 +82,14 @@ public class Validations {
     public void validateAgentCategory(AgentCategoryDto agentCategoryDto) {
         if (agentCategoryDto.getName() == null || agentCategoryDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+    }
+
+    public void validateWard (WardDto wardDto){
+        if (wardDto.getName() == null || wardDto.getName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+
+        LGA lga = lgaRepository.findById(wardDto.getLgaId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid LGA ID!"));
     }
 }
