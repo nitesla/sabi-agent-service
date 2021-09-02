@@ -75,8 +75,8 @@ public class MarketService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<Market> findAll( PageRequest pageRequest ){
-        Page<Market> market = marketRepository.findMarkets(pageRequest);
+    public Page<Market> findAll(String name, PageRequest pageRequest ){
+        Page<Market> market = marketRepository.findMarkets(name, pageRequest);
         if(market == null){
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
