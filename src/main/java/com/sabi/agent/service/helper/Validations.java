@@ -73,4 +73,11 @@ public class Validations {
         if (agentCategoryDto.getName() == null || agentCategoryDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
     }
+
+    public void validateMarket(MarketDto marketDto){
+        if(marketDto.getName() == null || marketDto.getName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+//        if((Long)marketDto.getWardId() == null)
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "WardId cannot be empty");
+    }
 }
