@@ -21,6 +21,8 @@ import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
@@ -31,6 +33,8 @@ import java.util.Calendar;
 @Service
 public class AgentService {
 
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
     private UserRepository userRepository;
     private AgentRepository agentRepository;
     private AgentCategoryRepository agentCategoryRepository;
@@ -62,6 +66,8 @@ public class AgentService {
         if(userExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
         }
+        String password = user.getPassword();
+        user.setPassword(bCryptPasswordEncoder.encode(password));
         user.setCreatedBy(0l);
         user.setIsActive(false);
         user = userRepository.save(user);
@@ -95,7 +101,7 @@ public class AgentService {
           String regDate = otpExist.getRegistrationTokenExpiration();
           String result = String.valueOf(currentDate.compareTo(regDate));
           if(result.equals("1")){
-              throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " Token has expired");
+              throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " OTP invalid/expired");
           }
           request.setUpdatedBy(0l);
           request.setIsActive(true);
