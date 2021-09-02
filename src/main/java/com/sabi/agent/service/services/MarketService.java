@@ -2,14 +2,11 @@ package com.sabi.agent.service.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.MarketDto;
 import com.sabi.agent.core.dto.responseDto.MarketResponseDto;
-import com.sabi.agent.core.dto.responseDto.MarketResponseDto;
-import com.sabi.agent.core.models.Market;
-import com.sabi.agent.core.models.Market;
 import com.sabi.agent.core.models.Market;
 import com.sabi.agent.service.helper.Validations;
-import com.sabi.agent.service.repositories.MarketRepository;
 import com.sabi.agent.service.repositories.MarketRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
@@ -81,6 +78,21 @@ public class MarketService {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
         return market;
+
+    }
+
+    /** <summary>
+     * Enable disenable
+     * </summary>
+     * <remarks>this method is responsible for enabling and dis enabling a market</remarks>
+     */
+    public void enableDisEnableState (EnableDisEnableDto request){
+        Market market  = marketRepository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested market id does not exist!"));
+        market.setIsActive(request.getIsActive());
+        market.setUpdatedBy(0l);
+        marketRepository.save(market);
 
     }
 }
