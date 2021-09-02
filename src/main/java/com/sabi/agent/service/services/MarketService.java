@@ -7,6 +7,7 @@ import com.sabi.agent.core.dto.responseDto.MarketResponseDto;
 import com.sabi.agent.core.dto.responseDto.MarketResponseDto;
 import com.sabi.agent.core.models.Market;
 import com.sabi.agent.core.models.Market;
+import com.sabi.agent.core.models.Market;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MarketRepository;
 import com.sabi.agent.service.repositories.MarketRepository;
@@ -15,6 +16,8 @@ import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -65,5 +68,19 @@ public class MarketService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Market id does not exist!"));
         return mapper.map(market,MarketResponseDto.class);
+    }
+
+    /** <summary>
+     * Find all Markets
+     * </summary>
+     * <remarks>this method is responsible for getting all records in pagination</remarks>
+     */
+    public Page<Market> findAll( PageRequest pageRequest ){
+        Page<Market> market = marketRepository.findMarkets(pageRequest);
+        if(market == null){
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
+        }
+        return market;
+
     }
 }
