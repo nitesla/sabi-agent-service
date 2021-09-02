@@ -4,11 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.sabi.agent.core.dto.requestDto.MarketDto;
 import com.sabi.agent.core.dto.responseDto.MarketResponseDto;
+import com.sabi.agent.core.dto.responseDto.MarketResponseDto;
+import com.sabi.agent.core.models.Market;
 import com.sabi.agent.core.models.Market;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MarketRepository;
 import com.sabi.agent.service.repositories.MarketRepository;
 import com.sabi.framework.exceptions.ConflictException;
+import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -50,5 +53,17 @@ public class MarketService {
         market = marketRepository.save(market);
         log.debug("Create new Market - {}"+ new Gson().toJson(market));
         return mapper.map(market, MarketResponseDto.class);
+    }
+
+    /** <summary>
+     * Find Market
+     * </summary>
+     * <remarks>this method is responsible for getting a single record</remarks>
+     */
+    public MarketResponseDto findMarket(Long id){
+        Market market  = marketRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested Market id does not exist!"));
+        return mapper.map(market,MarketResponseDto.class);
     }
 }
