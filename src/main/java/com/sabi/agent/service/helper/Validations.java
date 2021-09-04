@@ -5,8 +5,10 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryDto;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.LGA;
 import com.sabi.agent.core.models.State;
+import com.sabi.agent.core.models.Ward;
 import com.sabi.agent.service.repositories.LGARepository;
 import com.sabi.agent.service.repositories.StateRepository;
+import com.sabi.agent.service.repositories.WardRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
@@ -23,17 +25,18 @@ public class Validations {
     private StateRepository stateRepository;
     private LGARepository lgaRepository;
     private UserRepository userRepository;
+    private WardRepository wardRepository;
 
-    public Validations() {
-    }
 
-    public Validations(LGARepository lgaRepository) {
+
+    public Validations(LGARepository lgaRepository,StateRepository stateRepository,WardRepository wardRepository) {
         this.lgaRepository = lgaRepository;
+        this.stateRepository = stateRepository;
+        this.wardRepository = wardRepository;
     }
 
-    public Validations(StateRepository stateRepository) {
-        this.stateRepository = stateRepository;
-    }
+
+
 
     public void validateState(StateDto stateDto) {
         if (stateDto.getName() == null || stateDto.getName().isEmpty())
@@ -90,8 +93,10 @@ public class Validations {
     public void validateMarket(MarketDto marketDto){
         if(marketDto.getName() == null || marketDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-//        if((Long)marketDto.getWardId() == null)
-//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "WardId cannot be empty");
+        Ward ward = wardRepository.findById(marketDto.getWardId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid ward id!"));
+
     }
 
     public void validateWard (WardDto wardDto){
@@ -100,7 +105,7 @@ public class Validations {
 
         LGA lga = lgaRepository.findById(wardDto.getLgaId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid LGA ID!"));
+                        " Enter a valid LGA id!"));
     }
 
     public void validateSupervisor (SupervisorDto supervisorDto){

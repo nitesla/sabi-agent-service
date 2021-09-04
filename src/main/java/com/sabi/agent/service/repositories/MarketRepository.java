@@ -1,11 +1,6 @@
 package com.sabi.agent.service.repositories;
 
 
-
-
-
-
-import com.sabi.agent.core.models.Bank;
 import com.sabi.agent.core.models.Market;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
