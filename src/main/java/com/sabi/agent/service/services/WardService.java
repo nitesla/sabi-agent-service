@@ -37,6 +37,12 @@ public class WardService {
         this.validations = validations;
     }
 
+    /** <summary>
+     * Ward creation
+     * </summary>
+     * <remarks>this method is responsible for creation of new Ward</remarks>
+     */
+
     public WardResponseDto createWard(WardDto request) {
         validations.validateWard(request);
         Ward ward = mapper.map(request,Ward.class);
@@ -51,6 +57,11 @@ public class WardService {
         return mapper.map(ward, WardResponseDto.class);
     }
 
+    /** <summary>
+     * Ward update
+     * </summary>
+     * <remarks>this method is responsible for updating already existing Ward</remarks>
+     */
     public WardResponseDto updateWard(WardDto request) {
         validations.validateWard(request);
         Ward ward = wardRepository.findById(request.getId())
@@ -59,9 +70,15 @@ public class WardService {
         mapper.map(request, ward);
         ward.setUpdatedBy(0l);
         wardRepository.save(ward);
-        log.debug("LGA record updated - {}" + new Gson().toJson(ward));
+        log.debug("Ward record updated - {}" + new Gson().toJson(ward));
         return mapper.map(ward, WardResponseDto.class);
     }
+
+    /** <summary>
+     * Find Ward
+     * </summary>
+     * <remarks>this method is responsible for getting a single record</remarks>
+     */
 
     public WardResponseDto findWard(Long id){
         Ward ward = wardRepository.findById(id)
@@ -84,6 +101,11 @@ public class WardService {
         return response;
     }
 
+    /** <summary>
+     * Find all Ward
+     * </summary>
+     * <remarks>this method is responsible for getting all records in pagination</remarks>
+     */
     public Page<Ward> findAll(String name, PageRequest pageRequest ) {
         Page<Ward> wards = wardRepository.findWards(name, pageRequest);
         if (wards == null) {
@@ -93,7 +115,12 @@ public class WardService {
 
     }
 
-    public void enableDisEnableWard (EnableDisEnableDto request){
+    /** <summary>
+     * Enable disenable
+     * </summary>
+     * <remarks>this method is responsible for enabling and dis enabling a Ward</remarks>
+     */
+    public void enableDisableWard (EnableDisEnableDto request){
         Ward ward = wardRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Ward Id does not exist!"));

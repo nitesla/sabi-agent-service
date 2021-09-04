@@ -21,6 +21,7 @@ import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
@@ -31,8 +32,7 @@ import java.util.Calendar;
 @Service
 public class AgentService {
 
-//    @Autowired
-//    BCryptPasswordEncoder bCryptPasswordEncoder;
+    BCryptPasswordEncoder bCryptPasswordEncoder;
     private UserRepository userRepository;
     private AgentRepository agentRepository;
     private AgentCategoryRepository agentCategoryRepository;
@@ -65,8 +65,7 @@ public class AgentService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
         }
         String password = user.getPassword();
-//        user.setPassword(bCryptPasswordEncoder.encode(password));
-        user.setPassword(password);
+        user.setPassword(bCryptPasswordEncoder.encode(password));
         user.setCreatedBy(0l);
         user.setIsActive(false);
         user = userRepository.save(user);
