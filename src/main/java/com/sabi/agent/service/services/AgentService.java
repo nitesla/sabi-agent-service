@@ -21,7 +21,6 @@ import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +32,6 @@ import java.util.Calendar;
 @Service
 public class AgentService {
 
-    @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
     private UserRepository userRepository;
     private AgentRepository agentRepository;
