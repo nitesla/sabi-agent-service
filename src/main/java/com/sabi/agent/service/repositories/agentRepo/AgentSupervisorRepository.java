@@ -15,5 +15,5 @@ import org.springframework.stereotype.Repository;
 public interface AgentSupervisorRepository extends JpaRepository<AgentSupervisor, Long> {
 //    @Query("SELECT b FROM AgentSupervisor b WHERE ((:name IS NULL) OR (:name IS NOT NULL AND b.name = :name))" +
 //            " AND ((:bankCode IS NULL) OR (:bankCode IS NOT NULL AND b.bankCode = :bankCode))")
-    Page<AgentSupervisor> findAgentSupervisors(String agentType, PageRequest pageRequest);
+//    Page<AgentSupervisor> findAgentSupervisors(String agentType, PageRequest pageRequest);
 }

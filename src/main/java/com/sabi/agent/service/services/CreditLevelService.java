@@ -72,7 +72,7 @@ public class CreditLevelService {
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
     public Page<CreditLevel> findAll(Long limit, Long repaymentPeriod, PageRequest pageRequest ){
-        Page<CreditLevel> creditLevel = creditLevelRepository.findcreditLevel(limit, repaymentPeriod,  pageRequest);
+        Page<CreditLevel> creditLevel = creditLevelRepository.findCreditLevel(limit, repaymentPeriod,  pageRequest);
         if(creditLevel == null){
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }

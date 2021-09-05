@@ -15,8 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
+@SuppressWarnings("ALL")
 @Slf4j
 @Service
 public class AgentSupervisorService {
@@ -91,7 +90,7 @@ public class AgentSupervisorService {
      */
     public Page<AgentSupervisor> findAll(String agentType, PageRequest pageRequest){
         Page<AgentSupervisor> agentSupervisor = agentSupervisorRepository
-                .findAgentSupervisors(agentType, pageRequest);
+                .findAll(pageRequest);
         if(agentSupervisor == null){
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
