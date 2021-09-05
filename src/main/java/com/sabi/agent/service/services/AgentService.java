@@ -15,12 +15,16 @@ import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.PreviousPasswords;
 import com.sabi.framework.models.User;
+import com.sabi.framework.repositories.PreviousPasswordRepository;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
@@ -31,8 +35,9 @@ import java.util.Calendar;
 @Service
 public class AgentService {
 
-//    @Autowired
-//    BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
+    private PreviousPasswordRepository previousPasswordRepository;
     private UserRepository userRepository;
     private AgentRepository agentRepository;
     private AgentCategoryRepository agentCategoryRepository;
@@ -40,9 +45,10 @@ public class AgentService {
     private final ObjectMapper objectMapper;
     private final Validations validations;
 
-    public AgentService(UserRepository userRepository,AgentRepository agentRepository,
+    public AgentService(PreviousPasswordRepository previousPasswordRepository,UserRepository userRepository,AgentRepository agentRepository,
                         AgentCategoryRepository agentCategoryRepository, ModelMapper mapper, ObjectMapper objectMapper,
                         Validations validations) {
+        this.previousPasswordRepository = previousPasswordRepository;
         this.userRepository = userRepository;
         this.agentRepository = agentRepository;
         this.agentCategoryRepository = agentCategoryRepository;
@@ -65,12 +71,19 @@ public class AgentService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
         }
         String password = user.getPassword();
-//        user.setPassword(bCryptPasswordEncoder.encode(password));
-        user.setPassword(password);
+        user.setPassword(bCryptPasswordEncoder.encode(password));
+//        user.setPassword(password);
         user.setCreatedBy(0l);
         user.setIsActive(false);
         user = userRepository.save(user);
         log.debug("Create new agent user - {}"+ new Gson().toJson(user));
+
+        PreviousPasswords previousPasswords = PreviousPasswords.builder()
+                .userId(user.getId())
+                .password(user.getPassword())
+                .build();
+        previousPasswordRepository.save(previousPasswords);
+
         Agent saveAgent = new Agent();
                 saveAgent.setUserId(user.getId());
                 saveAgent.setReferrer(Utility.guidID());
