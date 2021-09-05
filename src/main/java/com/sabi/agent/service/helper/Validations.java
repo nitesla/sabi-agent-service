@@ -6,10 +6,12 @@ import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.LGA;
 import com.sabi.agent.core.models.State;
 import com.sabi.agent.core.models.Ward;
+import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.LGARepository;
 import com.sabi.agent.service.repositories.StateRepository;
 import com.sabi.agent.service.repositories.SupervisorRepository;
 import com.sabi.agent.service.repositories.WardRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
@@ -18,6 +20,8 @@ import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 
 @SuppressWarnings("All")
 @Slf4j
@@ -29,18 +33,20 @@ public class Validations {
     private UserRepository userRepository;
     private WardRepository wardRepository;
     private AgentRepository agentRepository;
+    private AgentCategoryRepository agentCategoryRepository;
     private SupervisorRepository supervisorRepository;
 
 
 
     public Validations(LGARepository lgaRepository,StateRepository stateRepository,
                        WardRepository wardRepository, AgentRepository agentRepository,
-                       SupervisorRepository supervisorRepository) {
+                       SupervisorRepository supervisorRepository, AgentCategoryRepository agentCategoryRepository) {
         this.lgaRepository = lgaRepository;
         this.stateRepository = stateRepository;
         this.wardRepository = wardRepository;
         this.agentRepository = agentRepository;
         this.supervisorRepository = supervisorRepository;
+        this.agentCategoryRepository = agentCategoryRepository;
     }
 
 
@@ -140,5 +146,16 @@ public class Validations {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid supervisor"));
     }
+
+    public void validatecreditLevel(CreditLevelDto request) {
+        if (request.getLimit() == null || request.getLimit().compareTo(BigDecimal.ZERO) < 0)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST,
+                    "Limit cannot be empty or less than zero");
+
+        AgentCategory agentCategory = agentCategoryRepository.findById(request.getAgentCategoryId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Agent category id!"));
+    }
+
 
 }
