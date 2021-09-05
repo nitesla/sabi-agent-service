@@ -5,15 +5,19 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryDto;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.LGA;
 import com.sabi.agent.core.models.State;
+import com.sabi.agent.core.models.Ward;
+import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.LGARepository;
 import com.sabi.agent.service.repositories.StateRepository;
+import com.sabi.agent.service.repositories.WardRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
-import com.sabi.framework.models.User;
-import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 
 @SuppressWarnings("All")
 @Slf4j
@@ -22,18 +26,21 @@ public class Validations {
 
     private StateRepository stateRepository;
     private LGARepository lgaRepository;
-    private UserRepository userRepository;
+    private WardRepository wardRepository;
+    private AgentCategoryRepository agentCategoryRepository;
 
-    public Validations() {
-    }
 
-    public Validations(LGARepository lgaRepository) {
+
+    public Validations(LGARepository lgaRepository,StateRepository stateRepository,
+                       WardRepository wardRepository, AgentCategoryRepository agentCategoryRepository) {
         this.lgaRepository = lgaRepository;
+        this.stateRepository = stateRepository;
+        this.wardRepository = wardRepository;
+        this.agentCategoryRepository = agentCategoryRepository;
     }
 
-    public Validations(StateRepository stateRepository) {
-        this.stateRepository = stateRepository;
-    }
+
+
 
     public void validateState(StateDto stateDto) {
         if (stateDto.getName() == null || stateDto.getName().isEmpty())
@@ -90,8 +97,10 @@ public class Validations {
     public void validateMarket(MarketDto marketDto){
         if(marketDto.getName() == null || marketDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-//        if((Long)marketDto.getWardId() == null)
-//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "WardId cannot be empty");
+        Ward ward = wardRepository.findById(marketDto.getWardId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid ward id!"));
+
     }
 
     public void validateWard (WardDto wardDto){
@@ -100,18 +109,16 @@ public class Validations {
 
         LGA lga = lgaRepository.findById(wardDto.getLgaId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid LGA ID!"));
+                        " Enter a valid LGA id!"));
     }
 
-    public void validateSupervisor (SupervisorDto supervisorDto){
-        User user = userRepository.findById(supervisorDto.getUserId())
+    public void validatecreditLevel(CreditLevelDto request) {
+        if (request.getLimit() == null || request.getLimit().compareTo(BigDecimal.ZERO) < 0)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST,
+                    "Limit cannot be empty or less than zero");
+
+        AgentCategory agentCategory = agentCategoryRepository.findById(request.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid User ID!"));
-    }
-
-    public void validateTargetType (TargetTypeDto targetTypeDto){
-        if (targetTypeDto.getName() == null || targetTypeDto.getName().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-
+                        " Enter a valid Agent category id!"));
     }
 }
