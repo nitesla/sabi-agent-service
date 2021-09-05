@@ -11,6 +11,8 @@ import com.sabi.agent.service.repositories.StateRepository;
 import com.sabi.agent.service.repositories.WardRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class Validations {
 
     private StateRepository stateRepository;
     private LGARepository lgaRepository;
+    private UserRepository userRepository;
     private WardRepository wardRepository;
 
 
@@ -103,5 +106,17 @@ public class Validations {
         LGA lga = lgaRepository.findById(wardDto.getLgaId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid LGA id!"));
+    }
+
+    public void validateSupervisor (SupervisorDto supervisorDto){
+        User user = userRepository.findById(supervisorDto.getUserId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid User ID!"));
+    }
+
+    public void validateTargetType (TargetTypeDto targetTypeDto){
+        if (targetTypeDto.getName() == null || targetTypeDto.getName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+
     }
 }
