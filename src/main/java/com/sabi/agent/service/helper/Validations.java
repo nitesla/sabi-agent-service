@@ -8,7 +8,9 @@ import com.sabi.agent.core.models.State;
 import com.sabi.agent.core.models.Ward;
 import com.sabi.agent.service.repositories.LGARepository;
 import com.sabi.agent.service.repositories.StateRepository;
+import com.sabi.agent.service.repositories.SupervisorRepository;
 import com.sabi.agent.service.repositories.WardRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
@@ -26,13 +28,19 @@ public class Validations {
     private LGARepository lgaRepository;
     private UserRepository userRepository;
     private WardRepository wardRepository;
+    private AgentRepository agentRepository;
+    private SupervisorRepository supervisorRepository;
 
 
 
-    public Validations(LGARepository lgaRepository,StateRepository stateRepository,WardRepository wardRepository) {
+    public Validations(LGARepository lgaRepository,StateRepository stateRepository,
+                       WardRepository wardRepository, AgentRepository agentRepository,
+                       SupervisorRepository supervisorRepository) {
         this.lgaRepository = lgaRepository;
         this.stateRepository = stateRepository;
         this.wardRepository = wardRepository;
+        this.agentRepository = agentRepository;
+        this.supervisorRepository = supervisorRepository;
     }
 
 
@@ -119,4 +127,18 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
 
     }
+    public void validateAgentSupervisor(com.sabi.agent.core.dto.agentDto.requestDto.AgentSupervisor request) {
+        if (request.getAgent() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent cannot be empty");
+        if (request.getSupervisor() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Supervisor cannot be empty");
+
+        agentRepository.findById(request.getAgent().getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Agent"));
+        supervisorRepository.findById(request.getSupervisor().getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid supervisor"));
+    }
+
 }
