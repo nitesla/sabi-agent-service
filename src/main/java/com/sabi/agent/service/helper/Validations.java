@@ -2,6 +2,7 @@ package com.sabi.agent.service.helper;
 
 
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryDto;
+import com.sabi.agent.core.dto.agentDto.requestDto.AgentSupervisor;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.LGA;
 import com.sabi.agent.core.models.State;
@@ -9,8 +10,10 @@ import com.sabi.agent.core.models.Ward;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.LGARepository;
 import com.sabi.agent.service.repositories.StateRepository;
+import com.sabi.agent.service.repositories.SupervisorRepository;
 import com.sabi.agent.service.repositories.WardRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.utils.CustomResponseCode;
@@ -27,15 +30,20 @@ public class Validations {
     private StateRepository stateRepository;
     private LGARepository lgaRepository;
     private WardRepository wardRepository;
+    private AgentRepository agentRepository;
+    private SupervisorRepository supervisorRepository;
     private AgentCategoryRepository agentCategoryRepository;
 
 
 
     public Validations(LGARepository lgaRepository,StateRepository stateRepository,
-                       WardRepository wardRepository, AgentCategoryRepository agentCategoryRepository) {
+                       WardRepository wardRepository, AgentCategoryRepository agentCategoryRepository,
+    AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
         this.lgaRepository = lgaRepository;
         this.stateRepository = stateRepository;
         this.wardRepository = wardRepository;
+        this.agentCategoryRepository = agentCategoryRepository;
+        this.agentRepository = agentRepository;
         this.agentCategoryRepository = agentCategoryRepository;
     }
 
@@ -120,5 +128,19 @@ public class Validations {
         AgentCategory agentCategory = agentCategoryRepository.findById(request.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Agent category id!"));
+    }
+
+    public void validateAgentSupervisor(AgentSupervisor request) {
+        if (request.getAgent() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent cannot be empty");
+        if (request.getSupervisor() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Supervisor cannot be empty");
+
+        agentRepository.findById(request.getAgent().getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Agent"));
+        supervisorRepository.findById(request.getSupervisor().getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid supervisor"));
     }
 }
