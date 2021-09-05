@@ -2,25 +2,20 @@ package com.sabi.agent.service.helper;
 
 
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryDto;
-import com.sabi.agent.core.dto.agentDto.requestDto.AgentSupervisor;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.LGA;
 import com.sabi.agent.core.models.State;
 import com.sabi.agent.core.models.Ward;
-import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.LGARepository;
 import com.sabi.agent.service.repositories.StateRepository;
-import com.sabi.agent.service.repositories.SupervisorRepository;
 import com.sabi.agent.service.repositories.WardRepository;
-import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
-import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
 
 @SuppressWarnings("All")
 @Slf4j
@@ -29,22 +24,15 @@ public class Validations {
 
     private StateRepository stateRepository;
     private LGARepository lgaRepository;
+    private UserRepository userRepository;
     private WardRepository wardRepository;
-    private AgentRepository agentRepository;
-    private SupervisorRepository supervisorRepository;
-    private AgentCategoryRepository agentCategoryRepository;
 
 
 
-    public Validations(LGARepository lgaRepository,StateRepository stateRepository,
-                       WardRepository wardRepository, AgentCategoryRepository agentCategoryRepository,
-    AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
+    public Validations(LGARepository lgaRepository,StateRepository stateRepository,WardRepository wardRepository) {
         this.lgaRepository = lgaRepository;
         this.stateRepository = stateRepository;
         this.wardRepository = wardRepository;
-        this.agentCategoryRepository = agentCategoryRepository;
-        this.agentRepository = agentRepository;
-        this.agentCategoryRepository = agentCategoryRepository;
     }
 
 
@@ -120,27 +108,15 @@ public class Validations {
                         " Enter a valid LGA id!"));
     }
 
-    public void validatecreditLevel(CreditLevelDto request) {
-        if (request.getLimit() == null || request.getLimit().compareTo(BigDecimal.ZERO) < 0)
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST,
-                    "Limit cannot be empty or less than zero");
-
-        AgentCategory agentCategory = agentCategoryRepository.findById(request.getAgentCategoryId())
+    public void validateSupervisor (SupervisorDto supervisorDto){
+        User user = userRepository.findById(supervisorDto.getUserId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid Agent category id!"));
+                        " Enter a valid User ID!"));
     }
 
-    public void validateAgentSupervisor(AgentSupervisor request) {
-        if (request.getAgent() == null )
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent cannot be empty");
-        if (request.getSupervisor() == null)
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Supervisor cannot be empty");
+    public void validateTargetType (TargetTypeDto targetTypeDto){
+        if (targetTypeDto.getName() == null || targetTypeDto.getName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
 
-        agentRepository.findById(request.getAgent().getId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid Agent"));
-        supervisorRepository.findById(request.getSupervisor().getId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid supervisor"));
     }
 }
