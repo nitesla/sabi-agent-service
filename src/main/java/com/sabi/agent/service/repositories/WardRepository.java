@@ -19,6 +19,10 @@ public interface WardRepository extends JpaRepository<Ward, Long> {
 
     Ward findByName (String name);
 
-    @Query("SELECT w FROM Ward w WHERE ((:name IS NULL) OR (:name IS NOT NULL AND w.name = :name))")
-    Page<Ward> findWards(@Param("name")String name, Pageable pageable);
+    @Query("SELECT w FROM Ward w WHERE ((:name IS NULL) OR (:name IS NOT NULL AND w.name = :name))" +
+            " AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND w.isActive = :isActive))")
+    Page<Ward> findWards(@Param("name")String name,
+                         @Param("isActive")Boolean isActive,
+                         Pageable pageable);
+
 }

@@ -134,8 +134,8 @@ public class AgentCategoryTargetService {
 
 
 
-    public Page<AgentCategoryTarget> findAll(String name, PageRequest pageRequest ) {
-        Page<AgentCategoryTarget> agentCategoryTargets = agentCategoryTargetRepository.findAgentCategoryTargets(name, pageRequest);
+    public Page<AgentCategoryTarget> findAll(String name, Boolean isActive, Integer min, Integer max, Integer superMax,  PageRequest pageRequest ) {
+        Page<AgentCategoryTarget> agentCategoryTargets = agentCategoryTargetRepository.findAgentCategoryTargets(name, isActive, min, max, superMax, pageRequest);
         if (agentCategoryTargets == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }

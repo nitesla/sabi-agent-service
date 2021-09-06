@@ -106,8 +106,8 @@ public class WardService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<Ward> findAll(String name, PageRequest pageRequest ) {
-        Page<Ward> wards = wardRepository.findWards(name, pageRequest);
+    public Page<Ward> findAll(String name, Boolean isActive, PageRequest pageRequest ) {
+        Page<Ward> wards = wardRepository.findWards(name, isActive, pageRequest);
         if (wards == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }

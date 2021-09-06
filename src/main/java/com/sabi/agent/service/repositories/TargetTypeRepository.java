@@ -19,8 +19,11 @@ public interface TargetTypeRepository extends JpaRepository<TargetType, Long> {
     TargetType findByName (String name);
 
 
-    @Query("SELECT t FROM TargetType t WHERE ((:name IS NULL) OR (:name IS NOT NULL AND t.name = :name))")
-    Page<TargetType> findTargetTypes(@Param("name")String name, Pageable pageable);
+    @Query("SELECT t FROM TargetType t WHERE ((:name IS NULL) OR (:name IS NOT NULL AND t.name = :name))" +
+            " AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND t.isActive = :isActive))")
+    Page<TargetType> findTargetTypes(@Param("name")String name,
+                                     @Param("isActive")Boolean isActive,
+                                     Pageable pageable);
 
 
 }
