@@ -99,8 +99,8 @@ public class TargetTypeService {
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
 
-    public Page<TargetType> findAll(String name, PageRequest pageRequest ) {
-        Page<TargetType> targetTypes = targetTypeRepository.findTargetTypes(name, pageRequest);
+    public Page<TargetType> findAll(String name, Boolean isActive, PageRequest pageRequest ) {
+        Page<TargetType> targetTypes = targetTypeRepository.findTargetTypes(name, isActive, pageRequest);
         if (targetTypes == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
