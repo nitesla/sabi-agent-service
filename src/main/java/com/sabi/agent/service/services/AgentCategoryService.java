@@ -95,8 +95,8 @@ public class AgentCategoryService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<AgentCategory> findAll(String name, PageRequest pageRequest ){
-        Page<AgentCategory> agentCategories = agentCategoryRepository.findAgentCategories(name,pageRequest);
+    public Page<AgentCategory> findAll(String name,Boolean isActive ,PageRequest pageRequest ){
+        Page<AgentCategory> agentCategories = agentCategoryRepository.findAgentCategories(name,isActive,pageRequest);
         if(agentCategories == null){
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }

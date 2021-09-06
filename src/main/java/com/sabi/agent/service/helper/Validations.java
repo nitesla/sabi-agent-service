@@ -156,8 +156,8 @@ public class Validations {
                         " Enter a valid supervisor"));
     }
 
-    public void validatecreditLevel(CreditLevelDto request) {
-        if (request.getLimit() == null || request.getLimit().compareTo(BigDecimal.ZERO) < 0)
+    public void validateCreditLevel(CreditLevelDto request) {
+        if (request.getLimits() == null || request.getLimits().compareTo(BigDecimal.ZERO) < 0)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST,
                     "Limit cannot be empty or less than zero");
 
