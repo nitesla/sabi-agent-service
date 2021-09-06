@@ -48,7 +48,7 @@ public class MarketService {
         if(marketExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Market already exist");
         }
-        market.setCreatedBy(0l);
+        market.setCreatedBy(0L);
         market.setIsActive(true);
         market = marketRepository.save(market);
         log.debug("Create new Market - {}"+ new Gson().toJson(market));
