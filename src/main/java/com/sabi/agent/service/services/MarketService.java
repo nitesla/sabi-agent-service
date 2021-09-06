@@ -2,9 +2,11 @@ package com.sabi.agent.service.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.sabi.agent.core.dto.requestDto.MarketDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.MarketDto;
 import com.sabi.agent.core.dto.responseDto.MarketResponseDto;
+import com.sabi.agent.core.models.Market;
 import com.sabi.agent.core.models.Market;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MarketRepository;
@@ -55,6 +57,18 @@ public class MarketService {
         return mapper.map(market, MarketResponseDto.class);
     }
 
+    public MarketDto updateMarket(MarketDto request) {
+        validations.validateMarket(request);
+        Market market = marketRepository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested Country Id does not exist!"));
+        mapper.map(request, market);
+        market.setUpdatedBy(0L);
+        marketRepository.save(market);
+        log.debug("Country record updated - {}"+ new Gson().toJson(market));
+        return mapper.map(market, MarketDto.class);
+    }
+
     /** <summary>
      * Find Market
      * </summary>
@@ -72,8 +86,8 @@ public class MarketService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<Market> findAll(String name, PageRequest pageRequest ){
-        Page<Market> market = marketRepository.findMarkets(name, pageRequest);
+    public Page<Market> findAll(String name, Boolean isActive, PageRequest pageRequest ){
+        Page<Market> market = marketRepository.findMarkets(name, isActive,pageRequest);
         if(market == null){
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }

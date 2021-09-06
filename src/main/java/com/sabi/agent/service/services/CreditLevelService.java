@@ -4,11 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.sabi.agent.core.dto.requestDto.CreditLevelDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
+import com.sabi.agent.core.dto.responseDto.CountryResponseDto;
 import com.sabi.agent.core.dto.responseDto.CreditLevelResponseDto;
+import com.sabi.agent.core.models.Country;
 import com.sabi.agent.core.models.CreditLevel;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.CreditLevelRepository;
-import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,7 @@ public class CreditLevelService {
      */
 
     public CreditLevelResponseDto createCreditLevel(CreditLevelDto request) {
-        validations.validatecreditLevel(request);
+        validations.validateCreditLevel(request);
         CreditLevel creditLevel = mapper.map(request, CreditLevel.class);
 //        CreditLevel creditLevelExist = creditLevelRepository.findByAgentCategoryId(request.getAgentCategoryId());
 //        if(creditLevelExist !=null){
@@ -52,6 +53,18 @@ public class CreditLevelService {
         creditLevel = creditLevelRepository.save(creditLevel);
         log.debug("Create new creditLevel - {}"+ new Gson().toJson(creditLevel));
         return mapper.map(creditLevel, CreditLevelResponseDto.class);
+    }
+
+    public CreditLevelDto updateCreditLevel(CreditLevelDto request) {
+        validations.validateCreditLevel(request);
+        CreditLevel creditLevel = creditLevelRepository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested Country Id does not exist!"));
+        mapper.map(request, creditLevel);
+        creditLevel.setUpdatedBy(0L);
+        creditLevelRepository.save(creditLevel);
+        log.debug("Country record updated - {}"+ new Gson().toJson(creditLevel));
+        return mapper.map(creditLevel, CreditLevelDto.class);
     }
 
     /** <summary>
@@ -71,8 +84,8 @@ public class CreditLevelService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<CreditLevel> findAll(Long limit, Long repaymentPeriod, PageRequest pageRequest ){
-        Page<CreditLevel> creditLevel = creditLevelRepository.findCreditLevel(limit, repaymentPeriod,  pageRequest);
+    public Page<CreditLevel> findAll(Long limit,Boolean isActive, Long repaymentPeriod, PageRequest pageRequest ){
+        Page<CreditLevel> creditLevel = creditLevelRepository.findCreditLevel(limit, isActive,repaymentPeriod,  pageRequest);
         if(creditLevel == null){
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }

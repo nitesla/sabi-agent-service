@@ -117,7 +117,7 @@ public class IdTypeService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Id type does not exist!"));
         idType.setIsActive(request.getIsActive());
-        idType.setUpdatedBy(0l);
+        idType.setUpdatedBy(0L);
         idTypeRepository.save(idType);
 
     }

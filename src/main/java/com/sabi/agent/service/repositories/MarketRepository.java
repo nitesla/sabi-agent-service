@@ -17,6 +17,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MarketRepository extends JpaRepository<Market, Long> {
     Market findByName (String name);
-    @Query("SELECT i FROM Market i WHERE ((:name IS NULL) OR (:name IS NOT NULL AND i.name = :name))")
-    Page<Market> findMarkets(@Param("name")String name, Pageable pageable);
+    @Query("SELECT i FROM Market i WHERE ((:name IS NULL) OR (:name IS NOT NULL AND i.name = :name))" +
+            " AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND i.isActive = :isActive))")
+
+    Page<Market> findMarkets(@Param("name")String name, @Param("isActive")Boolean isActive,Pageable pageable);
 }
