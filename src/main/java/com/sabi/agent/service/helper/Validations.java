@@ -9,7 +9,6 @@ import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
-import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
@@ -34,29 +33,20 @@ public class Validations {
     private UserRepository userRepository;
     private WardRepository wardRepository;
     private AgentRepository agentRepository;
-    private AgentCategoryRepository agentCategoryRepository;
     private SupervisorRepository supervisorRepository;
 
 
-    public Validations(StateRepository stateRepository, LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository, TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, WardRepository wardRepository) {
-
-    public Validations(LGARepository lgaRepository,StateRepository stateRepository,
-                       WardRepository wardRepository, AgentRepository agentRepository,
-                       SupervisorRepository supervisorRepository, AgentCategoryRepository agentCategoryRepository) {
-        this.lgaRepository = lgaRepository;
+    public Validations(StateRepository stateRepository, LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository, TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
         this.stateRepository = stateRepository;
-        this.wardRepository = wardRepository;
-        this.agentRepository = agentRepository;
-        this.supervisorRepository = supervisorRepository;
+        this.lgaRepository = lgaRepository;
         this.agentCategoryRepository = agentCategoryRepository;
         this.targetTypeRepository = targetTypeRepository;
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.wardRepository = wardRepository;
+        this.agentRepository = agentRepository;
+        this.supervisorRepository = supervisorRepository;
     }
-
-
-
 
     public void validateState(StateDto stateDto) {
         if (stateDto.getName() == null || stateDto.getName().isEmpty())
