@@ -2,13 +2,18 @@ package com.sabi.agent.service.helper;
 
 
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryDto;
+import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryTargetDto;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.LGA;
 import com.sabi.agent.core.models.State;
+import com.sabi.agent.core.models.TargetType;
 import com.sabi.agent.core.models.Ward;
+import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.LGARepository;
 import com.sabi.agent.service.repositories.StateRepository;
+import com.sabi.agent.service.repositories.TargetTypeRepository;
 import com.sabi.agent.service.repositories.WardRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
@@ -24,19 +29,20 @@ public class Validations {
 
     private StateRepository stateRepository;
     private LGARepository lgaRepository;
+    private AgentCategoryRepository agentCategoryRepository;
+    private TargetTypeRepository targetTypeRepository;
     private UserRepository userRepository;
     private WardRepository wardRepository;
 
 
-
-    public Validations(LGARepository lgaRepository,StateRepository stateRepository,WardRepository wardRepository) {
-        this.lgaRepository = lgaRepository;
+    public Validations(StateRepository stateRepository, LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository, TargetTypeRepository targetTypeRepository, UserRepository userRepository, WardRepository wardRepository) {
         this.stateRepository = stateRepository;
+        this.lgaRepository = lgaRepository;
+        this.agentCategoryRepository = agentCategoryRepository;
+        this.targetTypeRepository = targetTypeRepository;
+        this.userRepository = userRepository;
         this.wardRepository = wardRepository;
     }
-
-
-
 
     public void validateState(StateDto stateDto) {
         if (stateDto.getName() == null || stateDto.getName().isEmpty())
@@ -118,5 +124,18 @@ public class Validations {
         if (targetTypeDto.getName() == null || targetTypeDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
 
+    }
+
+    public void validateAgentCategoryTarget (AgentCategoryTargetDto agentCategoryTargetDto){
+        if (agentCategoryTargetDto.getName() == null || agentCategoryTargetDto.getName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+
+        AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTargetDto.getAgentCategoryId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Agent Category!"));
+
+        TargetType targetType = targetTypeRepository.findById(agentCategoryTargetDto.getTargetTypeId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Target Type!"));
     }
 }
