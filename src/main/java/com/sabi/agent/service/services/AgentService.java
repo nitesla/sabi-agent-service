@@ -8,8 +8,12 @@ import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.ValidateOTPRequest;
 import com.sabi.agent.core.dto.responseDto.AgentUpdateResponseDto;
 import com.sabi.agent.core.dto.responseDto.CreateAgentResponseDto;
+import com.sabi.agent.core.dto.responseDto.QueryAgentResponseDto;
+import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.Agent;
+import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.helper.Validations;
+import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
@@ -37,6 +41,12 @@ public class AgentService {
 
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
+    private CountryRepository countryRepository;
+    private BankRepository bankRepository;
+    private StateRepository stateRepository;
+    private IdTypeRepository idTypeRepository;
+    private CreditLevelRepository creditLevelRepository;
+    private SupervisorRepository supervisorRepository;
     private PreviousPasswordRepository previousPasswordRepository;
     private UserRepository userRepository;
     private AgentRepository agentRepository;
@@ -45,9 +55,15 @@ public class AgentService {
     private final ObjectMapper objectMapper;
     private final Validations validations;
 
-    public AgentService(PreviousPasswordRepository previousPasswordRepository,UserRepository userRepository,AgentRepository agentRepository,
+    public AgentService(CountryRepository countryRepository,BankRepository bankRepository,StateRepository stateRepository,IdTypeRepository idTypeRepository,CreditLevelRepository creditLevelRepository,SupervisorRepository supervisorRepository,PreviousPasswordRepository previousPasswordRepository,UserRepository userRepository,AgentRepository agentRepository,
                         AgentCategoryRepository agentCategoryRepository, ModelMapper mapper, ObjectMapper objectMapper,
                         Validations validations) {
+        this.countryRepository = countryRepository;
+        this.bankRepository = bankRepository;
+        this.stateRepository = stateRepository;
+        this.idTypeRepository = idTypeRepository;
+        this.creditLevelRepository = creditLevelRepository;
+        this.supervisorRepository = supervisorRepository;
         this.previousPasswordRepository = previousPasswordRepository;
         this.userRepository = userRepository;
         this.agentRepository = agentRepository;
@@ -72,7 +88,6 @@ public class AgentService {
         }
         String password = user.getPassword();
         user.setPassword(bCryptPasswordEncoder.encode(password));
-//        user.setPassword(password);
         user.setCreatedBy(0l);
         user.setIsActive(false);
         user = userRepository.save(user);
@@ -154,6 +169,45 @@ public class AgentService {
     }
 
 
+
+
+    /** <summary>
+     * Find Agent
+     * </summary>
+     * <remarks>this method is responsible for getting a single record</remarks>
+     */
+    public QueryAgentResponseDto findAgent(Long id){
+        Agent agent  = agentRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested agent id does not exist!"));
+        AgentCategory category = agentCategoryRepository.findById(agent.getAgentCategoryId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "  Id does not exist!"));
+        User user = userRepository.findById(agent.getUserId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "  Id does not exist!"));
+        Supervisor supervisor = supervisorRepository.findById(agent.getSupervisorId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "  Id does not exist!"));
+        CreditLevel creditLevel = creditLevelRepository.findById(agent.getCreditLevelId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "  Id does not exist!"));
+        IdType idType = idTypeRepository.findById(agent.getIdTypeId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "  Id does not exist!"));
+        State state = stateRepository.findById(agent.getStateId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "  Id does not exist!"));
+        Bank bank = bankRepository.findById(agent.getBankId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "  Id does not exist!"));
+        Country country = countryRepository.findById(agent.getCountryId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "  Id does not exist!"));
+
+
+        return mapper.map(agent,QueryAgentResponseDto.class);
+    }
 
 
 
