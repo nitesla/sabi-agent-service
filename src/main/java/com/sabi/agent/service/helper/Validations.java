@@ -9,6 +9,7 @@ import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
@@ -16,6 +17,8 @@ import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 
 @SuppressWarnings("All")
 @Slf4j
@@ -29,9 +32,11 @@ public class Validations {
     private TaskRepository taskRepository;
     private UserRepository userRepository;
     private WardRepository wardRepository;
+    private AgentRepository agentRepository;
+    private SupervisorRepository supervisorRepository;
 
 
-    public Validations(StateRepository stateRepository, LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository, TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, WardRepository wardRepository) {
+    public Validations(StateRepository stateRepository, LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository, TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
         this.stateRepository = stateRepository;
         this.lgaRepository = lgaRepository;
         this.agentCategoryRepository = agentCategoryRepository;
@@ -39,6 +44,8 @@ public class Validations {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.wardRepository = wardRepository;
+        this.agentRepository = agentRepository;
+        this.supervisorRepository = supervisorRepository;
     }
 
     public void validateState(StateDto stateDto) {
@@ -135,6 +142,31 @@ public class Validations {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Target Type!"));
     }
+    public void validateAgentSupervisor(com.sabi.agent.core.dto.agentDto.requestDto.AgentSupervisor request) {
+        if (request.getAgent() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent cannot be empty");
+        if (request.getSupervisor() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Supervisor cannot be empty");
+
+        agentRepository.findById(request.getAgent().getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Agent"));
+        supervisorRepository.findById(request.getSupervisor().getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid supervisor"));
+    }
+
+    public void validatecreditLevel(CreditLevelDto request) {
+        if (request.getLimit() == null || request.getLimit().compareTo(BigDecimal.ZERO) < 0)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST,
+                    "Limit cannot be empty or less than zero");
+
+        AgentCategory agentCategory = agentCategoryRepository.findById(request.getAgentCategoryId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Agent category id!"));
+    }
+
+
 
     public void validateAgentCategoryTask (AgentCategoryTaskDto agentCategoryTaskDto){
         if (agentCategoryTaskDto.getName() == null || agentCategoryTaskDto.getName().isEmpty())
