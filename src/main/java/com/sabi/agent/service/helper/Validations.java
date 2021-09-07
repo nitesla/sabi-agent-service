@@ -27,7 +27,6 @@ public class Validations {
 
     private StateRepository stateRepository;
     private LGARepository lgaRepository;
-    private AgentCategoryRepository agentCategoryRepository;
     private TargetTypeRepository targetTypeRepository;
     private TaskRepository taskRepository;
     private UserRepository userRepository;
@@ -142,6 +141,7 @@ public class Validations {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Target Type!"));
     }
+
     public void validateAgentSupervisor(com.sabi.agent.core.dto.agentDto.requestDto.AgentSupervisor request) {
         if (request.getAgent() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent cannot be empty");

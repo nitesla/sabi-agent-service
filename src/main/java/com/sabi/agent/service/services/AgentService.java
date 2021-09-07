@@ -28,6 +28,8 @@ import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -204,11 +206,52 @@ public class AgentService {
         Country country = countryRepository.findById(agent.getCountryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "  Id does not exist!"));
-
-
-        return mapper.map(agent,QueryAgentResponseDto.class);
+        QueryAgentResponseDto response = QueryAgentResponseDto.builder()
+                .id(agent.getId())
+                .agentCategory(category.getName())
+                .user(user.getFirstName()+ " " + user.getLastName())
+                .scope(agent.getScope())
+                .referralCode(agent.getReferralCode())
+                .address(agent.getAddress())
+                .bvn(agent.getBvn())
+                .agentType(agent.getAgentType())
+                .creditLimit(agent.getCreditLimit())
+                .payBackDuration(agent.getPayBackDuration())
+                .comment(agent.getComment())
+                .cardToken(agent.getCardToken())
+                .status(agent.getStatus())
+                .walletId(agent.getWalletId())
+                .picture(agent.getPicture())
+                .hasCustomizedTarget(agent.getHasCustomizedTarget())
+                .creditLevel(String.valueOf(creditLevel.getLimits()))
+                .idType(idType.getName())
+                .state(state.getName())
+                .bank(bank.getName())
+                .country(country.getName())
+                .createdDate(agent.getCreatedDate())
+                .createdBy(agent.getCreatedBy())
+                .updatedBy(agent.getUpdatedBy())
+                .updatedDate(agent.getUpdatedDate())
+                .isActive(agent.getIsActive())
+                .build();
+        return response;
     }
 
+
+    /** <summary>
+     * Find all Agent
+     * </summary>
+     * <remarks>this method is responsible for getting all records in pagination</remarks>
+     */
+
+    public Page<Agent> findAll(Long userId,Boolean isActive, PageRequest pageRequest ) {
+        Page<Agent> agents = agentRepository.findAgents(userId,isActive, pageRequest);
+        if (agents == null) {
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
+        }
+        return agents;
+
+    }
 
 
 
@@ -217,7 +260,7 @@ public class AgentService {
      * </summary>
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
-    public void enableDisEnableState (EnableDisEnableDto request){
+    public void enableDisEnableAgent (EnableDisEnableDto request){
         Agent agent  = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
