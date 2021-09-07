@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 public class Validations {
 
     private StateRepository stateRepository;
+    private AgentCategoryRepository agentCategoryRepository;
     private LGARepository lgaRepository;
     private TargetTypeRepository targetTypeRepository;
     private TaskRepository taskRepository;
