@@ -21,8 +21,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CreditLevelRepository extends JpaRepository<CreditLevel, Long> {
     @Query("SELECT c FROM CreditLevel c WHERE ((:limits IS NULL) OR (:limits IS NOT NULL AND c.limits = :limits))" +
-        " AND ((:repaymentPeriod IS NULL) OR (:repaymentPeriod IS NOT NULL AND c.repaymentPeriod = :repaymentPeriod))")
+        " AND ((:repaymentPeriod IS NULL) OR (:repaymentPeriod IS NOT NULL AND c.repaymentPeriod = :repaymentPeriod))" +
+            " AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND c.isActive = :isActive))")
     Page<CreditLevel> findCreditLevel(@Param("limits") Long limit,
+                                      @Param("isActive")Boolean isActive,
                                       @Param("repaymentPeriod") Long repaymentPeriod,
                                       Pageable pageable);
 }

@@ -20,6 +20,8 @@ public interface AgentCategoryRepository extends JpaRepository<AgentCategory, Lo
     AgentCategory findByName(String name);
 
 
-    @Query("SELECT a FROM AgentCategory a WHERE ((:name IS NULL) OR (:name IS NOT NULL AND a.name = :name))")
-    Page<AgentCategory> findAgentCategories(@Param("name")String name, Pageable pageable);
+    @Query("SELECT a FROM AgentCategory a WHERE ((:name IS NULL) OR (:name IS NOT NULL AND a.name = :name))" +
+            " AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND a.isActive = :isActive))"
+    )
+    Page<AgentCategory> findAgentCategories(@Param("name")String name, @Param("isActive")Boolean isActive,Pageable pageable);
 }

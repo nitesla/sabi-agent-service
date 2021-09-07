@@ -3,11 +3,9 @@ package com.sabi.agent.service.helper;
 
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryTargetDto;
+import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryTaskDto;
 import com.sabi.agent.core.dto.requestDto.*;
-import com.sabi.agent.core.models.LGA;
-import com.sabi.agent.core.models.State;
-import com.sabi.agent.core.models.TargetType;
-import com.sabi.agent.core.models.Ward;
+import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
@@ -30,27 +28,24 @@ public class Validations {
     private StateRepository stateRepository;
     private LGARepository lgaRepository;
     private TargetTypeRepository targetTypeRepository;
+    private TaskRepository taskRepository;
     private UserRepository userRepository;
     private WardRepository wardRepository;
     private AgentRepository agentRepository;
-    private AgentCategoryRepository agentCategoryRepository;
     private SupervisorRepository supervisorRepository;
 
 
-
-    public Validations(LGARepository lgaRepository,StateRepository stateRepository,
-                       WardRepository wardRepository, AgentRepository agentRepository,
-                       SupervisorRepository supervisorRepository, AgentCategoryRepository agentCategoryRepository) {
-        this.lgaRepository = lgaRepository;
+    public Validations(StateRepository stateRepository, LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository, TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
         this.stateRepository = stateRepository;
+        this.lgaRepository = lgaRepository;
+        this.agentCategoryRepository = agentCategoryRepository;
+        this.targetTypeRepository = targetTypeRepository;
+        this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
         this.wardRepository = wardRepository;
         this.agentRepository = agentRepository;
         this.supervisorRepository = supervisorRepository;
-        this.agentCategoryRepository = agentCategoryRepository;
     }
-
-
-
 
     public void validateState(StateDto stateDto) {
         if (stateDto.getName() == null || stateDto.getName().isEmpty())
@@ -161,8 +156,8 @@ public class Validations {
                         " Enter a valid supervisor"));
     }
 
-    public void validatecreditLevel(CreditLevelDto request) {
-        if (request.getLimit() == null || request.getLimit().compareTo(BigDecimal.ZERO) < 0)
+    public void validateCreditLevel(CreditLevelDto request) {
+        if (request.getLimits() == null || request.getLimits().compareTo(BigDecimal.ZERO) < 0)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST,
                     "Limit cannot be empty or less than zero");
 
@@ -172,4 +167,17 @@ public class Validations {
     }
 
 
+
+    public void validateAgentCategoryTask (AgentCategoryTaskDto agentCategoryTaskDto){
+        if (agentCategoryTaskDto.getName() == null || agentCategoryTaskDto.getName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+
+        AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTaskDto.getAgentCategoryId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Agent Category!"));
+
+        Task task = taskRepository.findById(agentCategoryTaskDto.getTaskId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Target Type!"));
+    }
 }
