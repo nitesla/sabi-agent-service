@@ -9,12 +9,7 @@ import com.sabi.agent.core.models.State;
 import com.sabi.agent.core.models.TargetType;
 import com.sabi.agent.core.models.Ward;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
-import com.sabi.agent.service.repositories.LGARepository;
-import com.sabi.agent.service.repositories.StateRepository;
-import com.sabi.agent.service.repositories.TargetTypeRepository;
-import com.sabi.agent.service.repositories.SupervisorRepository;
-import com.sabi.agent.service.repositories.WardRepository;
-import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
+import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
@@ -34,7 +29,6 @@ public class Validations {
 
     private StateRepository stateRepository;
     private LGARepository lgaRepository;
-    private AgentCategoryRepository agentCategoryRepository;
     private TargetTypeRepository targetTypeRepository;
     private UserRepository userRepository;
     private WardRepository wardRepository;
@@ -152,6 +146,7 @@ public class Validations {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Target Type!"));
     }
+
     public void validateAgentSupervisor(com.sabi.agent.core.dto.agentDto.requestDto.AgentSupervisor request) {
         if (request.getAgent() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent cannot be empty");
