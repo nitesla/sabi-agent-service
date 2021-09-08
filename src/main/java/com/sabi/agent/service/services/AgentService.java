@@ -3,6 +3,7 @@ package com.sabi.agent.service.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentUpdateDto;
+import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.ValidateOTPRequest;
@@ -12,10 +13,12 @@ import com.sabi.agent.core.dto.responseDto.QueryAgentResponseDto;
 import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
+import com.sabi.agent.core.models.agentModel.AgentVerification;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentVerificationRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
@@ -43,6 +46,7 @@ public class AgentService {
 
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
+    private AgentVerificationRepository agentVerificationRepository;
     private CountryRepository countryRepository;
     private BankRepository bankRepository;
     private StateRepository stateRepository;
@@ -57,9 +61,13 @@ public class AgentService {
     private final ObjectMapper objectMapper;
     private final Validations validations;
 
-    public AgentService(CountryRepository countryRepository,BankRepository bankRepository,StateRepository stateRepository,IdTypeRepository idTypeRepository,CreditLevelRepository creditLevelRepository,SupervisorRepository supervisorRepository,PreviousPasswordRepository previousPasswordRepository,UserRepository userRepository,AgentRepository agentRepository,
+    public AgentService(AgentVerificationRepository agentVerificationRepository,CountryRepository countryRepository,
+                        BankRepository bankRepository,StateRepository stateRepository,IdTypeRepository idTypeRepository,
+                        CreditLevelRepository creditLevelRepository,SupervisorRepository supervisorRepository,
+                        PreviousPasswordRepository previousPasswordRepository,UserRepository userRepository,AgentRepository agentRepository,
                         AgentCategoryRepository agentCategoryRepository, ModelMapper mapper, ObjectMapper objectMapper,
                         Validations validations) {
+        this.agentVerificationRepository = agentVerificationRepository;
         this.countryRepository = countryRepository;
         this.bankRepository = bankRepository;
         this.stateRepository = stateRepository;
@@ -159,10 +167,9 @@ public class AgentService {
      */
 
     public AgentUpdateResponseDto updateAgent(AgentUpdateDto request) {
-        Agent agent = agentRepository.findByUserId(request.getUserId());
-        if(agent ==null){
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " Agent does not exist");
-        }
+        Agent agent = agentRepository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested  id does not exist!"));
         mapper.map(request, agent);
         agent.setUpdatedBy(0l);
         agentRepository.save(agent);
@@ -223,7 +230,7 @@ public class AgentService {
                 .walletId(agent.getWalletId())
                 .picture(agent.getPicture())
                 .hasCustomizedTarget(agent.getHasCustomizedTarget())
-                .creditLevel(String.valueOf(creditLevel.getLimits()))
+                .creditLevel(creditLevel.getLimits())
                 .idType(idType.getName())
                 .state(state.getName())
                 .bank(bank.getName())
@@ -270,4 +277,56 @@ public class AgentService {
 
     }
 
-}
+
+    public void agentAddressVerifications (AgentVerificationDto request) {
+        Agent agent = agentRepository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested agent Id does not exist!"));
+            agent.setAddress(request.getAddress());
+            agent = agentRepository.save(agent);
+
+            AgentVerification addressVerification = AgentVerification.builder()
+                    .agentId(agent.getId())
+                    .component(agent.getAddress())
+                    .dateSubmitted(agent.getCreatedDate())
+                    .status(0)
+                    .build();
+            agentVerificationRepository.save(addressVerification);
+    }
+    public void agentBvnVerifications (AgentVerificationDto request) {
+        Agent agent = agentRepository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested agent Id does not exist!"));
+
+            agent.setBvn(request.getBvn());
+            agent = agentRepository.save(agent);
+
+            AgentVerification addressVerification = AgentVerification.builder()
+                    .agentId(agent.getId())
+                    .component(agent.getBvn())
+                    .dateSubmitted(agent.getCreatedDate())
+                    .status(0)
+                    .build();
+            agentVerificationRepository.save(addressVerification);
+
+    }
+
+    public void agentIdCardVerifications (AgentVerificationDto request) {
+        Agent agent = agentRepository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested agent Id does not exist!"));
+            agent.setIdCard(request.getIdCard());
+            agent = agentRepository.save(agent);
+
+            AgentVerification addressVerification = AgentVerification.builder()
+                    .agentId(agent.getId())
+                    .component(agent.getIdCard())
+                    .dateSubmitted(agent.getCreatedDate())
+                    .status(0)
+                    .build();
+            agentVerificationRepository.save(addressVerification);
+        }
+
+    }
+
+
