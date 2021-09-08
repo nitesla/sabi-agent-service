@@ -1,11 +1,10 @@
 package com.sabi.agent.service.helper;
 
 
-import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryDto;
-import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryTargetDto;
-import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryTaskDto;
+import com.sabi.agent.core.dto.agentDto.requestDto.*;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.*;
+import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
@@ -180,5 +179,57 @@ public class Validations {
         Task task = taskRepository.findById(agentCategoryTaskDto.getTaskId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Target Type!"));
+    }
+    public void validateAgentNetwork(AgentNetworkDto request) {
+        if (request.getAgentId() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent cannot be empty");
+        if (request.getSubAgentId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Supervisor cannot be empty");
+        if (request.getAgentId() == request.getSubAgentId())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " Agent Id and Subagent Id can not be the same");
+
+        agentRepository.findById(request.getAgentId()).orElseThrow(() ->
+                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Agent id!")
+        );
+        agentRepository.findById(request.getSubAgentId()).orElseThrow(() ->
+                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " SubAgent Does not Exist!")
+        );
+
+    }
+
+    public void validateAgentTarget(AgentTargetDto request) {
+        if(request.getName() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " Agent Target name can not be empty");
+        if (request.getTargetType() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Target Type cannot be empty");
+        if (request.getMax() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Max cannot be empty");
+        if (request.getMin() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Min cannot be empty");
+        if (request.getAgent() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent cannot be empty");
+        if (request.getSuperMax() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Super max cannot be empty");
+
+        agentRepository.findById(request.getAgent().getId()).orElseThrow(() ->
+                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Agent Does not Exist!")
+        );
+
+    }
+
+    public void validateAgent(Agent agent){
+        if (agent.getAgentCategoryId() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "AgentCategory id cannot be empty");
+        if (agent.getAgentType() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent type  cannot be empty");
+        if (agent.getAddress() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent address  cannot be empty");
+        if (agent.getBvn() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Bvn  cannot be empty");
+//        if (agent.ge() == null )
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent type  cannot be empty");
     }
 }
