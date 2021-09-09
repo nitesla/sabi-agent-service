@@ -4,7 +4,6 @@ package com.sabi.agent.service.helper;
 import com.sabi.agent.core.dto.agentDto.requestDto.*;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.*;
-import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
@@ -14,6 +13,8 @@ import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.utils.CustomResponseCode;
+import com.sabi.framework.utils.PasswordUtil;
+import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -220,17 +221,34 @@ public class Validations {
 
     }
 
-    public void validateAgent(Agent agent){
-        if (agent.getAgentCategoryId() == null )
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "AgentCategory id cannot be empty");
-        if (agent.getAgentType() == null )
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent type  cannot be empty");
-        if (agent.getAddress() == null )
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent address  cannot be empty");
-        if (agent.getBvn() == null )
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Bvn  cannot be empty");
-//        if (agent.ge() == null )
-//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent type  cannot be empty");
+    public void validateAgent(CreateAgentRequestDto agent){
+        if (agent.getFirstName() == null || agent.getFirstName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "First name cannot be empty");
+        if (agent.getFirstName().length() < 2 || agent.getFirstName().length() > 100)// NAME LENGTH*********
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid first name  length");
+
+        if (agent.getLastName() == null || agent.getLastName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Last name cannot be empty");
+        if (agent.getLastName().length() < 2 || agent.getLastName().length() > 100)// NAME LENGTH*********
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid last name  length");
+
+        if (agent.getEmail() == null || agent.getEmail().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "email cannot be empty");
+        if (!Utility.validEmail(agent.getEmail().trim()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid Email Address");
+
+        if (agent.getPhone() == null || agent.getPhone().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Phone number cannot be empty");
+        if (agent.getPhone().length() < 8 || agent.getPhone().length() > 14)// NAME LENGTH*********
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid phone number  length");
+        if (!Utility.isNumeric(agent.getPhone()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
+        if (agent.getPassword() == null || agent.getPassword().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Password cannot be empty");
+        if (agent.getPassword().length() < 8 || agent.getPassword().length() > 20)// NAME LENGTH*********
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid password length");
+        if (!PasswordUtil.passwordValidator(agent.getPassword()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid Password Format");
     }
 
     public void validateUserTask(UserTaskDto request){
