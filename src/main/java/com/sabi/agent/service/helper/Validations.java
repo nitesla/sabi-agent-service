@@ -232,4 +232,23 @@ public class Validations {
 //        if (agent.ge() == null )
 //            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent type  cannot be empty");
     }
+
+    public void validateUserTask(UserTaskDto request){
+        if (request.getEndDate() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "End Date  cannot be empty");
+        if (request.getDateAssigned() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Assigned Date cannot be empty");
+        if (request.getStatus() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Status  cannot be empty");
+
+        Task task =  taskRepository.findById(request.getTaskId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Task!"));
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid User !"));
+    }
+
+
 }
