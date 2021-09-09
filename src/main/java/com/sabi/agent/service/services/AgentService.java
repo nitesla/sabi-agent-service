@@ -26,6 +26,7 @@ import com.sabi.framework.models.PreviousPasswords;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.PreviousPasswordRepository;
 import com.sabi.framework.repositories.UserRepository;
+import com.sabi.framework.utils.Constants;
 import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
@@ -44,8 +45,11 @@ import java.util.Calendar;
 @Service
 public class AgentService {
 
+//    @Autowired
+//    BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @Autowired
-    BCryptPasswordEncoder bCryptPasswordEncoder;
+    private PasswordEncoder passwordEncoder;
     private AgentVerificationRepository agentVerificationRepository;
     private CountryRepository countryRepository;
     private BankRepository bankRepository;
@@ -90,14 +94,15 @@ public class AgentService {
      * <remarks>this method is responsible for creation of new agent </remarks>
      */
     public CreateAgentResponseDto agentSignUp(CreateAgentRequestDto request) {
-
+         validations.validateAgent(request);
         User user = mapper.map(request,User.class);
         User userExist = userRepository.findByEmailAndPhone(request.getEmail(),request.getPhone());
         if(userExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
         }
         String password = user.getPassword();
-        user.setPassword(bCryptPasswordEncoder.encode(password));
+        user.setPassword(passwordEncoder.encode(password));
+        user.setUserCategory(Constants.AGENT_USER);
         user.setCreatedBy(0l);
         user.setIsActive(false);
         user = userRepository.save(user);
