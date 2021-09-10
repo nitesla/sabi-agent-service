@@ -142,16 +142,16 @@ public class Validations {
                         " Enter a valid Target Type!"));
     }
 
-    public void validateAgentSupervisor(com.sabi.agent.core.dto.agentDto.requestDto.AgentSupervisor request) {
-        if (request.getAgent() == null )
+    public void validateAgentSupervisor(AgentSupervisorDto request) {
+        if (request.getAgentId() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent cannot be empty");
-        if (request.getSupervisor() == null)
+        if (request.getSupervisorId() == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Supervisor cannot be empty");
 
-        agentRepository.findById(request.getAgent().getId())
+        agentRepository.findById(request.getAgentId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Agent"));
-        supervisorRepository.findById(request.getSupervisor().getId())
+        supervisorRepository.findById(request.getSupervisorId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid supervisor"));
     }
