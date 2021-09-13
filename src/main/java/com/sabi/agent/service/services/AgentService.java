@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 
 @Slf4j
@@ -154,6 +155,7 @@ public class AgentService {
                           "Requested user does not exist!" + response.getUserId()));
           userExist.setIsActive(true);
           userExist.setUpdatedBy(0l);
+          userExist.setPasswordChangedOn(LocalDateTime.now());
           userRepository.save(userExist);
 
       }
