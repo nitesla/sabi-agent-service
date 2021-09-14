@@ -7,6 +7,9 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.AgentCategoryResponseDto;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
+import com.sabi.agent.service.helper.GenericSpecification;
+import com.sabi.agent.service.helper.SearchCriteria;
+import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.framework.exceptions.ConflictException;
@@ -96,17 +99,29 @@ public class AgentCategoryService {
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
     public Page<AgentCategory> findAll(String name,Boolean isActive ,PageRequest pageRequest ){
-        Page<AgentCategory> agentCategories = agentCategoryRepository.findAgentCategories(name,isActive,pageRequest);
-        if(agentCategories == null){
-            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
+
+        GenericSpecification<AgentCategory> genericSpecification = new GenericSpecification<AgentCategory>();
+
+        if (name != null && !name.isEmpty())
+        {
+            genericSpecification.add(new SearchCriteria("name", name, SearchOperation.MATCH));
         }
+
+        if (isActive != null )
+        {
+            genericSpecification.add(new SearchCriteria("isActive", isActive, SearchOperation.EQUAL));
+        }
+
+        Page<AgentCategory> agentCategories = agentCategoryRepository.findAll(genericSpecification, pageRequest);
+
+
         return agentCategories;
 
     }
 
 
     /** <summary>
-     * Enable disenable
+     * Enable disable
      * </summary>
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
