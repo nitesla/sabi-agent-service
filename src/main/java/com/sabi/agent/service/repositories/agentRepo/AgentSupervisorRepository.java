@@ -11,6 +11,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface AgentSupervisorRepository extends JpaRepository<AgentSupervisor, Long> {
-    AgentSupervisor findByAgentSupervisorDto(AgentSupervisorDto agentSupervisorDto);
+    AgentSupervisor findByAgentSupervisor(AgentSupervisor agentSupervisor);
 
 }
