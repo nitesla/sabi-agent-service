@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  *
  * This interface is responsible for Agent crud operations
@@ -20,6 +22,8 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
     Agent findByUserId (Long userId);
 
     Agent findByRegistrationToken (String registrationToken);
+
+    List<Agent> findByIsActive(Boolean isActive);
 
 
     @Query("SELECT t FROM Agent t WHERE ((:userId IS NULL) OR (:userId IS NOT NULL AND t.userId = :userId)) " +

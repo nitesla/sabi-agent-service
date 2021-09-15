@@ -18,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j
 @Service
 public class IdTypeService {
@@ -123,5 +125,10 @@ public class IdTypeService {
     }
 
 
+    public List<IdType> getAll(Boolean isActive){
+        List<IdType> idTypes = idTypeRepository.findByIsActive(isActive);
+        return idTypes;
+
+    }
 
 }

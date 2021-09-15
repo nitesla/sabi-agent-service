@@ -17,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @Slf4j
 @Service
@@ -116,6 +118,13 @@ public class TaskService {
         task.setIsActive(request.getIsActive());
         task.setUpdatedBy(0l);
         taskRepository.save(task);
+
+    }
+
+
+    public List<Task> getAll(Boolean isActive){
+        List<Task> tasks = taskRepository.findByIsActive(isActive);
+        return tasks;
 
     }
 }

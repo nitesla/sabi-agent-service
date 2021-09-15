@@ -19,6 +19,8 @@ public interface IdTypeRepository extends JpaRepository<IdType, Long> {
 
     List<IdType> findAllByName (String name);
 
+    List<IdType> findByIsActive(Boolean isActive);
+
     @Query("SELECT i FROM IdType i WHERE ((:name IS NULL) OR (:name IS NOT NULL AND i.name = :name))")
     Page<IdType> findIdTypes(@Param("name")String name, Pageable pageable);
 }

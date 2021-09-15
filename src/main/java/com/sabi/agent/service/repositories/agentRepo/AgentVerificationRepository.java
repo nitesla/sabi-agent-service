@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 
 
 /**
@@ -16,6 +17,8 @@ import org.springframework.data.repository.query.Param;
 public interface AgentVerificationRepository extends JpaRepository<AgentVerification, Long> {
 
     AgentVerification findByAgentId(Long agentId);
+
+    List<AgentVerification> findByIsActive(Boolean isActive);
 
     @Query("SELECT a FROM AgentVerification a WHERE ((:agentId IS NULL) OR (:agentId IS NOT NULL AND a.agentId = :agentId))")
     Page<AgentVerification> agentsDetailsForVerification(@Param("agentId")Long agentId, Pageable pageable);
