@@ -2,12 +2,11 @@ package com.sabi.agent.service.repositories;
 
 
 import com.sabi.agent.core.models.TargetType;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  *
@@ -15,15 +14,10 @@ import org.springframework.stereotype.Repository;
  */
 
 @Repository
-public interface TargetTypeRepository extends JpaRepository<TargetType, Long> {
+public interface TargetTypeRepository extends JpaRepository<TargetType, Long>, JpaSpecificationExecutor<TargetType> {
     TargetType findByName (String name);
 
-
-    @Query("SELECT t FROM TargetType t WHERE ((:name IS NULL) OR (:name IS NOT NULL AND t.name = :name))" +
-            " AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND t.isActive = :isActive))")
-    Page<TargetType> findTargetTypes(@Param("name")String name,
-                                     @Param("isActive")Boolean isActive,
-                                     Pageable pageable);
+    List<TargetType> findByIsActive(Boolean isActive);
 
 
 }

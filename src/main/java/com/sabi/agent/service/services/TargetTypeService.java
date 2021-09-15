@@ -6,6 +6,9 @@ import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.TargetTypeDto;
 import com.sabi.agent.core.dto.responseDto.TargetTypeResponseDto;
 import com.sabi.agent.core.models.TargetType;
+import com.sabi.agent.service.helper.GenericSpecification;
+import com.sabi.agent.service.helper.SearchCriteria;
+import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.TargetTypeRepository;
 import com.sabi.framework.exceptions.ConflictException;
@@ -16,6 +19,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @SuppressWarnings("ALL")
 @Slf4j
@@ -44,10 +49,10 @@ public class TargetTypeService {
         TargetType targetType = mapper.map(request,TargetType.class);
         TargetType targetTypeExist = targetTypeRepository.findByName(request.getName());
         if(targetTypeExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Ward already exist");
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " TargetType already exist");
         }
         targetType.setCreatedBy(0l);
-        targetType.setIsActive(true);
+        targetType.setIsActive(false);
         targetType = targetTypeRepository.save(targetType);
         log.debug("Create new Target Type - {}"+ new Gson().toJson(targetType));
         return mapper.map(targetType, TargetTypeResponseDto.class);
@@ -66,6 +71,12 @@ public class TargetTypeService {
                         "Requested Target Type Id does not exist!"));
         mapper.map(request, targetType);
         targetType.setUpdatedBy(0l);
+
+        TargetType targetTypeExist = targetTypeRepository.findByName(targetType.getName());
+        if(targetTypeExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " TargetType already exist");
+        }
+
         targetTypeRepository.save(targetType);
         log.debug("Target Type record updated - {}" + new Gson().toJson(targetType));
         return mapper.map(targetType, TargetTypeResponseDto.class);
@@ -100,7 +111,20 @@ public class TargetTypeService {
      */
 
     public Page<TargetType> findAll(String name, Boolean isActive, PageRequest pageRequest ) {
-        Page<TargetType> targetTypes = targetTypeRepository.findTargetTypes(name, isActive, pageRequest);
+
+        GenericSpecification<TargetType> genericSpecification = new GenericSpecification<TargetType>();
+
+        if (name != null && !name.isEmpty())
+        {
+            genericSpecification.add(new SearchCriteria("name", name, SearchOperation.MATCH));
+        }
+
+        if (isActive != null )
+        {
+            genericSpecification.add(new SearchCriteria("isActive", isActive, SearchOperation.EQUAL));
+        }
+
+        Page<TargetType> targetTypes = targetTypeRepository.findAll(genericSpecification, pageRequest);
         if (targetTypes == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
@@ -120,6 +144,12 @@ public class TargetTypeService {
         targetType.setIsActive(request.getIsActive());
         targetType.setUpdatedBy(0l);
         targetTypeRepository.save(targetType);
+
+    }
+
+    public List<TargetType> getAll(Boolean isActive){
+        List<TargetType> targetTypeList = targetTypeRepository.findByIsActive(isActive);
+        return targetTypeList;
 
     }
 }

@@ -7,6 +7,9 @@ import com.sabi.agent.core.dto.requestDto.WardDto;
 import com.sabi.agent.core.dto.responseDto.WardResponseDto;
 import com.sabi.agent.core.models.LGA;
 import com.sabi.agent.core.models.Ward;
+import com.sabi.agent.service.helper.GenericSpecification;
+import com.sabi.agent.service.helper.SearchCriteria;
+import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.LGARepository;
 import com.sabi.agent.service.repositories.WardRepository;
@@ -18,6 +21,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @SuppressWarnings("ALL")
 @Slf4j
@@ -69,6 +74,10 @@ public class WardService {
                         "Requested Ward Id does not exist!"));
         mapper.map(request, ward);
         ward.setUpdatedBy(0l);
+        Ward wardExist = wardRepository.findByName(ward.getName());
+        if(wardExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Ward name already exist");
+        }
         wardRepository.save(ward);
         log.debug("Ward record updated - {}" + new Gson().toJson(ward));
         return mapper.map(ward, WardResponseDto.class);
@@ -106,8 +115,25 @@ public class WardService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<Ward> findAll(String name, Boolean isActive, PageRequest pageRequest ) {
-        Page<Ward> wards = wardRepository.findWards(name, isActive, pageRequest);
+    public Page<Ward> findAll(String name, Boolean isActive, Long lgaId, PageRequest pageRequest ) {
+        GenericSpecification<Ward> genericSpecification = new GenericSpecification<Ward>();
+
+        if (name != null && !name.isEmpty())
+        {
+            genericSpecification.add(new SearchCriteria("name", name, SearchOperation.MATCH));
+        }
+
+        if (isActive != null )
+        {
+            genericSpecification.add(new SearchCriteria("isActive", isActive, SearchOperation.EQUAL));
+        }
+
+        if (lgaId != null)
+        {
+            genericSpecification.add(new SearchCriteria("lgaId", lgaId, SearchOperation.EQUAL));
+        }
+
+        Page<Ward> wards = wardRepository.findAll(genericSpecification, pageRequest);
         if (wards == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
@@ -127,6 +153,12 @@ public class WardService {
         ward.setIsActive(request.getIsActive());
         ward.setUpdatedBy(0l);
         wardRepository.save(ward);
+
+    }
+
+    public List<Ward> getAll(Boolean isActive){
+        List<Ward> wardList = wardRepository.findByIsActive(isActive);
+        return wardList;
 
     }
 }

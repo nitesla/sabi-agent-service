@@ -7,10 +7,9 @@ import com.sabi.agent.core.dto.requestDto.UserTaskDto;
 import com.sabi.agent.core.dto.responseDto.UserTaskResponseDto;
 import com.sabi.agent.core.models.Task;
 import com.sabi.agent.core.models.UserTask;
-import com.sabi.agent.service.helper.Validations;
+import com.sabi.agent.service.helper.*;
 import com.sabi.agent.service.repositories.TaskRepository;
 import com.sabi.agent.service.repositories.UserTaskRepository;
-import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
@@ -21,6 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -34,6 +36,8 @@ public class UserTaskService {
     private final ModelMapper mapper;
     private final ObjectMapper objectMapper;
     private final Validations validations;
+    @Autowired
+    private Exists exists;
 
     public UserTaskService(ModelMapper mapper, ObjectMapper objectMapper, Validations validations) {
         this.mapper = mapper;
@@ -50,12 +54,9 @@ public class UserTaskService {
     public UserTaskResponseDto createUserTask(UserTaskDto request) {
         validations.validateUserTask(request);
         UserTask userTask = mapper.map(request,UserTask.class);
-        UserTask userTaskExist = userTaskRepository.findByTaskId(request.getTaskId());
-        if(userTaskExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " User Task already exist");
-        }
+        exists.userTaskExist(request);
         userTask.setCreatedBy(0l);
-        userTask.setIsActive(true);
+        userTask.setIsActive(false);
         userTask = userTaskRepository.save(userTask);
         log.debug("Create new User Task - {}"+ new Gson().toJson(userTask));
         return mapper.map(userTask, UserTaskResponseDto.class);
@@ -73,6 +74,7 @@ public class UserTaskService {
                         "Requested User Task does not exist!"));
         mapper.map(request, userTask);
         userTask.setUpdatedBy(0l);
+        exists.userTaskExist(request);
         userTaskRepository.save(userTask);
         log.debug("User Task record updated - {}" + new Gson().toJson(userTask));
         return mapper.map(userTask, UserTaskResponseDto.class);
@@ -88,11 +90,11 @@ public class UserTaskService {
         UserTask userTask = userTaskRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested User Task Id does not exist!"));
-        Task task =  taskRepository.findById(userTask.getTaskId().getId())
+        Task task =  taskRepository.findById(userTask.getTaskId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Task Id does not exist!"));
 
-        User user = userRepository.findById(userTask.getUserId().getId())
+        User user = userRepository.findById(userTask.getUserId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " User Id does not exist! "));
 
@@ -118,8 +120,26 @@ public class UserTaskService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<UserTask> findAll(PageRequest pageRequest ) {
-        Page<UserTask> userTasks = userTaskRepository.findAll(pageRequest);
+    public Page<UserTask> findAll(Date endDate, Date dateAssigned, String status, PageRequest pageRequest ) {
+        GenericSpecification<UserTask> genericSpecification = new GenericSpecification<UserTask>();
+
+        if (endDate != null && endDate.after(dateAssigned))
+        {
+            genericSpecification.add(new SearchCriteria("endDate", endDate, SearchOperation.EQUAL));
+        }
+
+        if (dateAssigned != null && dateAssigned.before(endDate))
+        {
+            genericSpecification.add(new SearchCriteria("dateAssigned", dateAssigned, SearchOperation.EQUAL));
+        }
+
+        if (status != null && !status.isEmpty())
+        {
+            genericSpecification.add(new SearchCriteria("status", status, SearchOperation.EQUAL));
+        }
+
+
+        Page<UserTask> userTasks = userTaskRepository.findAll(genericSpecification, pageRequest);
         if (userTasks == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
@@ -139,6 +159,12 @@ public class UserTaskService {
         userTask.setIsActive(request.getIsActive());
         userTask.setUpdatedBy(0l);
         userTaskRepository.save(userTask);
+
+    }
+
+    public List<UserTask> getAll(Boolean isActive){
+        List<UserTask> userTaskList = userTaskRepository.findByIsActive(isActive);
+        return userTaskList;
 
     }
 }

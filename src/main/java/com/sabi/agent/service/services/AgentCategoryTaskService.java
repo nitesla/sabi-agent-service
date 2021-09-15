@@ -8,18 +8,20 @@ import com.sabi.agent.core.dto.responseDto.AgentCategoryTaskResponseDto;
 import com.sabi.agent.core.models.Task;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.core.models.agentModel.AgentCategoryTask;
-import com.sabi.agent.service.helper.Validations;
+import com.sabi.agent.service.helper.*;
 import com.sabi.agent.service.repositories.TaskRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryTaskRepository;
-import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 @SuppressWarnings("ALL")
@@ -33,6 +35,8 @@ public class AgentCategoryTaskService {
     private final ModelMapper mapper;
     private final ObjectMapper objectMapper;
     private final Validations validations;
+    @Autowired
+    private Exists exists;
 
 
     public AgentCategoryTaskService(AgentCategoryTaskRepository agentCategoryTaskRepository, AgentCategoryRepository agentCategoryRepository, TaskRepository taskRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations) {
@@ -53,12 +57,10 @@ public class AgentCategoryTaskService {
     public AgentCategoryTaskResponseDto createAgentCategoryTask(AgentCategoryTaskDto request) {
         validations.validateAgentCategoryTask(request);
         AgentCategoryTask agentCategoryTask = mapper.map(request,AgentCategoryTask.class);
-        AgentCategoryTask categoryTaskExist = agentCategoryTaskRepository.findByName(request.getName());
-        if(categoryTaskExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Task already exist");
-        }
+        exists.agentCategoryTaskExist(request);
+
         agentCategoryTask.setCreatedBy(0l);
-        agentCategoryTask.setIsActive(true);
+        agentCategoryTask.setIsActive(false);
         agentCategoryTask = agentCategoryTaskRepository.save(agentCategoryTask);
         log.debug("Create new Agent Category Task - {}"+ new Gson().toJson(agentCategoryTask));
         return mapper.map(agentCategoryTask, AgentCategoryTaskResponseDto.class);
@@ -79,6 +81,9 @@ public class AgentCategoryTaskService {
                         "Requested Agent Category Task does not exist!"));
         mapper.map(request, agentCategoryTask);
         agentCategoryTask.setUpdatedBy(0l);
+
+        exists.agentCategoryTaskExist(request);
+
         agentCategoryTaskRepository.save(agentCategoryTask);
         log.debug("Agent Category Task record updated - {}" + new Gson().toJson(agentCategoryTask));
         return mapper.map(agentCategoryTask, AgentCategoryTaskResponseDto.class);
@@ -98,18 +103,18 @@ public class AgentCategoryTaskService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Task Id does not exist!"));
 
-        AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTask.getAgentCategory().getId())
+        AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTask.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Agent Category!"));
 
-        Task task = taskRepository.findById(agentCategoryTask.getTask().getId())
+        Task task = taskRepository.findById(agentCategoryTask.getTaskId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Task Type!"));
         AgentCategoryTaskResponseDto response = AgentCategoryTaskResponseDto.builder()
                 .id(agentCategoryTask.getId())
                 .name(agentCategoryTask.getName())
-                .agentCategoryId(agentCategoryTask.getAgentCategory().getId())
-                .taskId(agentCategoryTask.getTask().getId())
+                .agentCategoryId(agentCategoryTask.getAgentCategoryId())
+                .taskId(agentCategoryTask.getTaskId())
                 .createdDate(agentCategoryTask.getCreatedDate())
                 .createdBy(agentCategoryTask.getCreatedBy())
                 .updatedBy(agentCategoryTask.getUpdatedBy())
@@ -132,7 +137,22 @@ public class AgentCategoryTaskService {
 
 
     public Page<AgentCategoryTask> findAll(String name, Boolean isActive, PageRequest pageRequest ) {
-        Page<AgentCategoryTask> agentCategoryTasks = agentCategoryTaskRepository.findAgentCategoryTasks(name, isActive, pageRequest);
+
+        GenericSpecification<AgentCategoryTask> genericSpecification = new GenericSpecification<AgentCategoryTask>();
+
+        if (name != null && !name.isEmpty())
+        {
+            genericSpecification.add(new SearchCriteria("name", name, SearchOperation.MATCH));
+        }
+
+        if (isActive != null )
+        {
+            genericSpecification.add(new SearchCriteria("isActive", isActive, SearchOperation.EQUAL));
+        }
+
+
+
+        Page<AgentCategoryTask> agentCategoryTasks = agentCategoryTaskRepository.findAll(genericSpecification, pageRequest);
         if (agentCategoryTasks == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
@@ -153,6 +173,13 @@ public class AgentCategoryTaskService {
         agentCategoryTask.setIsActive(request.getIsActive());
         agentCategoryTask.setUpdatedBy(0l);
         agentCategoryTaskRepository.save(agentCategoryTask);
+
+    }
+
+
+    public List<AgentCategoryTask> getAll(Boolean isActive){
+        List<AgentCategoryTask> agentCategoryTaskList = agentCategoryTaskRepository.findByIsActive(isActive);
+        return agentCategoryTaskList;
 
     }
 }

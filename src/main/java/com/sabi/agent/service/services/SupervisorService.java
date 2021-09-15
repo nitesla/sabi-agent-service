@@ -8,6 +8,7 @@ import com.sabi.agent.core.dto.responseDto.SupervisorResponseDto;
 import com.sabi.agent.core.models.Supervisor;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.SupervisorRepository;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
@@ -17,6 +18,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @SuppressWarnings("ALL")
 @Slf4j
@@ -45,7 +48,10 @@ public class SupervisorService {
     public SupervisorResponseDto createSupervisor(SupervisorDto request) {
         validations.validateSupervisor(request);
         Supervisor supervisor = mapper.map(request,Supervisor.class);
-
+        Supervisor userExist = supervisorRepository.findByUserId(request.getUserId());
+        if(userExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " User Task already exist");
+        }
         supervisor.setCreatedBy(0l);
         supervisor.setIsActive(true);
         supervisor = supervisorRepository.save(supervisor);
@@ -124,4 +130,10 @@ public class SupervisorService {
         supervisorRepository.save(supervisor);
 
     }
+    public List<Supervisor> getAll(Boolean isActive){
+        List<Supervisor> supervisorList = supervisorRepository.findByIsActive(isActive);
+        return supervisorList;
+
+    }
+
 }
