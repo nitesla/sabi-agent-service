@@ -139,11 +139,11 @@ public class AgentNetworkService {
 
     }
 
-    public List<AgentNetworkDto> getAllByStatus(Boolean isActive) {
+    public List<AgentNetworkResponseDto> getAllByStatus(Boolean isActive) {
         List<AgentNetwork> networks = agentNetworkRepository.findByIsActive(isActive);
         return networks
                 .stream()
-                .map(user -> mapper.map(user, AgentNetworkDto.class))
+                .map(user -> mapper.map(user, AgentNetworkResponseDto.class))
                 .collect(Collectors.toList());
     }
 }

@@ -167,11 +167,11 @@ public class AgentSupervisorService {
         return agentSupervisorResponseDto;
     }
 
-    public List<AgentSupervisorDto> getAllByStatus(Boolean isActive) {
+    public List<AgentSupervisorResponseDto> getAllByStatus(Boolean isActive) {
         List<AgentSupervisor> supervisors = agentSupervisorRepository.findByIsActive(isActive);
         return supervisors
                 .stream()
-                .map(user -> mapper.map(user, AgentSupervisorDto.class))
+                .map(user -> mapper.map(user, AgentSupervisorResponseDto.class))
                 .collect(Collectors.toList());
     }
 }

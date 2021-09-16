@@ -135,11 +135,11 @@ public class CreditLevelService {
 
     }
 
-    public List<CreditLevelDto> getAllByStatus(Boolean isActive) {
+    public List<CreditLevelResponseDto> getAllByStatus(Boolean isActive) {
         List<CreditLevel> creditLevels = creditLevelRepository.findByIsActive(isActive);
         return creditLevels
                 .stream()
-                .map(user -> mapper.map(user, CreditLevelDto.class))
+                .map(user -> mapper.map(user, CreditLevelResponseDto.class))
                 .collect(Collectors.toList());
     }
 }

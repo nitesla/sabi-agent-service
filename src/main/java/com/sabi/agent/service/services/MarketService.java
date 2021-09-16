@@ -134,11 +134,11 @@ public class MarketService {
      * </summary>
      * <remarks>this method returns a list of markets based on their active status</remarks>
      */
-    public List<MarketDto> getAllByStatus(Boolean isActive) {
+    public List<MarketResponseDto> getAllByStatus(Boolean isActive) {
         List<Market> markets = marketRepository.findByIsActive(isActive);
         return markets
                 .stream()
-                .map(user -> mapper.map(user, MarketDto.class))
+                .map(user -> mapper.map(user, MarketResponseDto.class))
                 .collect(Collectors.toList());
     }
 }

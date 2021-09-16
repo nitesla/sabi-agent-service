@@ -134,11 +134,11 @@ public class AgentLocationService {
      * </summary>
      * <remarks>this method returns a list of agent location based on their active status</remarks>
      */
-    public List<AgentLocationDto> getAllByStatus(Boolean isActive) {
+    public List<AgentLocationResponseDto> getAllByStatus(Boolean isActive) {
         List<AgentLocation> agentLocations = agentLocationRepository.findByIsActive(isActive);
         return agentLocations
                 .stream()
-                .map(user -> mapper.map(user, AgentLocationDto.class))
+                .map(user -> mapper.map(user, AgentLocationResponseDto.class))
                 .collect(Collectors.toList());
     }
 }

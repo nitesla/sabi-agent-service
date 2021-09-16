@@ -308,7 +308,5 @@ public class Validations {
             default:
                 throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter a valid location type");
         }
-
-
     }
 }
