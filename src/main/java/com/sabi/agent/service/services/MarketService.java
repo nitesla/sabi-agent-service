@@ -2,11 +2,9 @@ package com.sabi.agent.service.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.sabi.agent.core.dto.requestDto.MarketDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.MarketDto;
 import com.sabi.agent.core.dto.responseDto.MarketResponseDto;
-import com.sabi.agent.core.models.Market;
 import com.sabi.agent.core.models.Market;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MarketRepository;
@@ -18,6 +16,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -107,6 +107,13 @@ public class MarketService {
         market.setIsActive(request.getIsActive());
         market.setUpdatedBy(0l);
         marketRepository.save(market);
+
+    }
+
+
+    public List<Market> getAll(Boolean isActive){
+        List<Market> markets = marketRepository.findByIsActive(isActive);
+        return markets;
 
     }
 }

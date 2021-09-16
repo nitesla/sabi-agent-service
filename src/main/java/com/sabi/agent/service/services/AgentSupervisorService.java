@@ -1,6 +1,8 @@
 package com.sabi.agent.service.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.sabi.agent.core.dto.agentDto.requestDto.AgentSupervisorDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.AgentSupervisorResponseDto;
 import com.sabi.agent.core.models.Supervisor;
@@ -54,7 +56,7 @@ public class AgentSupervisorService {
 //        validations.validateAgentSupervisor(request);
 //        AgentSupervisor agentSupervisor = mapper.map(request, AgentSupervisor.class);
 //
-//        Optional<AgentSupervisor> agentSupervisorExist = Optional.ofNullable(agentSupervisorRepository.findByAgentSupervisorDto(request));
+//        Optional<AgentSupervisor> agentSupervisorExist = Optional.ofNullable(agentSupervisorRepository.findByAgentSupervisor(agentSupervisor));
 //        if (agentSupervisorExist.isPresent()) {
 //            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentSupervisor already exist");
 //        }
@@ -73,18 +75,19 @@ public class AgentSupervisorService {
      * <remarks>this method is responsible for updating already existing agentSupervisor</remarks>
      */
 
-//    public AgentSupervisorResponseDto updateAgentSupervisor(AgentSupervisorDto request) {
-//        validations.validateAgentSupervisor(request);
-//        AgentSupervisor agentSupervisor = agentSupervisorRepository.findByAgentSupervisorDto(request);
-//        if (agentSupervisor == null)
-//            new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-//                    "Requested agentSupervisor id does not exist!");
-//        mapper.map(request, agentSupervisor);
-//        agentSupervisor.setUpdatedBy(0L);
-//        agentSupervisorRepository.save(agentSupervisor);
-//        log.debug("agentSupervisor record updated - {}" + new Gson().toJson(agentSupervisor));
-//        return mapper.map(agentSupervisor, AgentSupervisorResponseDto.class);
-//    }
+    public AgentSupervisorResponseDto updateAgentSupervisor(AgentSupervisorDto request) {
+        validations.validateAgentSupervisor(request);
+        Optional<AgentSupervisor> agentSupervisor = agentSupervisorRepository.findById(request.getId());
+        if (agentSupervisor.isPresent()) {
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                    "Requested agentSupervisor id does not exist!");
+        }
+        mapper.map(request, agentSupervisor);
+        agentSupervisor.get().setUpdatedBy(0L);
+        agentSupervisorRepository.save(agentSupervisor.get());
+        log.debug("agentSupervisor record updated - {}" + new Gson().toJson(agentSupervisor));
+        return mapper.map(agentSupervisor, AgentSupervisorResponseDto.class);
+    }
 
 
     /**

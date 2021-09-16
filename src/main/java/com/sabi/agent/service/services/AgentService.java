@@ -41,6 +41,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -281,6 +282,13 @@ public class AgentService {
         agent.setIsActive(request.getIsActive());
         agent.setUpdatedBy(0l);
         agentRepository.save(agent);
+
+    }
+
+
+    public List<Agent> getAll(Boolean isActive){
+        List<Agent> agents = agentRepository.findByIsActive(isActive);
+        return agents;
 
     }
 

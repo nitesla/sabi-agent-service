@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -117,6 +118,13 @@ public class AgentTargetService {
         agentTarget.setIsActive(request.getIsActive());
         agentTarget.setUpdatedBy(0L);
         agentTargetRepository.save(agentTarget);
+
+    }
+
+
+    public List<AgentTarget> getAll(Boolean isActive){
+        List<AgentTarget> agentTargets = agentTargetRepository.findByIsActive(isActive);
+        return agentTargets;
 
     }
 }

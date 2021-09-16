@@ -18,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j
 @Service
 public class CountryService {
@@ -121,6 +123,13 @@ public class CountryService {
         country.setIsActive(request.getIsActive());
         country.setUpdatedBy(0l);
         countryRepository.save(country);
+
+    }
+
+
+    public List<Country> getAll(Boolean isActive){
+        List<Country> countries = countryRepository.findByIsActive(isActive);
+        return countries;
 
     }
 }

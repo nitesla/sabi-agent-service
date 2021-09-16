@@ -19,6 +19,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @SuppressWarnings("ALL")
 @Slf4j
@@ -143,6 +145,13 @@ public class LGAService {
         lga.setIsActive(request.getIsActive());
         lga.setUpdatedBy(0l);
         lgaRepository.save(lga);
+
+    }
+
+
+    public List<LGA> getAll(Boolean isActive){
+        List<LGA> lga = lgaRepository.findByIsActive(isActive);
+        return lga;
 
     }
 }

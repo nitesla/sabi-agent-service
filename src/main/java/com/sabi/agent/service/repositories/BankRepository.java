@@ -8,11 +8,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface BankRepository extends JpaRepository<Bank, Long> {
 
     Bank findByName (String name);
     Bank findByBankCode(String bankCode);
+
+    List<Bank> findByIsActive(Boolean isActive);
 
     @Query("SELECT b FROM Bank b WHERE ((:name IS NULL) OR (:name IS NOT NULL AND b.name = :name))" +
             " AND ((:bankCode IS NULL) OR (:bankCode IS NOT NULL AND b.bankCode = :bankCode))")

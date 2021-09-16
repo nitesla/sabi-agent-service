@@ -107,12 +107,6 @@
 			<artifactId>mysql-connector-java</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>com.integralblue</groupId>
-			<artifactId>log4jdbc-spring-boot-starter</artifactId>
-			<version>1.0.2</version>
-		</dependency>
-
 
 		<dependency>
 			<groupId>org.modelmapper</groupId>
