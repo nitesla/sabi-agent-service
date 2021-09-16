@@ -12,12 +12,14 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.SupervisorRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentSupervisorRepository;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,9 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+//ken
 @SuppressWarnings("ALL")
 @Slf4j
 @Service
@@ -52,20 +56,23 @@ public class AgentSupervisorService {
         this.userRepository = userRepository;
     }
 
-//    public AgentSupervisorResponseDto createAgentSupervisor(AgentSupervisorDto request) {
-//        validations.validateAgentSupervisor(request);
-//        AgentSupervisor agentSupervisor = mapper.map(request, AgentSupervisor.class);
-//
-//        Optional<AgentSupervisor> agentSupervisorExist = Optional.ofNullable(agentSupervisorRepository.findByAgentSupervisor(agentSupervisor));
-//        if (agentSupervisorExist.isPresent()) {
-//            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentSupervisor already exist");
-//        }
-//        agentSupervisor.setCreatedBy(0L);
-//        agentSupervisor.setIsActive(true);
-//        agentSupervisor = agentSupervisorRepository.save(agentSupervisor);
-//        log.debug("Create new agentSupervisor - {}" + new Gson().toJson(agentSupervisor));
-//        return mapper.map(agentSupervisor, AgentSupervisorResponseDto.class);
-//    }
+    public AgentSupervisorResponseDto createAgentSupervisor(AgentSupervisorDto request) {
+        validations.validateAgentSupervisor(request);
+        AgentSupervisor agentSupervisor = mapper.map(request, AgentSupervisor.class);
+//        GenericSpecification<AgentSupervisor> genericSpecification = new GenericSpecification<AgentSupervisor>();
+//        genericSpecification.add(new SearchCriteria("agentId", request.getAgentId(), SearchOperation.EQUAL));
+//        genericSpecification.add(new SearchCriteria("supervisorId", request.getSupervisorId(), SearchOperation.EQUAL));
+//        Optional agentSupervisorExist = agentSupervisorRepository.findOne(genericSpecification);
+        boolean exists = agentSupervisorRepository.exists(Example.of(agentSupervisor));
+        if (exists) {
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentSupervisor already exist");
+        }
+        agentSupervisor.setCreatedBy(0L);
+        agentSupervisor.setIsActive(false);
+        agentSupervisor = agentSupervisorRepository.save(agentSupervisor);
+        log.debug("Create new agentSupervisor - {}" + new Gson().toJson(agentSupervisor));
+        return mapper.map(agentSupervisor, AgentSupervisorResponseDto.class);
+    }
 
 
     /**
@@ -77,14 +84,15 @@ public class AgentSupervisorService {
 
     public AgentSupervisorResponseDto updateAgentSupervisor(AgentSupervisorDto request) {
         validations.validateAgentSupervisor(request);
-        Optional<AgentSupervisor> agentSupervisor = agentSupervisorRepository.findById(request.getId());
-        if (agentSupervisor.isPresent()) {
-            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                    "Requested agentSupervisor id does not exist!");
-        }
+        AgentSupervisor agentSupervisor = agentSupervisorRepository.findById(request.getId())
+                .orElseThrow(()-> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested agentSupervisor id does not exist!"));
         mapper.map(request, agentSupervisor);
-        agentSupervisor.get().setUpdatedBy(0L);
-        agentSupervisorRepository.save(agentSupervisor.get());
+        boolean supervisor = agentSupervisorRepository.exists(Example.of(agentSupervisor));
+        if(supervisor)
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentSupervisor already exist");
+        agentSupervisor.setUpdatedBy(0L);
+        agentSupervisorRepository.save(agentSupervisor);
         log.debug("agentSupervisor record updated - {}" + new Gson().toJson(agentSupervisor));
         return mapper.map(agentSupervisor, AgentSupervisorResponseDto.class);
     }
@@ -151,5 +159,13 @@ public class AgentSupervisorService {
         agentSupervisorResponseDto.setAgentName(agentAsUser.get().getFirstName() + " " + agentAsUser.get().getLastName());
         agentSupervisorResponseDto.setSupervisorName(supervisorAsUser.get().getFirstName() + " " + supervisorAsUser.get().getLastName());
         return agentSupervisorResponseDto;
+    }
+
+    public List<AgentSupervisorResponseDto> getAllByStatus(Boolean isActive) {
+        List<AgentSupervisor> supervisors = agentSupervisorRepository.findByIsActive(isActive);
+        return supervisors
+                .stream()
+                .map(user -> mapper.map(user, AgentSupervisorResponseDto.class))
+                .collect(Collectors.toList());
     }
 }

@@ -6,6 +6,9 @@ import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.MarketDto;
 import com.sabi.agent.core.dto.responseDto.MarketResponseDto;
 import com.sabi.agent.core.models.Market;
+import com.sabi.agent.service.helper.GenericSpecification;
+import com.sabi.agent.service.helper.SearchCriteria;
+import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MarketRepository;
 import com.sabi.framework.exceptions.ConflictException;
@@ -13,12 +16,15 @@ import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+//ken
 @Slf4j
 @Service
 public class MarketService {
@@ -29,7 +35,6 @@ public class MarketService {
     private final Validations validations;
 
 
-
     public MarketService(MarketRepository marketRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations) {
         this.marketRepository = marketRepository;
         this.mapper = mapper;
@@ -37,7 +42,8 @@ public class MarketService {
         this.validations = validations;
     }
 
-    /** <summary>
+    /**
+     * <summary>
      * Market creation
      * </summary>
      * <remarks>this method is responsible for creation of new Market</remarks>
@@ -47,13 +53,13 @@ public class MarketService {
         validations.validateMarket(request);
         Market market = mapper.map(request, Market.class);
         Market marketExist = marketRepository.findByName(request.getName());
-        if(marketExist !=null){
+        if (marketExist != null) {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Market already exist");
         }
         market.setCreatedBy(0L);
-        market.setIsActive(true);
+        market.setIsActive(false);
         market = marketRepository.save(market);
-        log.debug("Create new Market - {}"+ new Gson().toJson(market));
+        log.debug("Create new Market - {}" + new Gson().toJson(market));
         return mapper.map(market, MarketResponseDto.class);
     }
 
@@ -63,57 +69,76 @@ public class MarketService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Country Id does not exist!"));
         mapper.map(request, market);
+        boolean exists = marketRepository.exists(Example.of(market));
+        if (exists) {
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Market already exist");
+        }
         market.setUpdatedBy(0L);
         marketRepository.save(market);
-        log.debug("Country record updated - {}"+ new Gson().toJson(market));
+        log.debug("Country record updated - {}" + new Gson().toJson(market));
         return mapper.map(market, MarketDto.class);
     }
 
-    /** <summary>
+    /**
+     * <summary>
      * Find Market
      * </summary>
      * <remarks>this method is responsible for getting a single record</remarks>
      */
-    public MarketResponseDto findMarket(Long id){
-        Market market  = marketRepository.findById(id)
+    public MarketResponseDto findMarket(Long id) {
+        Market market = marketRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Market id does not exist!"));
-        return mapper.map(market,MarketResponseDto.class);
+        return mapper.map(market, MarketResponseDto.class);
     }
 
-    /** <summary>
+    /**
+     * <summary>
      * Find all Markets
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<Market> findAll(String name, Boolean isActive, PageRequest pageRequest ){
-        Page<Market> market = marketRepository.findMarkets(name, isActive,pageRequest);
-        if(market == null){
-            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
-        }
-        return market;
+    public Page<Market> findAll(String name, Boolean isActive, PageRequest pageRequest) {
+        GenericSpecification<Market> genericSpecification = new GenericSpecification<Market>();
 
+        if (name != null && !name.isEmpty()) {
+            genericSpecification.add(new SearchCriteria("name", name, SearchOperation.MATCH));
+        }
+        if (isActive != null) {
+            genericSpecification.add(new SearchCriteria("isActive", isActive, SearchOperation.EQUAL));
+        }
+        Page<Market> market = marketRepository.findAll(genericSpecification, pageRequest);
+
+        return market;
     }
 
-    /** <summary>
+    /**
+     * <summary>
      * Enable disenable
      * </summary>
      * <remarks>this method is responsible for enabling and dis enabling a market</remarks>
      */
-    public void enableDisEnableState (EnableDisEnableDto request){
-        Market market  = marketRepository.findById(request.getId())
+    public void enableDisEnableState(EnableDisEnableDto request) {
+        Market market = marketRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested market id does not exist!"));
         market.setIsActive(request.getIsActive());
-        market.setUpdatedBy(0l);
+        market.setUpdatedBy(0L);
         marketRepository.save(market);
 
     }
 
-
-    public List<Market> getAll(Boolean isActive){
+    /**
+     * <summary>
+     * Get all by status
+     * </summary>
+     * <remarks>this method returns a list of markets based on their active status</remarks>
+     */
+    public List<MarketResponseDto> getAllByStatus(Boolean isActive) {
         List<Market> markets = marketRepository.findByIsActive(isActive);
-        return markets;
-
+        return markets
+                .stream()
+                .map(user -> mapper.map(user, MarketResponseDto.class))
+                .collect(Collectors.toList());
     }
 }
