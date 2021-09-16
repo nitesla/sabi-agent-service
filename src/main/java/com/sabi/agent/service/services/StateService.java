@@ -17,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 /**
  *
@@ -126,6 +128,11 @@ public class StateService {
     }
 
 
+    public List<State> getAll(Boolean isActive){
+        List<State> states = stateRepository.findByIsActive(isActive);
+        return states;
+
+    }
 
 
 }

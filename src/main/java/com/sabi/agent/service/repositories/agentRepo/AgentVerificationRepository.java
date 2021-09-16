@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 
-
 /**
  *
  * This interface is responsible for Agent Verification crud operations
@@ -16,6 +15,7 @@ import org.springframework.data.repository.query.Param;
 public interface AgentVerificationRepository extends JpaRepository<AgentVerification, Long> {
 
     AgentVerification findByAgentId(Long agentId);
+
 
     @Query("SELECT a FROM AgentVerification a WHERE ((:agentId IS NULL) OR (:agentId IS NOT NULL AND a.agentId = :agentId))")
     Page<AgentVerification> agentsDetailsForVerification(@Param("agentId")Long agentId, Pageable pageable);

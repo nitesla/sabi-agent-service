@@ -17,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j
 @Service
 public class BankService {
@@ -117,6 +119,13 @@ public class BankService {
         bank.setIsActive(request.getIsActive());
         bank.setUpdatedBy(0l);
         bankRepository.save(bank);
+
+    }
+
+
+    public List<Bank> getAll(Boolean isActive){
+        List<Bank> banks = bankRepository.findByIsActive(isActive);
+        return banks;
 
     }
 }
