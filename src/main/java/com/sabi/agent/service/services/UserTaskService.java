@@ -74,7 +74,7 @@ public class UserTaskService {
                         "Requested User Task does not exist!"));
         mapper.map(request, userTask);
         userTask.setUpdatedBy(0l);
-        exists.userTaskExist(request);
+        exists.userTaskUpateExist(request);
         userTaskRepository.save(userTask);
         log.debug("User Task record updated - {}" + new Gson().toJson(userTask));
         return mapper.map(userTask, UserTaskResponseDto.class);

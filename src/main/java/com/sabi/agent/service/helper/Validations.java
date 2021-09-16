@@ -179,7 +179,7 @@ public class Validations {
 
         Task task = taskRepository.findById(agentCategoryTaskDto.getTaskId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid Target Type!"));
+                        " Enter a valid Task!"));
     }
     public void validateAgentNetwork(AgentNetworkDto request) {
         if (request.getAgentId() == null )
