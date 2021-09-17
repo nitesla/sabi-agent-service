@@ -17,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @SuppressWarnings("All")
 @Slf4j
 @Service
@@ -61,6 +63,45 @@ public class Exists {
 
        }
 
+    public void agentCategoryTargetUpateExist(AgentCategoryTargetDto request) {
+
+        agentCategoryTargetNameExist(request.getName(), request.getId());
+        agentCategoryTargetKeyExist(request.getAgentCategoryId(),request.getTargetTypeId(),request.getId());
+
+    }
+
+    public void agentCategoryTargetNameExist(String name, Long id) {
+        GenericSpecification<AgentCategoryTarget> genericSpecification = new GenericSpecification<AgentCategoryTarget>();
+        if (id > 0) {
+            genericSpecification.add(new SearchCriteria("id", id, SearchOperation.NOT_EQUAL));
+        }
+
+        genericSpecification.add(new SearchCriteria("name", name, SearchOperation.EQUAL));
+
+
+        List<AgentCategoryTarget> agentCategoryTargetList = agentCategoryTargetRepository.findAll(genericSpecification);
+        if(agentCategoryTargetList !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Target already exist");
+        }
+
+    }
+
+    public void agentCategoryTargetKeyExist(Long categoryId, Long targetTypeId, Long id) {
+        GenericSpecification<AgentCategoryTarget> genericSpecification = new GenericSpecification<AgentCategoryTarget>();
+        if (id > 0) {
+            genericSpecification.add(new SearchCriteria("id", id, SearchOperation.NOT_EQUAL));
+        }
+
+        genericSpecification.add(new SearchCriteria("agentCategoryId", categoryId, SearchOperation.EQUAL));
+        genericSpecification.add(new SearchCriteria("targetTypeId", targetTypeId, SearchOperation.EQUAL));
+
+        List<AgentCategoryTarget> agentCategoryTargetList = agentCategoryTargetRepository.findAll(genericSpecification);
+        if(agentCategoryTargetList !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Target already exist");
+        }
+
+    }
+
     public void userTaskExist(UserTaskDto request){
         UserTask userExist = userTaskRepository.findByUserId(request.getUserId());
         if(userExist !=null){
@@ -71,6 +112,27 @@ public class Exists {
         if(taskExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Task already exist");
         }
+    }
+
+    public void userTaskUpateExist(UserTaskDto request){
+        userTaskIdExist(request.getTaskId(), request.getId());
+
+    }
+
+    public void userTaskIdExist(Long taskId, Long id) {
+        GenericSpecification<UserTask> genericSpecification = new GenericSpecification<UserTask>();
+        if (id > 0) {
+            genericSpecification.add(new SearchCriteria("id", id, SearchOperation.NOT_EQUAL));
+        }
+
+        genericSpecification.add(new SearchCriteria("taskId", taskId, SearchOperation.EQUAL));
+
+
+        List<UserTask> userTaskExist = userTaskRepository.findAll(genericSpecification);
+        if(userTaskExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " User Task already exist");
+        }
+
     }
 
 
@@ -87,4 +149,42 @@ public class Exists {
 
     }
 
+    public void agentCategoryTaskUpateExist(AgentCategoryTaskDto request) {
+
+        agentCategoryNameExist(request.getName(), request.getId());
+        agentCategoryKeyExist(request.getAgentCategoryId(),request.getTaskId(),request.getId());
+
+    }
+
+    public void agentCategoryNameExist(String name, Long id) {
+        GenericSpecification<AgentCategoryTask> genericSpecification = new GenericSpecification<AgentCategoryTask>();
+        if (id > 0) {
+            genericSpecification.add(new SearchCriteria("id", id, SearchOperation.NOT_EQUAL));
+        }
+
+        genericSpecification.add(new SearchCriteria("name", name, SearchOperation.EQUAL));
+
+
+        List<AgentCategoryTask> categoryTaskExist = agentCategoryTaskRepository.findAll(genericSpecification);
+        if(categoryTaskExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Task already exist");
+        }
+
+    }
+
+    public void agentCategoryKeyExist(Long categoryId, Long taskId, Long id) {
+        GenericSpecification<AgentCategoryTask> genericSpecification = new GenericSpecification<AgentCategoryTask>();
+        if (id > 0) {
+            genericSpecification.add(new SearchCriteria("id", id, SearchOperation.NOT_EQUAL));
+        }
+
+        genericSpecification.add(new SearchCriteria("agentCategoryId", categoryId, SearchOperation.EQUAL));
+        genericSpecification.add(new SearchCriteria("taskId", taskId, SearchOperation.EQUAL));
+
+        List<AgentCategoryTask> categoryTaskExist = agentCategoryTaskRepository.findAll(genericSpecification);
+        if(categoryTaskExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Task already exist");
+        }
+
+    }
 }

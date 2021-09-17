@@ -34,9 +34,12 @@ public class Validations {
     private WardRepository wardRepository;
     private AgentRepository agentRepository;
     private SupervisorRepository supervisorRepository;
+    private MarketRepository marketRepository;
 
 
-    public Validations(StateRepository stateRepository, LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository, TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
+    public Validations(StateRepository stateRepository,MarketRepository marketRepository,
+                       LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository,
+                       TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
         this.stateRepository = stateRepository;
         this.lgaRepository = lgaRepository;
         this.agentCategoryRepository = agentCategoryRepository;
@@ -45,6 +48,7 @@ public class Validations {
         this.userRepository = userRepository;
         this.wardRepository = wardRepository;
         this.agentRepository = agentRepository;
+        this.marketRepository = marketRepository;
         this.supervisorRepository = supervisorRepository;
     }
 
@@ -179,7 +183,7 @@ public class Validations {
 
         Task task = taskRepository.findById(agentCategoryTaskDto.getTaskId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid Target Type!"));
+                        " Enter a valid Task!"));
     }
     public void validateAgentNetwork(AgentNetworkDto request) {
         if (request.getAgentId() == null )
@@ -203,20 +207,25 @@ public class Validations {
     public void validateAgentTarget(AgentTargetDto request) {
         if(request.getName() == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " Agent Target name can not be empty");
-        if (request.getTargetType() == null )
+        if (request.getTargetId() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Target Type cannot be empty");
         if (request.getMax() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Max cannot be empty");
         if (request.getMin() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Min cannot be empty");
-        if (request.getAgent() == null )
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent cannot be empty");
+        if (request.getAgentId() == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id cannot be empty");
         if (request.getSuperMax() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Super max cannot be empty");
 
-        agentRepository.findById(request.getAgent().getId()).orElseThrow(() ->
+        agentRepository.findById(request.getAgentId()).orElseThrow(() ->
                 new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Agent Does not Exist!")
+        );
+
+        targetTypeRepository.findById(request.getTargetId()).orElseThrow(() ->
+                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Target type Does not Exist!")
         );
 
     }
@@ -269,4 +278,35 @@ public class Validations {
     }
 
 
+    public void validateAgentLocation(AgentLocationDto request) {
+        if(request.getLocationType().isEmpty() || request.getLocationType() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Location type  cannot be empty");
+        if (request.getAgentId() == null || request.getAgentId() == 0)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id type  cannot be empty or zero");
+        if(request.getLocationId() == null || request.getLocationId() == 0)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Location Id  cannot be empty or zero");
+        if(request.getLocationName().isEmpty() || request.getLocationName() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Location name  cannot be empty");
+
+        switch (request.getLocationType()){
+            case "Ward":
+                wardRepository.findById(request.getLocationId()).orElseThrow(()->
+                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Ward Id"));
+                 break;
+            case "Market":
+                marketRepository.findById(request.getLocationId()).orElseThrow(()->
+                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Market Id"));
+                break;
+            case "Lga":
+                lgaRepository.findById(request.getLocationId()).orElseThrow(()->
+                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Lga Id"));
+                break;
+            case "State":
+                stateRepository.findById(request.getLocationId()).orElseThrow(()->
+                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid State Id"));
+                break;
+            default:
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter a valid location type");
+        }
+    }
 }

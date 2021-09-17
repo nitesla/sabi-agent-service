@@ -80,7 +80,7 @@ public class AgentCategoryTargetService {
                         "Requested Agent Category Target does not exist!"));
         mapper.map(request, agentCategoryTarget);
         agentCategoryTarget.setUpdatedBy(0l);
-        exists.agentCategoryTargetExist(request);
+        exists.agentCategoryTargetUpateExist(request);
         agentCategoryTargetRepository.save(agentCategoryTarget);
         log.debug("Agent Category Target record updated - {}" + new Gson().toJson(agentCategoryTarget));
         return mapper.map(agentCategoryTarget, AgentCategoryTargetResponseDto.class);

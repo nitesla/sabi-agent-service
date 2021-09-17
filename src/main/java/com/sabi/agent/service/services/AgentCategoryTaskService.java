@@ -82,7 +82,7 @@ public class AgentCategoryTaskService {
         mapper.map(request, agentCategoryTask);
         agentCategoryTask.setUpdatedBy(0l);
 
-        exists.agentCategoryTaskExist(request);
+        exists.agentCategoryTaskUpateExist(request);
 
         agentCategoryTaskRepository.save(agentCategoryTask);
         log.debug("Agent Category Task record updated - {}" + new Gson().toJson(agentCategoryTask));
