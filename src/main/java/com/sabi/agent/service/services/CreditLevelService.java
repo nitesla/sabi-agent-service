@@ -16,6 +16,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 @Slf4j
 @Service
 public class CreditLevelService {
@@ -82,8 +85,8 @@ public class CreditLevelService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<CreditLevel> findAll(Long limit,Boolean isActive, Long repaymentPeriod, PageRequest pageRequest ){
-        Page<CreditLevel> creditLevel = creditLevelRepository.findCreditLevel(limit, isActive,repaymentPeriod,  pageRequest);
+    public Page<CreditLevel> findAll(BigDecimal limits,Boolean isActive, PageRequest pageRequest ){
+        Page<CreditLevel> creditLevel = creditLevelRepository.findCreditLevel(limits, isActive, pageRequest);
         if(creditLevel == null){
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
@@ -106,6 +109,12 @@ public class CreditLevelService {
 
     }
 
+
+    public List<CreditLevel> getAll(Boolean isActive){
+        List<CreditLevel> creditLevel = creditLevelRepository.findByIsActive(isActive);
+        return creditLevel;
+
+    }
 
 
 }
