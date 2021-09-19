@@ -2,11 +2,14 @@ package com.sabi.agent.service.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.sabi.agent.core.dto.agentDto.requestDto.AgentBvnVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentUpdateDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
+import com.sabi.agent.core.dto.requestDto.BvnVerificationData;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.ValidateOTPRequest;
+import com.sabi.agent.core.dto.responseDto.AgentBvnVerificationResponse;
 import com.sabi.agent.core.dto.responseDto.AgentUpdateResponseDto;
 import com.sabi.agent.core.dto.responseDto.CreateAgentResponseDto;
 import com.sabi.agent.core.dto.responseDto.QueryAgentResponseDto;
@@ -22,16 +25,19 @@ import com.sabi.agent.service.repositories.agentRepo.AgentVerificationRepository
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.PreviousPasswords;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.PreviousPasswordRepository;
 import com.sabi.framework.repositories.UserRepository;
+import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.utils.Constants;
 import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,18 +47,23 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
 public class AgentService {
 
-//    @Autowired
-//    BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    private API api;
+    @Value("${bvn.url}")
+    private String bvnUrl;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
     private AgentVerificationRepository agentVerificationRepository;
+    private ExternalTokenService externalTokenService;
     private CountryRepository countryRepository;
     private BankRepository bankRepository;
     private StateRepository stateRepository;
@@ -67,13 +78,14 @@ public class AgentService {
     private final ObjectMapper objectMapper;
     private final Validations validations;
 
-    public AgentService(AgentVerificationRepository agentVerificationRepository,CountryRepository countryRepository,
+    public AgentService(AgentVerificationRepository agentVerificationRepository,ExternalTokenService externalTokenService,CountryRepository countryRepository,
                         BankRepository bankRepository,StateRepository stateRepository,IdTypeRepository idTypeRepository,
                         CreditLevelRepository creditLevelRepository,SupervisorRepository supervisorRepository,
                         PreviousPasswordRepository previousPasswordRepository,UserRepository userRepository,AgentRepository agentRepository,
                         AgentCategoryRepository agentCategoryRepository, ModelMapper mapper, ObjectMapper objectMapper,
                         Validations validations) {
         this.agentVerificationRepository = agentVerificationRepository;
+        this.externalTokenService = externalTokenService;
         this.countryRepository = countryRepository;
         this.bankRepository = bankRepository;
         this.stateRepository = stateRepository;
@@ -306,24 +318,49 @@ public class AgentService {
                     .dateSubmitted(agent.getCreatedDate())
                     .status(0)
                     .build();
+        log.debug("address verification - {}"+ new Gson().toJson(addressVerification));
             agentVerificationRepository.save(addressVerification);
     }
-    public void agentBvnVerifications (AgentVerificationDto request) {
+
+
+
+    public void agentBvnVerifications (AgentBvnVerificationDto request) {
         Agent agent = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
+           User user = userRepository.getOne(agent.getUserId());
+          log.info("::: agentUser ::" + user);
 
-            agent.setBvn(request.getBvn());
-            agent = agentRepository.save(agent);
+        BvnVerificationData data = BvnVerificationData.builder()
+                .bvn(request.getBvn())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .phoneNumber(user.getPhone())
+                .accountNumber(request.getAccountNumber())
+                .bankCode(request.getBankCode())
+                .build();
 
-            AgentVerification addressVerification = AgentVerification.builder()
-                    .agentId(agent.getId())
-                    .component(agent.getBvn())
-                    .dateSubmitted(agent.getCreatedDate())
-                    .status(0)
-                    .build();
-            agentVerificationRepository.save(addressVerification);
+        Map map=new HashMap();
+        map.put("Authorization",externalTokenService.getToken());
 
+       AgentBvnVerificationResponse response = api.post(bvnUrl, data,AgentBvnVerificationResponse.class,map);
+       if(response.getStatus().equals(false)){
+           throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " BVN validation failed !");
+       }else {
+
+           agent.setBvn(response.getData().getBvn());
+           agent = agentRepository.save(agent);
+           log.debug("bvn updated - {}"+ new Gson().toJson(agent));
+
+           AgentVerification bvnVerification = AgentVerification.builder()
+                   .agentId(agent.getId())
+                   .component(agent.getBvn())
+                   .dateSubmitted(agent.getCreatedDate())
+                   .status(0)
+                   .build();
+           log.debug("bvn verification - {}"+ new Gson().toJson(bvnVerification));
+           agentVerificationRepository.save(bvnVerification);
+       }
     }
 
     public void agentIdCardVerifications (AgentVerificationDto request) {
@@ -333,17 +370,18 @@ public class AgentService {
             agent.setIdCard(request.getIdCard());
             agent = agentRepository.save(agent);
 
-            AgentVerification addressVerification = AgentVerification.builder()
+            AgentVerification idVerification = AgentVerification.builder()
                     .agentId(agent.getId())
                     .component(agent.getIdCard())
                     .dateSubmitted(agent.getCreatedDate())
                     .status(0)
                     .build();
-            agentVerificationRepository.save(addressVerification);
+        log.debug("id verification - {}"+ new Gson().toJson(idVerification));
+            agentVerificationRepository.save(idVerification);
         }
 
 
-     
+
 
     }
 
