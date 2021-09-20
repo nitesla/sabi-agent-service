@@ -51,10 +51,10 @@ public class NotificationService {
         this.mapper = mapper;
     }
 
-    public NotificationRequestDto emailNotificationRequest (NotificationRequestDto notification, String fingerprint){
+    public NotificationRequestDto emailNotificationRequest (NotificationRequestDto notification){
 
         Recipient recipient = Recipient.builder()
-                            .email(notification.getEmail1())
+                            .email(notification.getEmail())
                             .phoneNo(phoneNo)
                             .build();
         Notification request = Notification.builder()
@@ -67,9 +67,9 @@ public class NotificationService {
                         .build();
         String extToken = externalTokenService.getToken().toString();
         Map<String,String> map = new HashMap();
-        map.put("fingerprint", fingerprint.trim());
+        map.put("fingerprint", notification.getFingerprint());
         map.put("auth-key", authKey.trim());
-//        map.put("authorization", extToken);
+        map.put("Authorization", extToken);
         NotificationResponseDto response = api.post(multipleNotification, request, NotificationResponseDto.class, map);
         Notification notification1 = mapper.map(response, Notification.class);
         notification1 = notificationRepository.save(notification1);
@@ -77,29 +77,29 @@ public class NotificationService {
 
     }
 
-    public Notification smsNotificationRequest (String message, String email, String title, String fingerprint){
+    public NotificationRequestDto smsNotificationRequest (NotificationRequestDto notification){
 
         Recipient recipient = Recipient.builder()
-                .email(email)
+                .email(notification.getEmail())
                 .phoneNo(phoneNo)
                 .build();
         Notification request = Notification.builder()
                 .email(false)
                 .inApp(false)
-                .message(message)
+                .message(notification.getMessage())
                 .recipients(recipient)
                 .sms(true)
-                .title(title)
+                .title(notification.getTitle())
                 .build();
         String extToken = externalTokenService.getToken().toString();
         Map<String,String> map = new HashMap();
-        map.put("fingerprint", fingerprint.trim());
+        map.put("fingerprint", notification.getFingerprint().trim());
         map.put("auth-key", authKey.trim());
         map.put("Authorization", extToken);
         NotificationResponseDto response = api.post(multipleNotification, request, NotificationResponseDto.class, map);
-        Notification notification = mapper.map(response, Notification.class);
-        notification = notificationRepository.save(notification);
-        return mapper.map(notification, Notification.class);
+        Notification notification1 = mapper.map(response, Notification.class);
+        notification1 = notificationRepository.save(notification1);
+        return mapper.map(notification, NotificationRequestDto.class);
 
     }
 

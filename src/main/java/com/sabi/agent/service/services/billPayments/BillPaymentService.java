@@ -2,8 +2,7 @@ package com.sabi.agent.service.services.billPayments;
 
 
 import com.sabi.agent.core.dto.requestDto.billPayments.AirtimeRequestDto;
-import com.sabi.agent.core.dto.requestDto.billPayments.BillCategoryDTO;
-import com.sabi.agent.core.dto.requestDto.billPayments.BillerDTO;
+import com.sabi.agent.core.dto.requestDto.billPayments.BillCategoryRequestDTO;
 import com.sabi.agent.core.dto.responseDto.billPayments.AirtimeResponseDto;
 import com.sabi.agent.core.dto.responseDto.billPayments.BillCategoryResponseDTO;
 import com.sabi.agent.core.dto.responseDto.billPayments.BillerResponseDTO;
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,17 +58,17 @@ public class BillPaymentService {
         this.mapper = mapper;
     }
 
-    public AirtimeRequestDto airtimePayment(Long billerId, String fingerprint, String denomination, String msisdn ){
+    public AirtimeRequestDto airtimePayment(AirtimeRequestDto airtimeRequestDto ){
         AirtimeRequestDto request = AirtimeRequestDto.builder()
-                        .billerId(billerId)
-                        .denomination(denomination.trim())
-                        .msisdn(msisdn.trim())
+                        .billerId(airtimeRequestDto.getBillerId())
+                        .denomination(airtimeRequestDto.getDenomination().trim())
+                        .msisdn(airtimeRequestDto.getMsisdn().trim())
                         .build();
 
         String extToken = externalTokenService.getToken().toString();
 
         Map<String,String> map = new HashMap();
-        map.put("fingerprint", fingerprint.trim());
+        map.put("fingerprint", airtimeRequestDto.getFingerprint().trim());
         map.put("Authorization", extToken);
         AirtimeResponseDto response = api.post(airtime, request, AirtimeResponseDto.class, map);
         Airtime airtime = mapper.map(response, Airtime.class);
@@ -78,25 +78,21 @@ public class BillPaymentService {
     }
 
 
-    public List<BillCategoryDTO> getBillCategories(String direction, String fingerprint, Integer page, Integer size, String sortBy){
-        List<BillCategoryDTO> items = new ArrayList<>();
+    public List<BillCategoryResponseDTO> getBillCategories(BillCategoryRequestDTO request){
 
-        BillCategoryDTO request = BillCategoryDTO.builder()
-                .direction(direction)
-                .fingerprint(fingerprint.trim())
-                .page(page)
-                .size(size)
-                .sortBy(sortBy.trim())
-                .build();
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(billCategories)
+                .queryParam("direction",request.getDirection())
+                .queryParam("page",request.getPage())
+                .queryParam("size",request.getSize())
+                .queryParam("sortBy",request.getSortBy());
 
-        String extToken = externalTokenService.getToken().toString();
+        List<BillCategoryResponseDTO> items = new ArrayList<>();
         Map<String,String> map = new HashMap();
-        map.put("fingerprint", fingerprint.trim());
-        map.put("Authorization", extToken);
+        map.put("fingerprint", request.getFingerprint());
+        map.put("Authorization", externalTokenService.getToken().toString());
         try {
-            BillCategoryResponseDTO billCategoryResponse = api.get(billCategories, BillCategoryResponseDTO.class, map, request);
+            BillCategoryResponseDTO billCategoryResponse = api.get(builder.toUriString(), BillCategoryResponseDTO.class, map);
             items = billCategoryResponse.getCategorys();
-            return items;
         } catch (Exception e){
             logger.info("Error processing request");
             logger.info("message === {} " , e.getMessage());
@@ -104,21 +100,20 @@ public class BillPaymentService {
         return items;
     }
 
-    public List<BillerDTO> getBillCategoryId(Integer billCategoryId, String fingerprint){
-        List<BillerDTO> items = new ArrayList<>();
+    public List<BillerResponseDTO> getBillCategoryId(Integer billCategoryId, String fingerprint){
 
-        BillerDTO request = BillerDTO.builder()
-                .billCategoryId(billCategoryId)
-                .build();
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(billers)
+                .queryParam("billCategoryId",billCategoryId);
 
-        String extToken = externalTokenService.getToken().toString();
+
+        List<BillerResponseDTO> items = new ArrayList<>();
+
         Map map = new HashMap();
         map.put("fingerprint", fingerprint.trim());
-        map.put("Authorization", extToken);
+        map.put("Authorization", externalTokenService.getToken());
         try {
-            BillerResponseDTO billerResponseDTO = api.get(billers, BillerResponseDTO.class, map, billCategoryId);
+            BillerResponseDTO billerResponseDTO = api.get(builder.toUriString(), BillerResponseDTO.class, map);
             items = billerResponseDTO.getBillers();
-            return items;
         } catch (Exception e){
             logger.info("Error processing request");
             logger.info("message === {} " , e.getMessage());

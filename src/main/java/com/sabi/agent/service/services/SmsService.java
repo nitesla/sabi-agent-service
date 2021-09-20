@@ -49,14 +49,14 @@ public class SmsService {
         this.mapper = mapper;
     }
 
-    public SmsRequestDto testSms(String message, String phoneNumber, String fingerprint){
+    public SmsRequestDto testSms(SmsRequestDto smsRequestDto){
         SmsRequestDto request = SmsRequestDto.builder()
-                        .message(message)
-                        .phoneNumber(phoneNumber.trim())
+                        .message(smsRequestDto.getMessage())
+                        .phoneNumber(smsRequestDto.getPhoneNumber().trim())
                         .build();
         SpaceResponse extToken = externalTokenService.getToken();
         Map map = new HashMap();
-        map.put("fingerprint", fingerprint.trim());
+        map.put("fingerprint", smsRequestDto.getFingerprint().trim());
         map.put("authorization", extToken);
         SmsResponseDto response = api.post(sms, request, SmsResponseDto.class, map);
         Sms sms = mapper.map(response, Sms.class);
