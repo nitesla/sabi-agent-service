@@ -2,13 +2,9 @@ package com.sabi.agent.service.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.sabi.agent.core.dto.agentDto.requestDto.AgentSupervisorDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentTargetDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
-import com.sabi.agent.core.dto.requestDto.MarketDto;
-import com.sabi.agent.core.dto.responseDto.AgentSupervisorResponseDto;
 import com.sabi.agent.core.dto.responseDto.AgentTargetResponseDto;
-import com.sabi.agent.core.models.Market;
 import com.sabi.agent.core.models.agentModel.AgentTarget;
 import com.sabi.agent.service.helper.GenericSpecification;
 import com.sabi.agent.service.helper.SearchCriteria;
@@ -27,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 //ken
 @Slf4j
@@ -148,11 +143,11 @@ public class AgentTargetService {
 
     }
 
-    public List<AgentTargetResponseDto> getAllByStatus(Boolean isActive) {
-        List<AgentTarget> markets = agentTargetRepository.findByIsActive(isActive);
-        return markets
-                .stream()
-                .map(user -> mapper.map(user, AgentTargetResponseDto.class))
-                .collect(Collectors.toList());
+
+
+    public List<AgentTarget> getAll(Boolean isActive){
+        List<AgentTarget> creditLevel = agentTargetRepository.findByIsActive(isActive);
+        return creditLevel;
+
     }
 }
