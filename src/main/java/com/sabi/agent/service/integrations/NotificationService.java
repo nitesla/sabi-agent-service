@@ -69,7 +69,7 @@ public class NotificationService {
         Map<String,String> map = new HashMap();
         map.put("fingerprint", notification.getFingerprint());
         map.put("auth-key", authKey.trim());
-        map.put("Authorization", extToken);
+        map.put("Authorization", "bearer"+ " " +extToken);
         NotificationResponseDto response = api.post(multipleNotification, request, NotificationResponseDto.class, map);
         Notification notification1 = mapper.map(response, Notification.class);
         notification1 = notificationRepository.save(notification1);
@@ -95,7 +95,7 @@ public class NotificationService {
         Map<String,String> map = new HashMap();
         map.put("fingerprint", notification.getFingerprint().trim());
         map.put("auth-key", authKey.trim());
-        map.put("Authorization", extToken);
+        map.put("Authorization", "bearer"+ " " +extToken);
         NotificationResponseDto response = api.post(multipleNotification, request, NotificationResponseDto.class, map);
         Notification notification1 = mapper.map(response, Notification.class);
         notification1 = notificationRepository.save(notification1);

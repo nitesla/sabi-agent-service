@@ -57,7 +57,7 @@ public class SmsService {
         SpaceResponse extToken = externalTokenService.getToken();
         Map map = new HashMap();
         map.put("fingerprint", smsRequestDto.getFingerprint().trim());
-        map.put("authorization", extToken);
+        map.put("Authorization", "bearer"+ " " +extToken);
         SmsResponseDto response = api.post(sms, request, SmsResponseDto.class, map);
         Sms sms = mapper.map(response, Sms.class);
         sms = smsRepository.save(sms);
