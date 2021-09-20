@@ -1,4 +1,4 @@
-package com.sabi.agent.service.services.billPayments;
+package com.sabi.agent.service.integrations;
 
 
 import com.sabi.agent.core.dto.requestDto.billPayments.AirtimeRequestDto;
