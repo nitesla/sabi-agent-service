@@ -22,6 +22,7 @@ import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentVerificationRepository;
+import com.sabi.framework.dto.requestDto.ChangePasswordDto;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
@@ -110,11 +111,11 @@ public class AgentService {
     public CreateAgentResponseDto agentSignUp(CreateAgentRequestDto request) {
          validations.validateAgent(request);
         User user = mapper.map(request,User.class);
-        User userExist = userRepository.findByEmailAndPhone(request.getEmail(),request.getPhone());
+        User userExist = userRepository.findByPhone(request.getPhone());
         if(userExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
         }
-        String password = user.getPassword();
+        String password = Utility.getSaltString();
         user.setPassword(passwordEncoder.encode(password));
         user.setUserCategory(Constants.AGENT_USER);
         user.setCreatedBy(0l);
@@ -168,7 +169,6 @@ public class AgentService {
                           "Requested user does not exist!" + response.getUserId()));
           userExist.setIsActive(true);
           userExist.setUpdatedBy(0l);
-          userExist.setPasswordChangedOn(LocalDateTime.now());
           userRepository.save(userExist);
 
       }
@@ -177,6 +177,35 @@ public class AgentService {
         agent.setUpdatedBy(validateOTPRequest.getUpdatedBy());
         agent.setIsActive(validateOTPRequest.getIsActive());
         return agentRepository.saveAndFlush(agent);
+    }
+
+
+
+
+    /** <summary>
+     * Change password for first time login for Agent
+     * </summary>
+     * <remarks>this method is responsible for changing password</remarks>
+     */
+
+    public void agentPasswordActivation(ChangePasswordDto request) {
+
+        User user = userRepository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested user id does not exist!"));
+        mapper.map(request, user);
+
+        String password = request.getPassword();
+        user.setPassword(passwordEncoder.encode(password));
+        user.setPasswordChangedOn(LocalDateTime.now());
+        user = userRepository.save(user);
+
+        PreviousPasswords previousPasswords = PreviousPasswords.builder()
+                .userId(user.getId())
+                .password(user.getPassword())
+                .build();
+        previousPasswordRepository.save(previousPasswords);
+
     }
 
 

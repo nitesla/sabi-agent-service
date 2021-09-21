@@ -14,7 +14,6 @@ import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.utils.CustomResponseCode;
-import com.sabi.framework.utils.PasswordUtil;
 import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -271,13 +270,8 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid phone number  length");
         if (!Utility.isNumeric(agent.getPhone()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
-        if (agent.getPassword() == null || agent.getPassword().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Password cannot be empty");
-        if (agent.getPassword().length() < 8 || agent.getPassword().length() > 20)// NAME LENGTH*********
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid password length");
-        if (!PasswordUtil.passwordValidator(agent.getPassword()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid Password Format");
     }
+
 
     public void validateUserTask(UserTaskDto request){
         if (request.getEndDate() == null )
