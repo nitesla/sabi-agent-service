@@ -4,6 +4,7 @@ package com.sabi.agent.service.helper;
 import com.sabi.agent.core.dto.agentDto.requestDto.*;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.*;
+import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
@@ -16,6 +17,7 @@ import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.PasswordUtil;
 import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -35,6 +37,9 @@ public class Validations {
     private AgentRepository agentRepository;
     private SupervisorRepository supervisorRepository;
     private MarketRepository marketRepository;
+
+    @Autowired
+    private BankRepository bankRepository;
 
 
     public Validations(StateRepository stateRepository,MarketRepository marketRepository,
@@ -145,6 +150,20 @@ public class Validations {
         TargetType targetType = targetTypeRepository.findById(agentCategoryTargetDto.getTargetTypeId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Target Type!"));
+    }
+
+    public void validateAgentBank (AgentBankDto agentBankDto){
+        if (agentBankDto.getAccountNumber() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Account Number cannot be empty");
+
+        Agent agent =  agentRepository.findById(agentBankDto.getAgentId()).orElseThrow(() ->
+                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Agent Id!")
+        );
+
+        Bank bank = bankRepository.findById(agentBankDto.getBankId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Bank!"));
     }
 
     public void validateAgentSupervisor(AgentSupervisorDto request) {
