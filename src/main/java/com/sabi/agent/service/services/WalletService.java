@@ -38,11 +38,11 @@ public class WalletService {
     }
 
     public WalletStatusResponse getBalance(String fingerPrint){
-        return  api.get(baseUrl + "/balance",  WalletStatusResponse.class, getHeaders(fingerPrint), "");
+        return  api.get(baseUrl + "/balance",  WalletStatusResponse.class, getHeaders(fingerPrint));
     }
 
     public WalletStatusResponse balanceSync(String fingerPrint){
-        return  api.get(baseUrl + "/balanceSync",  WalletStatusResponse.class, getHeaders(fingerPrint), "");
+        return  api.get(baseUrl + "/balanceSync",  WalletStatusResponse.class, getHeaders(fingerPrint));
     }
 
     public WalletStatusResponse createWallet(String fingerPrint){
@@ -68,7 +68,7 @@ public class WalletService {
 
     //walletStatus
     public WalletStatusResponse walletStatus(String fingerPrint){
-        return  api.get(baseUrl + "/walletStatus",  WalletStatusResponse.class, getHeaders(fingerPrint), "");
+        return  api.get(baseUrl + "/walletStatus",  WalletStatusResponse.class, getHeaders(fingerPrint));
     }
 
     public WalletResponse walletToBankTransfer(String fingerPrint, WalletToBankTransferRequest walletToBankTransferRequest){

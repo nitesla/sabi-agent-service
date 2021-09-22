@@ -9,6 +9,7 @@ import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
@@ -244,6 +245,10 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "email cannot be empty");
         if (!Utility.validEmail(agent.getEmail().trim()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid Email Address");
+         User user = userRepository.findByEmail(agent.getEmail());
+         if(user !=null){
+             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Email already exist");
+         }
 
         if (agent.getPhone() == null || agent.getPhone().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Phone number cannot be empty");
@@ -251,6 +256,10 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid phone number  length");
         if (!Utility.isNumeric(agent.getPhone()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
+        User userExist = userRepository.findByPhone(agent.getPhone());
+        if(userExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
+        }
     }
 
 

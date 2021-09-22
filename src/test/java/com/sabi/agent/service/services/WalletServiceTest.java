@@ -1,10 +1,5 @@
 package com.sabi.agent.service.services;
 
-import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.sabi.agent.core.wallet_integration.request.DebitUserRequest;
 import com.sabi.agent.core.wallet_integration.response.WalletResponse;
 import com.sabi.framework.dto.responseDto.SpaceResponse;
@@ -16,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = {WalletService.class, String.class})
 @RunWith(SpringRunner.class)

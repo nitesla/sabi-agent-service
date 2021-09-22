@@ -21,14 +21,18 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
 
     Agent findByUserId (Long userId);
 
+
     Agent findByRegistrationToken (String registrationToken);
 
     List<Agent> findByIsActive(Boolean isActive);
 
 
     @Query("SELECT t FROM Agent t WHERE ((:userId IS NULL) OR (:userId IS NOT NULL AND t.userId = :userId)) " +
-            " AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND t.isActive = :isActive))")
+            " AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND t.isActive = :isActive))"+
+    " AND ((:referralCode IS NULL) OR (:referralCode IS NOT NULL AND t.referralCode = :referralCode))")
     Page<Agent> findAgents(@Param("userId")Long userId,
-                           @Param("isActive")Boolean isActive,Pageable pageable);
+                           @Param("isActive")Boolean isActive,
+                           @Param("referralCode")String referralCode,
+                           Pageable pageable);
 
 }

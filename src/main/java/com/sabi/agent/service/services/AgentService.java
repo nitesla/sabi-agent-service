@@ -6,25 +6,18 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentBvnVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentUpdateDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
-import com.sabi.agent.core.dto.requestDto.BvnVerificationData;
-import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
-import com.sabi.agent.core.dto.requestDto.ValidateOTPRequest;
-import com.sabi.agent.core.dto.responseDto.AgentBvnVerificationResponse;
-import com.sabi.agent.core.dto.responseDto.AgentUpdateResponseDto;
-import com.sabi.agent.core.dto.responseDto.CreateAgentResponseDto;
-import com.sabi.agent.core.dto.responseDto.QueryAgentResponseDto;
-import com.sabi.agent.core.models.*;
+import com.sabi.agent.core.dto.requestDto.*;
+import com.sabi.agent.core.dto.responseDto.*;
 import com.sabi.agent.core.models.agentModel.Agent;
-import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.core.models.agentModel.AgentVerification;
 import com.sabi.agent.service.helper.Validations;
+import com.sabi.agent.service.integrations.NotificationService;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentVerificationRepository;
 import com.sabi.framework.dto.requestDto.ChangePasswordDto;
 import com.sabi.framework.exceptions.BadRequestException;
-import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.PreviousPasswords;
@@ -75,6 +68,7 @@ public class AgentService {
     private UserRepository userRepository;
     private AgentRepository agentRepository;
     private AgentCategoryRepository agentCategoryRepository;
+    private NotificationService notificationService;
     private final ModelMapper mapper;
     private final ObjectMapper objectMapper;
     private final Validations validations;
@@ -83,7 +77,7 @@ public class AgentService {
                         BankRepository bankRepository,StateRepository stateRepository,IdTypeRepository idTypeRepository,
                         CreditLevelRepository creditLevelRepository,SupervisorRepository supervisorRepository,
                         PreviousPasswordRepository previousPasswordRepository,UserRepository userRepository,AgentRepository agentRepository,
-                        AgentCategoryRepository agentCategoryRepository, ModelMapper mapper, ObjectMapper objectMapper,
+                        AgentCategoryRepository agentCategoryRepository,NotificationService notificationService, ModelMapper mapper, ObjectMapper objectMapper,
                         Validations validations) {
         this.agentVerificationRepository = agentVerificationRepository;
         this.externalTokenService = externalTokenService;
@@ -97,6 +91,7 @@ public class AgentService {
         this.userRepository = userRepository;
         this.agentRepository = agentRepository;
         this.agentCategoryRepository = agentCategoryRepository;
+        this.notificationService = notificationService;
         this.mapper = mapper;
         this.objectMapper = objectMapper;
         this.validations = validations;
@@ -111,10 +106,6 @@ public class AgentService {
     public CreateAgentResponseDto agentSignUp(CreateAgentRequestDto request) {
          validations.validateAgent(request);
         User user = mapper.map(request,User.class);
-        User userExist = userRepository.findByPhone(request.getPhone());
-        if(userExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
-        }
         String password = Utility.getSaltString();
         user.setPassword(passwordEncoder.encode(password));
         user.setUserCategory(Constants.AGENT_USER);
@@ -131,12 +122,27 @@ public class AgentService {
 
         Agent saveAgent = new Agent();
                 saveAgent.setUserId(user.getId());
-                saveAgent.setReferrer(Utility.guidID());
+                saveAgent.setReferralCode(Utility.guidID());
                 saveAgent.setRegistrationToken(Utility.registrationCode());
                 saveAgent.setRegistrationTokenExpiration(Utility.expiredTime());
                 saveAgent.setIsActive(false);
                 saveAgent.setCreatedBy(0l);
            agentRepository.save(saveAgent);
+
+// --------  sending token to agent -----------
+        try{
+            NotificationRequestDto notification = new NotificationRequestDto();
+            notification.setTitle(Constants.NOTIFICATION);
+            User emailRecipient = userRepository.getOne(user.getId());
+            System.out.println(":::; user details :::" + emailRecipient);
+            notification.setEmail(emailRecipient.getEmail());
+            notification.setMessage("Activation Otp " +" "+saveAgent.getRegistrationToken());
+            notification.setFingerprint("e0224b3d-74f5-49c5-930f-61d7079c7b3b");
+            notificationService.emailNotificationRequest(notification);
+
+        }catch (Exception e){
+            log.info(String.format(":notification Exception:  %s",  e.getMessage()));
+        }
         return mapper.map(user, CreateAgentResponseDto.class);
     }
 
@@ -188,7 +194,7 @@ public class AgentService {
      * <remarks>this method is responsible for changing password</remarks>
      */
 
-    public void agentPasswordActivation(ChangePasswordDto request) {
+    public AgentActivationResponse agentPasswordActivation(ChangePasswordDto request) {
 
         User user = userRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -206,6 +212,15 @@ public class AgentService {
                 .build();
         previousPasswordRepository.save(previousPasswords);
 
+        Agent agent = agentRepository.findByUserId(user.getId());
+
+        AgentActivationResponse response = AgentActivationResponse.builder()
+                .userId(user.getId())
+                .agentId(agent.getId())
+                .phoneNumber(user.getPhone())
+                .build();
+
+        return response;
     }
 
 
@@ -238,34 +253,20 @@ public class AgentService {
         Agent agent  = agentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent id does not exist!"));
-        AgentCategory category = agentCategoryRepository.findById(agent.getAgentCategoryId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "  Id does not exist!"));
-        User user = userRepository.findById(agent.getUserId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "  Id does not exist!"));
-        Supervisor supervisor = supervisorRepository.findById(agent.getSupervisorId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "  Id does not exist!"));
-        CreditLevel creditLevel = creditLevelRepository.findById(agent.getCreditLevelId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "  Id does not exist!"));
-        IdType idType = idTypeRepository.findById(agent.getIdTypeId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "  Id does not exist!"));
-        State state = stateRepository.findById(agent.getStateId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "  Id does not exist!"));
-        Bank bank = bankRepository.findById(agent.getBankId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "  Id does not exist!"));
-        Country country = countryRepository.findById(agent.getCountryId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "  Id does not exist!"));
+//        Optional<AgentCategory> category = agentCategoryRepository.findById(agent.getAgentCategoryId());
+
+
+//        User user = userRepository.getOne(agent.getUserId());
+//        CreditLevel creditLevel = creditLevelRepository.getOne(agent.getCreditLevelId());
+//        IdType idType = idTypeRepository.getOne(agent.getIdTypeId());
+//        State state = stateRepository.getOne(agent.getStateId());
+//        Bank bank = bankRepository.getOne(agent.getBankId());
+//        Country country = countryRepository.getOne(agent.getCountryId());
+
         QueryAgentResponseDto response = QueryAgentResponseDto.builder()
                 .id(agent.getId())
-                .agentCategory(category.getName())
-                .user(user.getFirstName()+ " " + user.getLastName())
+//                .agentCategory(category.get().getName())
+//                .user(user.getFirstName()+ " " + user.getLastName())
                 .scope(agent.getScope())
                 .referralCode(agent.getReferralCode())
                 .address(agent.getAddress())
@@ -279,11 +280,11 @@ public class AgentService {
                 .walletId(agent.getWalletId())
                 .picture(agent.getPicture())
                 .hasCustomizedTarget(agent.getHasCustomizedTarget())
-                .creditLevel(creditLevel.getLimits())
-                .idType(idType.getName())
-                .state(state.getName())
-                .bank(bank.getName())
-                .country(country.getName())
+//                .creditLevel(creditLevel.getLimits())
+//                .idType(idType.getName())
+//                .state(state.getName())
+//                .bank(bank.getName())
+//                .country(country.getName())
                 .createdDate(agent.getCreatedDate())
                 .createdBy(agent.getCreatedBy())
                 .updatedBy(agent.getUpdatedBy())
@@ -300,8 +301,8 @@ public class AgentService {
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
 
-    public Page<Agent> findAll(Long userId,Boolean isActive, PageRequest pageRequest ) {
-        Page<Agent> agents = agentRepository.findAgents(userId,isActive, pageRequest);
+    public Page<Agent> findAll(Long userId,Boolean isActive,String referralCode, PageRequest pageRequest ) {
+        Page<Agent> agents = agentRepository.findAgents(userId,isActive,referralCode, pageRequest);
         if (agents == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
@@ -410,6 +411,16 @@ public class AgentService {
         }
 
 
+
+    public void agentEmailVerifications (EmailVerificationDto request) {
+        User user = userRepository.findByEmail(request.getEmail());
+        if(user == null){
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " Email does not exist !");
+        }
+        Agent agent = agentRepository.findByUserId(user.getId());
+        agent.setEmailVerified(true);
+        agentRepository.save(agent);
+    }
 
 
     }
