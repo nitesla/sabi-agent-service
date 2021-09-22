@@ -111,6 +111,8 @@ public class Validations {
     public void validateMarket(MarketDto marketDto){
         if(marketDto.getName() == null || marketDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if(marketDto.getWardId() == null || marketDto.getWardId() < 0 )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Ward Id cannot be empty");
         Ward ward = wardRepository.findById(marketDto.getWardId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid ward id!"));
