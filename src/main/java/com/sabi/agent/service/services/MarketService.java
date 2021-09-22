@@ -57,7 +57,7 @@ public class MarketService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Market already exist");
         }
         market.setCreatedBy(0L);
-        market.setIsActive(false);
+        market.setActive(false);
         market = marketRepository.save(market);
         log.debug("Create new Market - {}" + new Gson().toJson(market));
         return mapper.map(market, MarketResponseDto.class);
@@ -122,7 +122,7 @@ public class MarketService {
         Market market = marketRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested market id does not exist!"));
-        market.setIsActive(request.getIsActive());
+        market.setActive(request.isActive());
         market.setUpdatedBy(0L);
         marketRepository.save(market);
 

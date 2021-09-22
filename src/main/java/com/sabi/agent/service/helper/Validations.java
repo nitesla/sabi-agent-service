@@ -121,6 +121,10 @@ public class Validations {
         if (wardDto.getName() == null || wardDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
 
+        if (!Utility.validateName(wardDto.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+
+
         LGA lga = lgaRepository.findById(wardDto.getLgaId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid LGA id!"));
@@ -135,12 +139,16 @@ public class Validations {
     public void validateTargetType (TargetTypeDto targetTypeDto){
         if (targetTypeDto.getName() == null || targetTypeDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (!Utility.validateName(targetTypeDto.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
 
     }
 
     public void validateAgentCategoryTarget (AgentCategoryTargetDto agentCategoryTargetDto){
         if (agentCategoryTargetDto.getName() == null || agentCategoryTargetDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (!Utility.validateName(agentCategoryTargetDto.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
 
         AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTargetDto.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -154,6 +162,9 @@ public class Validations {
     public void validateAgentBank (AgentBankDto agentBankDto){
         if (agentBankDto.getAccountNumber() == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Account Number cannot be empty");
+        if (!Utility.isNumeric(agentBankDto.getAccountNumber()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Account Number ");
+
 
         Agent agent =  agentRepository.findById(agentBankDto.getAgentId()).orElseThrow(() ->
                 new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -194,6 +205,9 @@ public class Validations {
     public void validateAgentCategoryTask (AgentCategoryTaskDto agentCategoryTaskDto){
         if (agentCategoryTaskDto.getName() == null || agentCategoryTaskDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (!Utility.validateName(agentCategoryTaskDto.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+
 
         AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTaskDto.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -280,6 +294,8 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Assigned Date cannot be empty");
         if (request.getStatus() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Status  cannot be empty");
+        if (!Utility.containsAlphabet(request.getStatus()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Status ");
 
         Task task =  taskRepository.findById(request.getTaskId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,

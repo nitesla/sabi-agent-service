@@ -52,7 +52,7 @@ public class TargetTypeService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " TargetType already exist");
         }
         targetType.setCreatedBy(0l);
-        targetType.setIsActive(false);
+        targetType.setActive(false);
         targetType = targetTypeRepository.save(targetType);
         log.debug("Create new Target Type - {}"+ new Gson().toJson(targetType));
         return mapper.map(targetType, TargetTypeResponseDto.class);
@@ -100,7 +100,7 @@ public class TargetTypeService {
                 .createdBy(targetType.getCreatedBy())
                 .updatedBy(targetType.getUpdatedBy())
                 .updatedDate(targetType.getUpdatedDate())
-                .isActive(targetType.getIsActive())
+                .isActive(targetType.isActive())
                 .build();
         return response;
     }
@@ -141,7 +141,7 @@ public class TargetTypeService {
         TargetType targetType = targetTypeRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Target Type does not exist!"));
-        targetType.setIsActive(request.getIsActive());
+        targetType.setActive(request.isActive());
         targetType.setUpdatedBy(0l);
         targetTypeRepository.save(targetType);
 

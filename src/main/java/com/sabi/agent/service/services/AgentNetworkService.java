@@ -57,7 +57,7 @@ public class AgentNetworkService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent network with this agent Id already exist");
         }
         agentNetwork.setCreatedBy(0L);
-        agentNetwork.setIsActive(false);
+        agentNetwork.setActive(false);
         agentNetwork = agentNetworkRepository.save(agentNetwork);
         log.debug("Create new agent network - {}" + new Gson().toJson(agentNetwork));
         return mapper.map(agentNetwork, AgentNetworkResponseDto.class);
@@ -131,7 +131,7 @@ public class AgentNetworkService {
         AgentNetwork agentNetwork = agentNetworkRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent network Id does not exist!"));
-        agentNetwork.setIsActive(request.getIsActive());
+        agentNetwork.setActive(request.isActive());
         agentNetwork.setUpdatedBy(0L);
         agentNetworkRepository.save(agentNetwork);
 

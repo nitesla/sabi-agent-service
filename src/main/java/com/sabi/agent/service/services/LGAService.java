@@ -56,7 +56,7 @@ public class LGAService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " LGA already exist");
         }
         lga.setCreatedBy(0l);
-        lga.setIsActive(true);
+        lga.setActive(true);
         lga = lgaRepository.save(lga);
         log.debug("Create new LGA - {}"+ new Gson().toJson(lga));
         return mapper.map(lga, LGAResponseDto.class);
@@ -107,7 +107,7 @@ public class LGAService {
                 .createdBy(lga.getCreatedBy())
                 .updatedBy(lga.getUpdatedBy())
                 .updatedDate(lga.getUpdatedDate())
-                .isActive(lga.getIsActive())
+                .isActive(lga.isActive())
                 .build();
         return response;
     }
@@ -142,7 +142,7 @@ public class LGAService {
         LGA lga = lgaRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested LGA Id does not exist!"));
-        lga.setIsActive(request.getIsActive());
+        lga.setActive(request.isActive());
         lga.setUpdatedBy(0l);
         lgaRepository.save(lga);
 

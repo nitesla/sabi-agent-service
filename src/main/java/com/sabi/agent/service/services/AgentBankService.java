@@ -59,7 +59,7 @@ public class AgentBankService {
         AgentBank agentBank = mapper.map(request,AgentBank.class);
         exists.agentBankExist(request);
         agentBank.setCreatedBy(0l);
-        agentBank.setIsActive(false);
+        agentBank.setActive(false);
         agentBank = agentBankRepository.save(agentBank);
         log.debug("Create new Agent Bank - {}"+ new Gson().toJson(agentBank));
         return mapper.map(agentBank, AgentBankResponseDto.class);
@@ -113,7 +113,7 @@ public class AgentBankService {
                 .createdBy(agentBank.getCreatedBy())
                 .updatedBy(agentBank.getUpdatedBy())
                 .updatedDate(agentBank.getUpdatedDate())
-                .isActive(agentBank.getIsActive())
+                .isActive(agentBank.isActive())
                 .build();
 
         return response;
@@ -169,7 +169,7 @@ public class AgentBankService {
         AgentBank agentBank = agentBankRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Bank does not exist!"));
-        agentBank.setIsActive(request.getIsActive());
+        agentBank.setActive(request.isActive());
         agentBank.setUpdatedBy(0l);
         agentBankRepository.save(agentBank);
 

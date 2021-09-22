@@ -59,7 +59,7 @@ public class AgentCategoryTargetService {
         AgentCategoryTarget agentCategoryTarget = mapper.map(request,AgentCategoryTarget.class);
         exists.agentCategoryTargetExist(request);
         agentCategoryTarget.setCreatedBy(0l);
-        agentCategoryTarget.setIsActive(false);
+        agentCategoryTarget.setActive(false);
         agentCategoryTarget = agentCategoryTargetRepository.save(agentCategoryTarget);
         log.debug("Create new Agent Category Target - {}"+ new Gson().toJson(agentCategoryTarget));
         return mapper.map(agentCategoryTarget, AgentCategoryTargetResponseDto.class);
@@ -116,7 +116,7 @@ public class AgentCategoryTargetService {
                 .createdBy(agentCategoryTarget.getCreatedBy())
                 .updatedBy(agentCategoryTarget.getUpdatedBy())
                 .updatedDate(agentCategoryTarget.getUpdatedDate())
-                .isActive(agentCategoryTarget.getIsActive())
+                .isActive(agentCategoryTarget.isActive())
                 .build();
 
         return response;
@@ -182,7 +182,7 @@ public class AgentCategoryTargetService {
         AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Target does not exist!"));
-        agentCategoryTarget.setIsActive(request.getIsActive());
+        agentCategoryTarget.setActive(request.isActive());
         agentCategoryTarget.setUpdatedBy(0l);
         agentCategoryTargetRepository.save(agentCategoryTarget);
 

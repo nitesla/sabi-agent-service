@@ -60,7 +60,7 @@ public class AgentCategoryTaskService {
         exists.agentCategoryTaskExist(request);
 
         agentCategoryTask.setCreatedBy(0l);
-        agentCategoryTask.setIsActive(false);
+        agentCategoryTask.setActive(false);
         agentCategoryTask = agentCategoryTaskRepository.save(agentCategoryTask);
         log.debug("Create new Agent Category Task - {}"+ new Gson().toJson(agentCategoryTask));
         return mapper.map(agentCategoryTask, AgentCategoryTaskResponseDto.class);
@@ -119,7 +119,7 @@ public class AgentCategoryTaskService {
                 .createdBy(agentCategoryTask.getCreatedBy())
                 .updatedBy(agentCategoryTask.getUpdatedBy())
                 .updatedDate(agentCategoryTask.getUpdatedDate())
-                .isActive(agentCategoryTask.getIsActive())
+                .isActive(agentCategoryTask.isActive())
                 .build();
 
         return response;
@@ -170,7 +170,7 @@ public class AgentCategoryTaskService {
         AgentCategoryTask agentCategoryTask = agentCategoryTaskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Task does not exist!"));
-        agentCategoryTask.setIsActive(request.getIsActive());
+        agentCategoryTask.setActive(request.isActive());
         agentCategoryTask.setUpdatedBy(0l);
         agentCategoryTaskRepository.save(agentCategoryTask);
 

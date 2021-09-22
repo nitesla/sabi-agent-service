@@ -53,7 +53,7 @@ public class SupervisorService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " User Task already exist");
         }
         supervisor.setCreatedBy(0l);
-        supervisor.setIsActive(true);
+        supervisor.setActive(true);
         supervisor = supervisorRepository.save(supervisor);
         log.debug("Create new supervisor - {}"+ new Gson().toJson(supervisor));
         return mapper.map(supervisor, SupervisorResponseDto.class);
@@ -98,7 +98,7 @@ public class SupervisorService {
                 .createdBy(supervisor.getCreatedBy())
                 .updatedBy(supervisor.getUpdatedBy())
                 .updatedDate(supervisor.getUpdatedDate())
-                .isActive(supervisor.getIsActive())
+                .isActive(supervisor.isActive())
                 .build();
         return response;
     }
@@ -125,7 +125,7 @@ public class SupervisorService {
         Supervisor supervisor = supervisorRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Supervisor Id does not exist!"));
-        supervisor.setIsActive(request.getIsActive());
+        supervisor.setActive(request.isActive());
         supervisor.setUpdatedBy(0l);
         supervisorRepository.save(supervisor);
 

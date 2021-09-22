@@ -68,7 +68,7 @@ public class AgentSupervisorService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentSupervisor already exist");
         }
         agentSupervisor.setCreatedBy(0L);
-        agentSupervisor.setIsActive(false);
+        agentSupervisor.setActive(false);
         agentSupervisor = agentSupervisorRepository.save(agentSupervisor);
         log.debug("Create new agentSupervisor - {}" + new Gson().toJson(agentSupervisor));
         return mapper.map(agentSupervisor, AgentSupervisorResponseDto.class);
@@ -143,7 +143,7 @@ public class AgentSupervisorService {
         AgentSupervisor agentSupervisor = agentSupervisorRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agentSupervisor Id does not exist!"));
-        agentSupervisor.setIsActive(request.getIsActive());
+        agentSupervisor.setActive(request.isActive());
         agentSupervisor.setUpdatedBy(0L);
         agentSupervisorRepository.save(agentSupervisor);
 

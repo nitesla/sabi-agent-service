@@ -51,7 +51,7 @@ public class IdTypeService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " IdType already exist");
         }
         idType.setCreatedBy(0l);
-        idType.setIsActive(true);
+        idType.setActive(true);
         idType = idTypeRepository.save(idType);
         log.debug("Create new IdType - {}"+ new Gson().toJson(idType));
         return mapper.map(idType, IdTypeResponseDto.class);
@@ -118,7 +118,7 @@ public class IdTypeService {
         IdType idType  = idTypeRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Id type does not exist!"));
-        idType.setIsActive(request.getIsActive());
+        idType.setActive(request.isActive());
         idType.setUpdatedBy(0L);
         idTypeRepository.save(idType);
 
