@@ -8,6 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 @ComponentScan(basePackages = "com.sabi")
 @EntityScan(basePackages = {"com.sabi.agent.core.models"})
 @SpringBootApplication
+//@Transactional
 public class AgentServiceApplication {
 
 	public static void main(String[] args) {
