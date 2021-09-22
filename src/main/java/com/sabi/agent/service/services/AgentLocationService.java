@@ -56,7 +56,7 @@ public class AgentLocationService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentLocation already exist");
         }
         agentLocation.setCreatedBy(0L);
-        agentLocation.setIsActive(false);
+        agentLocation.setActive(false);
         agentLocation = agentLocationRepository.save(agentLocation);
         log.debug("Create new agentLocation - {}" + new Gson().toJson(agentLocation));
         return mapper.map(agentLocation, AgentLocationResponseDto.class);
@@ -122,7 +122,7 @@ public class AgentLocationService {
         AgentLocation agentLocation = agentLocationRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agentLocation id does not exist!"));
-        agentLocation.setIsActive(request.getIsActive());
+        agentLocation.setActive(request.isActive());
         agentLocation.setUpdatedBy(0L);
         agentLocationRepository.save(agentLocation);
 

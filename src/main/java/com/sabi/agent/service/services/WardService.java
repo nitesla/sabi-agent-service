@@ -56,7 +56,7 @@ public class WardService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Ward already exist");
         }
         ward.setCreatedBy(0l);
-        ward.setIsActive(true);
+        ward.setActive(true);
         ward = wardRepository.save(ward);
         log.debug("Create new Ward - {}"+ new Gson().toJson(ward));
         return mapper.map(ward, WardResponseDto.class);
@@ -105,7 +105,7 @@ public class WardService {
                 .createdBy(ward.getCreatedBy())
                 .updatedBy(ward.getUpdatedBy())
                 .updatedDate(ward.getUpdatedDate())
-                .isActive(ward.getIsActive())
+                .isActive(ward.isActive())
                 .build();
         return response;
     }
@@ -150,7 +150,7 @@ public class WardService {
         Ward ward = wardRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Ward Id does not exist!"));
-        ward.setIsActive(request.getIsActive());
+        ward.setActive(request.isActive());
         ward.setUpdatedBy(0l);
         wardRepository.save(ward);
 

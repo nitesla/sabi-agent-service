@@ -56,7 +56,7 @@ public class AgentTargetService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent target already exist");
         }
         agentTarget.setCreatedBy(0L);
-        agentTarget.setIsActive(false);
+        agentTarget.setActive(false);
         agentTarget = agentTargetRepository.save(agentTarget);
         log.debug("Create new agent target - {}"+ new Gson().toJson(agentTarget));
         return mapper.map(agentTarget, AgentTargetResponseDto.class);
@@ -137,7 +137,7 @@ public class AgentTargetService {
         AgentTarget agentTarget  = agentTargetRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent target Id does not exist!"));
-        agentTarget.setIsActive(request.getIsActive());
+        agentTarget.setActive(request.isActive());
         agentTarget.setUpdatedBy(0L);
         agentTargetRepository.save(agentTarget);
 

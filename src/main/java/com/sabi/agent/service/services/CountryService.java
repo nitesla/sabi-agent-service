@@ -53,7 +53,7 @@ public class CountryService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Country already exist");
         }
         country.setCreatedBy(0l);
-        country.setIsActive(true);
+        country.setActive(true);
         country = countryRepository.save(country);
         log.debug("Create new Country - {}"+ new Gson().toJson(country));
         return mapper.map(country, CountryResponseDto.class);
@@ -120,7 +120,7 @@ public class CountryService {
         Country country = countryRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Country Id does not exist!"));
-        country.setIsActive(request.getIsActive());
+        country.setActive(request.isActive());
         country.setUpdatedBy(0l);
         countryRepository.save(country);
 

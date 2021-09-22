@@ -56,7 +56,7 @@ public class UserTaskService {
         UserTask userTask = mapper.map(request,UserTask.class);
         exists.userTaskExist(request);
         userTask.setCreatedBy(0l);
-        userTask.setIsActive(false);
+        userTask.setActive(false);
         userTask = userTaskRepository.save(userTask);
         log.debug("Create new User Task - {}"+ new Gson().toJson(userTask));
         return mapper.map(userTask, UserTaskResponseDto.class);
@@ -110,7 +110,7 @@ public class UserTaskService {
                 .createdBy(userTask.getCreatedBy())
                 .updatedBy(userTask.getUpdatedBy())
                 .updatedDate(userTask.getUpdatedDate())
-                .isActive(userTask.getIsActive())
+                .isActive(userTask.isActive())
                 .build();
         return response;
     }
@@ -156,7 +156,7 @@ public class UserTaskService {
         UserTask userTask = userTaskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested User Task Id does not exist!"));
-        userTask.setIsActive(request.getIsActive());
+        userTask.setActive(request.isActive());
         userTask.setUpdatedBy(0l);
         userTaskRepository.save(userTask);
 

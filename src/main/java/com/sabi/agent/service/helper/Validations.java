@@ -4,6 +4,7 @@ package com.sabi.agent.service.helper;
 import com.sabi.agent.core.dto.agentDto.requestDto.*;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.models.*;
+import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
@@ -16,6 +17,7 @@ import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -35,6 +37,9 @@ public class Validations {
     private AgentRepository agentRepository;
     private SupervisorRepository supervisorRepository;
     private MarketRepository marketRepository;
+
+    @Autowired
+    private BankRepository bankRepository;
 
 
     public Validations(StateRepository stateRepository,MarketRepository marketRepository,
@@ -107,6 +112,8 @@ public class Validations {
     public void validateMarket(MarketDto marketDto){
         if(marketDto.getName() == null || marketDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if(marketDto.getWardId() == null || marketDto.getWardId() < 0 )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Ward Id cannot be empty");
         Ward ward = wardRepository.findById(marketDto.getWardId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid ward id!"));
@@ -116,6 +123,10 @@ public class Validations {
     public void validateWard (WardDto wardDto){
         if (wardDto.getName() == null || wardDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+
+        if (!Utility.validateName(wardDto.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+
 
         LGA lga = lgaRepository.findById(wardDto.getLgaId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -131,12 +142,16 @@ public class Validations {
     public void validateTargetType (TargetTypeDto targetTypeDto){
         if (targetTypeDto.getName() == null || targetTypeDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (!Utility.validateName(targetTypeDto.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
 
     }
 
     public void validateAgentCategoryTarget (AgentCategoryTargetDto agentCategoryTargetDto){
         if (agentCategoryTargetDto.getName() == null || agentCategoryTargetDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (!Utility.validateName(agentCategoryTargetDto.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
 
         AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTargetDto.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -145,6 +160,23 @@ public class Validations {
         TargetType targetType = targetTypeRepository.findById(agentCategoryTargetDto.getTargetTypeId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Target Type!"));
+    }
+
+    public void validateAgentBank (AgentBankDto agentBankDto){
+        if (agentBankDto.getAccountNumber() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Account Number cannot be empty");
+        if (!Utility.isNumeric(agentBankDto.getAccountNumber()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Account Number ");
+
+
+        Agent agent =  agentRepository.findById(agentBankDto.getAgentId()).orElseThrow(() ->
+                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Agent Id!")
+        );
+
+        Bank bank = bankRepository.findById(agentBankDto.getBankId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Enter a valid Bank!"));
     }
 
     public void validateAgentSupervisor(AgentSupervisorDto request) {
@@ -176,6 +208,9 @@ public class Validations {
     public void validateAgentCategoryTask (AgentCategoryTaskDto agentCategoryTaskDto){
         if (agentCategoryTaskDto.getName() == null || agentCategoryTaskDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (!Utility.validateName(agentCategoryTaskDto.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+
 
         AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTaskDto.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -270,6 +305,8 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Assigned Date cannot be empty");
         if (request.getStatus() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Status  cannot be empty");
+        if (!Utility.containsAlphabet(request.getStatus()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Status ");
 
         Task task =  taskRepository.findById(request.getTaskId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,

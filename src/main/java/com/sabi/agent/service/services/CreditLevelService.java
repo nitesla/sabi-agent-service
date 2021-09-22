@@ -50,7 +50,7 @@ public class CreditLevelService {
 //            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " creditLevel already exist");
 //        }
         creditLevel.setCreatedBy(0L);
-        creditLevel.setIsActive(true);
+        creditLevel.setActive(true);
         creditLevel = creditLevelRepository.save(creditLevel);
         log.debug("Create new creditLevel - {}"+ new Gson().toJson(creditLevel));
         return mapper.map(creditLevel, CreditLevelResponseDto.class);
@@ -103,7 +103,7 @@ public class CreditLevelService {
         CreditLevel creditLevel  = creditLevelRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested creditLevel id does not exist!"));
-        creditLevel.setIsActive(request.getIsActive());
+        creditLevel.setActive(request.isActive());
         creditLevel.setUpdatedBy(0L);
         creditLevelRepository.save(creditLevel);
 

@@ -53,7 +53,7 @@ public class AgentCategoryService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent category already exist");
         }
         agentCategory.setCreatedBy(0l);
-        agentCategory.setIsActive(true);
+        agentCategory.setActive(true);
         agentCategory = agentCategoryRepository.save(agentCategory);
         log.debug("Create new agent category - {}"+ new Gson().toJson(agentCategory));
         return mapper.map(agentCategory, AgentCategoryResponseDto.class);
@@ -129,7 +129,7 @@ public class AgentCategoryService {
         AgentCategory agentCategory  = agentCategoryRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent category Id does not exist!"));
-        agentCategory.setIsActive(request.getIsActive());
+        agentCategory.setActive(request.isActive());
         agentCategory.setUpdatedBy(0l);
         agentCategoryRepository.save(agentCategory);
 

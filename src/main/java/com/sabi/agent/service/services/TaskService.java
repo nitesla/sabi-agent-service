@@ -52,7 +52,7 @@ public class TaskService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Task already exist");
         }
         task.setCreatedBy(0l);
-        task.setIsActive(true);
+        task.setActive(true);
         task = taskRepository.save(task);
         log.debug("Create new Task - {}"+ new Gson().toJson(task));
         return mapper.map(task, TaskResponseDto.class);
@@ -115,7 +115,7 @@ public class TaskService {
         Task task = taskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Task Id does not exist!"));
-        task.setIsActive(request.getIsActive());
+        task.setActive(request.isActive());
         task.setUpdatedBy(0l);
         taskRepository.save(task);
 

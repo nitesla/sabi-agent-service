@@ -51,7 +51,7 @@ public class BankService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Bank already exist");
         }
         bank.setCreatedBy(0l);
-        bank.setIsActive(true);
+        bank.setActive(true);
         bank = bankRepository.save(bank);
         log.debug("Create new bank - {}"+ new Gson().toJson(bank));
         return mapper.map(bank, BankResponseDto.class);
@@ -116,7 +116,7 @@ public class BankService {
         Bank bank  = bankRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested bank Id does not exist!"));
-        bank.setIsActive(request.getIsActive());
+        bank.setActive(request.isActive());
         bank.setUpdatedBy(0l);
         bankRepository.save(bank);
 

@@ -1,12 +1,15 @@
 package com.sabi.agent.service.helper;
 
+import com.sabi.agent.core.dto.agentDto.requestDto.AgentBankDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryTargetDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryTaskDto;
 import com.sabi.agent.core.dto.requestDto.UserTaskDto;
 import com.sabi.agent.core.models.UserTask;
+import com.sabi.agent.core.models.agentModel.AgentBank;
 import com.sabi.agent.core.models.agentModel.AgentCategoryTarget;
 import com.sabi.agent.core.models.agentModel.AgentCategoryTask;
 import com.sabi.agent.service.repositories.*;
+import com.sabi.agent.service.repositories.agentRepo.AgentBankRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryTargetRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryTaskRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
@@ -37,6 +40,8 @@ public class Exists {
     private UserTaskRepository userTaskRepository;
     @Autowired
     private AgentCategoryTaskRepository agentCategoryTaskRepository;
+    @Autowired
+    private AgentBankRepository agentBankRepository;
 
 
     public Exists(StateRepository stateRepository, LGARepository lgaRepository, AgentCategoryTargetRepository agentCategoryTargetRepository, TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
@@ -62,6 +67,18 @@ public class Exists {
         }
 
        }
+
+    public void agentBankExist(AgentBankDto request) {
+        AgentBank bankExist = agentBankRepository.findByAccountNumber(request.getAccountNumber());
+        if(bankExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Bank already exist");
+        }
+        AgentBank agent_BankExist = agentBankRepository.findByAgentIdAndBankId(request.getAgentId(), request.getBankId());
+        if(agent_BankExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Bank already exist");
+        }
+
+    }
 
     public void agentCategoryTargetUpateExist(AgentCategoryTargetDto request) {
 
@@ -131,6 +148,28 @@ public class Exists {
         List<UserTask> userTaskExist = userTaskRepository.findAll(genericSpecification);
         if(userTaskExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " User Task already exist");
+        }
+
+    }
+
+    public void AgentBankUpateExist(AgentBankDto request){
+        agentAccountNumberExist(request.getAgentId(), request.getAccountNumber(), request.getId());
+
+    }
+
+    public void agentAccountNumberExist(Long agentId, String accountNumber, Long id) {
+        GenericSpecification<AgentBank> genericSpecification = new GenericSpecification<AgentBank>();
+        if (id > 0) {
+            genericSpecification.add(new SearchCriteria("id", id, SearchOperation.NOT_EQUAL));
+        }
+
+        genericSpecification.add(new SearchCriteria("agentId", agentId, SearchOperation.EQUAL));
+        genericSpecification.add(new SearchCriteria("accountNumber", accountNumber, SearchOperation.EQUAL));
+
+
+        List<AgentBank> agentBankExist = agentBankRepository.findAll(genericSpecification);
+        if(agentBankExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Bank already exist");
         }
 
     }

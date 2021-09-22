@@ -110,7 +110,7 @@ public class AgentService {
         user.setPassword(passwordEncoder.encode(password));
         user.setUserCategory(Constants.AGENT_USER);
         user.setCreatedBy(0l);
-        user.setIsActive(false);
+        user.setActive(false);
         user = userRepository.save(user);
         log.debug("Create new agent user - {}"+ new Gson().toJson(user));
 
@@ -125,7 +125,7 @@ public class AgentService {
                 saveAgent.setReferralCode(Utility.guidID());
                 saveAgent.setRegistrationToken(Utility.registrationCode());
                 saveAgent.setRegistrationTokenExpiration(Utility.expiredTime());
-                saveAgent.setIsActive(false);
+                saveAgent.setActive(false);
                 saveAgent.setCreatedBy(0l);
            agentRepository.save(saveAgent);
 
@@ -173,7 +173,7 @@ public class AgentService {
           User userExist  = userRepository.findById(response.getUserId())
                   .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                           "Requested user does not exist!" + response.getUserId()));
-          userExist.setIsActive(true);
+          userExist.setActive(true);
           userExist.setUpdatedBy(0l);
           userRepository.save(userExist);
 
@@ -181,7 +181,7 @@ public class AgentService {
 
     public Agent agentOTPValidation(Agent agent, ValidateOTPRequest validateOTPRequest) {
         agent.setUpdatedBy(validateOTPRequest.getUpdatedBy());
-        agent.setIsActive(validateOTPRequest.getIsActive());
+        agent.setActive(validateOTPRequest.getIsActive());
         return agentRepository.saveAndFlush(agent);
     }
 
@@ -289,7 +289,7 @@ public class AgentService {
                 .createdBy(agent.getCreatedBy())
                 .updatedBy(agent.getUpdatedBy())
                 .updatedDate(agent.getUpdatedDate())
-                .isActive(agent.getIsActive())
+                .isActive(agent.isActive())
                 .build();
         return response;
     }
@@ -321,7 +321,7 @@ public class AgentService {
         Agent agent  = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
-        agent.setIsActive(request.getIsActive());
+        agent.setActive(request.isActive());
         agent.setUpdatedBy(0l);
         agentRepository.save(agent);
 
