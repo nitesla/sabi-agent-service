@@ -2,10 +2,8 @@ package com.sabi.agent.service.integrations;
 
 
 import com.sabi.agent.core.dto.requestDto.billPayments.AirtimeRequestDto;
-import com.sabi.agent.core.dto.requestDto.billPayments.BillCategoryRequestDTO;
+import com.sabi.agent.core.dto.responseDto.ResponseDto;
 import com.sabi.agent.core.dto.responseDto.billPayments.AirtimeResponseDto;
-import com.sabi.agent.core.dto.responseDto.billPayments.BillCategoryResponseDTO;
-import com.sabi.agent.core.dto.responseDto.billPayments.BillerResponseDTO;
 import com.sabi.agent.core.models.billPayments.Airtime;
 import com.sabi.agent.service.repositories.billPayments.AirtimeRepository;
 import com.sabi.framework.helpers.API;
@@ -20,9 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -78,46 +74,30 @@ public class BillPaymentService {
     }
 
 
-    public List<BillCategoryResponseDTO> getBillCategories(BillCategoryRequestDTO request){
+    public ResponseDto getBillCategories(String direction, String fingerprint, Integer page, Integer size, String sortBy){
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(billCategories)
-                .queryParam("direction",request.getDirection())
-                .queryParam("page",request.getPage())
-                .queryParam("size",request.getSize())
-                .queryParam("sortBy",request.getSortBy());
+                .queryParam("direction", direction )
+                .queryParam("page", page)
+                .queryParam("size", size)
+                .queryParam("sortBy",sortBy);
 
-        List<BillCategoryResponseDTO> items = new ArrayList<>();
         Map<String,String> map = new HashMap();
-        map.put("fingerprint", request.getFingerprint());
+        map.put("fingerprint", fingerprint);
         map.put("Authorization","bearer"+ " " +externalTokenService.getToken().toString());
-        try {
-            BillCategoryResponseDTO billCategoryResponse = api.get(builder.toUriString(), BillCategoryResponseDTO.class, map);
-            items = billCategoryResponse.getCategorys();
-        } catch (Exception e){
-            logger.info("Error processing request");
-            logger.info("message === {} " , e.getMessage());
-        }
+        ResponseDto items = api.get(builder.toUriString(), ResponseDto.class, map);
         return items;
     }
 
-    public List<BillerResponseDTO> getBillCategoryId(Integer billCategoryId, String fingerprint){
+    public ResponseDto getBillCategoryId(Integer billCategoryId, String fingerprint){
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(billers)
                 .queryParam("billCategoryId",billCategoryId);
 
-
-        List<BillerResponseDTO> items = new ArrayList<>();
-
         Map map = new HashMap();
         map.put("fingerprint", fingerprint.trim());
         map.put("Authorization","bearer"+ " " +externalTokenService.getToken());
-        try {
-            BillerResponseDTO billerResponseDTO = api.get(builder.toUriString(), BillerResponseDTO.class, map);
-            items = billerResponseDTO.getBillers();
-        } catch (Exception e){
-            logger.info("Error processing request");
-            logger.info("message === {} " , e.getMessage());
-        }
+        ResponseDto items = api.get(builder.toUriString(), ResponseDto.class, map);
         return items;
     }
 }
