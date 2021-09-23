@@ -62,7 +62,7 @@ public class NotificationService {
                         .email(true)
                         .inApp(false)
                         .message(notification.getMessage())
-                        .recipients(recipient)
+                        .recipient(recipient)
                         .sms(false)
                         .title(notification.getTitle())
                         .build();
@@ -89,7 +89,7 @@ public class NotificationService {
                 .email(false)
                 .inApp(false)
                 .message(notification.getMessage())
-                .recipients(recipient)
+                .recipient(recipient)
                 .sms(true)
                 .title(notification.getTitle())
                 .build();
