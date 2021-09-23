@@ -59,7 +59,7 @@ public class NotificationService {
                             .phoneNo(phoneNo)
                             .build();
         NotificationRequest2Dto request = NotificationRequest2Dto.builder()
-                        .email1(true)
+                        .email(true)
                         .inApp(false)
                         .message(notification.getMessage())
                         .recipients(recipient)
@@ -86,7 +86,7 @@ public class NotificationService {
                 .phoneNo(phoneNo)
                 .build();
         NotificationRequest2Dto request = NotificationRequest2Dto.builder()
-                .email1(false)
+                .email(false)
                 .inApp(false)
                 .message(notification.getMessage())
                 .recipients(recipient)
