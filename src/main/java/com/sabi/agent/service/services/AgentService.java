@@ -77,11 +77,11 @@ public class AgentService {
     private final ObjectMapper objectMapper;
     private final Validations validations;
 
-    public AgentService(AgentVerificationRepository agentVerificationRepository,ExternalTokenService externalTokenService,CountryRepository countryRepository,
-                        BankRepository bankRepository,StateRepository stateRepository,IdTypeRepository idTypeRepository,
-                        CreditLevelRepository creditLevelRepository,SupervisorRepository supervisorRepository,
-                        PreviousPasswordRepository previousPasswordRepository,UserRepository userRepository,AgentRepository agentRepository,
-                        AgentCategoryRepository agentCategoryRepository,NotificationService notificationService, ModelMapper mapper, ObjectMapper objectMapper,
+    public AgentService(AgentVerificationRepository agentVerificationRepository, ExternalTokenService externalTokenService, CountryRepository countryRepository,
+                        BankRepository bankRepository, StateRepository stateRepository, IdTypeRepository idTypeRepository,
+                        CreditLevelRepository creditLevelRepository, SupervisorRepository supervisorRepository,
+                        PreviousPasswordRepository previousPasswordRepository, UserRepository userRepository, AgentRepository agentRepository,
+                        AgentCategoryRepository agentCategoryRepository, NotificationService notificationService, ModelMapper mapper, ObjectMapper objectMapper,
                         Validations validations) {
         this.agentVerificationRepository = agentVerificationRepository;
         this.externalTokenService = externalTokenService;
