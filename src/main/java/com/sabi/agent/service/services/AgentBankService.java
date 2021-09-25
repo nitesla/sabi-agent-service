@@ -60,6 +60,7 @@ public class AgentBankService {
         exists.agentBankExist(request);
         agentBank.setCreatedBy(0l);
         agentBank.setActive(false);
+        agentBank.setDefault(false);
         agentBank = agentBankRepository.save(agentBank);
         log.debug("Create new Agent Bank - {}"+ new Gson().toJson(agentBank));
         return mapper.map(agentBank, AgentBankResponseDto.class);
@@ -108,6 +109,8 @@ public class AgentBankService {
                 .id(agentBank.getId())
                 .agentId(agentBank.getAgentId())
                 .bankId(agentBank.getBankId())
+                .bankName(agentBank.getBankName())
+                .isDefault(agentBank.isDefault())
                 .accountNumber(agentBank.getAccountNumber())
                 .createdDate(agentBank.getCreatedDate())
                 .createdBy(agentBank.getCreatedBy())
@@ -130,7 +133,7 @@ public class AgentBankService {
 
 
 
-    public Page<AgentBank> findAll(Long agentId, Long bankId, Integer accountNumber, PageRequest pageRequest ) {
+    public Page<AgentBank> findAll(Long agentId, Long bankId, String bankName, Integer accountNumber, PageRequest pageRequest ) {
 
         GenericSpecification<AgentBank> genericSpecification = new GenericSpecification<AgentBank>();
 
@@ -143,6 +146,11 @@ public class AgentBankService {
         {
             genericSpecification.add(new SearchCriteria("bankId", bankId, SearchOperation.EQUAL));
         }
+        if (bankName != null )
+        {
+            genericSpecification.add(new SearchCriteria("bankName", bankName, SearchOperation.EQUAL));
+        }
+
 
         if (accountNumber != null)
         {
@@ -180,4 +188,6 @@ public class AgentBankService {
         return agentBanks;
 
     }
+
+
 }

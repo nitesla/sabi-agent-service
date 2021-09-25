@@ -6,7 +6,10 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentBvnVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentUpdateDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
-import com.sabi.agent.core.dto.requestDto.*;
+import com.sabi.agent.core.dto.requestDto.BvnVerificationData;
+import com.sabi.agent.core.dto.requestDto.EmailVerificationDto;
+import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
+import com.sabi.agent.core.dto.requestDto.ValidateOTPRequest;
 import com.sabi.agent.core.dto.responseDto.*;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentVerification;
@@ -406,7 +409,7 @@ public class AgentService {
         Map map=new HashMap();
         map.put("Authorization",externalTokenService.getToken());
 
-       AgentBvnVerificationResponse response = api.post(bvnUrl, data,AgentBvnVerificationResponse.class,map);
+       AgentBvnVerificationResponse response = api.post(bvnUrl, data, AgentBvnVerificationResponse.class,map);
        if(response.getStatus().equals(false)){
            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " BVN validation failed !");
        }else {
