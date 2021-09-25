@@ -26,7 +26,7 @@ public class WalletService {
 
     private Map<String, String> getHeaders(String fingerPrint){
         Map<String, String> headers = new HashMap<>();
-        String token = tokenService.getToken().getToken();
+        String token = tokenService.getToken();
         headers.put("Authorization", "Bearer " + token);
          headers.put("fingerprint", fingerPrint);
          return headers;

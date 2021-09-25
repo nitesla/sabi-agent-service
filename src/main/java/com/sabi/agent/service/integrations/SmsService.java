@@ -5,7 +5,6 @@ import com.sabi.agent.core.dto.requestDto.SmsRequestDto;
 import com.sabi.agent.core.dto.responseDto.SmsResponseDto;
 import com.sabi.agent.core.models.Sms;
 import com.sabi.agent.service.repositories.SmsRepository;
-import com.sabi.framework.dto.responseDto.SpaceResponse;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.repositories.ExternalTokenRepository;
 import com.sabi.framework.service.ExternalTokenService;
@@ -54,7 +53,7 @@ public class SmsService {
                         .message(smsRequestDto.getMessage())
                         .phoneNumber(smsRequestDto.getPhoneNumber().trim())
                         .build();
-        SpaceResponse extToken = externalTokenService.getToken();
+        String extToken = externalTokenService.getToken();
         Map map = new HashMap();
         map.put("fingerprint", smsRequestDto.getFingerprint().trim());
         map.put("Authorization", "bearer"+ " " +extToken);

@@ -34,7 +34,7 @@ public class ProductService {
     public SingleProductResponse productDetail (SingleProductRequest request) throws IOException {
 
         Map map=new HashMap();
-        map.put("Authorization","bearer"+ " " +externalTokenService.getToken());
+        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
         SingleProductResponse response = api.get(productDetail + request.getId(), SingleProductResponse.class,map);
         return response;
     }
@@ -56,7 +56,7 @@ public class ProductService {
                 .queryParam("Orderby",request.getOrderBy());
 
         Map map=new HashMap();
-        map.put("Authorization","bearer"+ " " +externalTokenService.getToken());
+        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
         AllProductResponse response = api.get(builder.toUriString(), AllProductResponse.class,map);
         return response;
     }
