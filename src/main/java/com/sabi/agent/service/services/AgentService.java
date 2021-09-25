@@ -6,10 +6,7 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentBvnVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentUpdateDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
-import com.sabi.agent.core.dto.requestDto.BvnVerificationData;
-import com.sabi.agent.core.dto.requestDto.EmailVerificationDto;
-import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
-import com.sabi.agent.core.dto.requestDto.ValidateOTPRequest;
+import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.dto.responseDto.*;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentVerification;
@@ -25,10 +22,10 @@ import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.PreviousPasswords;
 import com.sabi.framework.models.User;
 import com.sabi.framework.notification.requestDto.NotificationRequestDto;
-import com.sabi.framework.notification.service.NotificationService;
 import com.sabi.framework.repositories.PreviousPasswordRepository;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
+import com.sabi.framework.service.NotificationService;
 import com.sabi.framework.utils.Constants;
 import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.Utility;
@@ -130,6 +127,7 @@ public class AgentService {
                 saveAgent.setRegistrationToken(Utility.registrationCode());
                 saveAgent.setRegistrationTokenExpiration(Utility.expiredTime());
                 saveAgent.setActive(false);
+                saveAgent.setIsEmailVerified(false);
                 saveAgent.setCreatedBy(0l);
            agentRepository.save(saveAgent);
 
@@ -150,6 +148,37 @@ public class AgentService {
         return mapper.map(user, CreateAgentResponseDto.class);
     }
 
+
+
+
+
+    /** <summary>
+     * Resend OTP
+     * </summary>
+     * <remarks>this method is responsible for resending OTP</remarks>
+     */
+    public  void resendAgentOTP (ResendOTP request) {
+        User user = userRepository.findByPhone(request.getPhone());
+        if(user == null){
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Invalid phone number");
+        }
+       Agent agent = agentRepository.findByUserId(user.getId());
+        agent.setRegistrationToken(Utility.registrationCode());
+        agent.setRegistrationTokenExpiration(Utility.expiredTime());
+        agentRepository.save(agent);
+
+        try{
+            NotificationRequestDto notification = new NotificationRequestDto();
+            notification.setTitle(Constants.NOTIFICATION);
+            notification.setEmail(user.getEmail());
+            notification.setMessage("Activation Otp " +" "+agent.getRegistrationToken());
+            notification.setFingerprint("e0224b3d-74f5-49c5-930f-61d7079c7b3b");
+            notificationService.emailNotificationRequest(notification);
+
+        }catch (Exception e){
+            log.info(String.format(":notification Exception:  %s",  e.getMessage()));
+        }
+    }
 
 
     /** <summary>
@@ -305,8 +334,8 @@ public class AgentService {
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
 
-    public Page<Agent> findAll(Long userId,Boolean isActive,String referralCode, PageRequest pageRequest ) {
-        Page<Agent> agents = agentRepository.findAgents(userId,isActive,referralCode, pageRequest);
+    public Page<Agent> findAll(Long userId,Boolean isActive,String referrer, PageRequest pageRequest ) {
+        Page<Agent> agents = agentRepository.findAgents(userId,isActive,referrer, pageRequest);
         if (agents == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
@@ -422,7 +451,7 @@ public class AgentService {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " Email does not exist !");
         }
         Agent agent = agentRepository.findByUserId(user.getId());
-        agent.setEmailVerified(true);
+        agent.setIsEmailVerified(true);
         agentRepository.save(agent);
     }
 

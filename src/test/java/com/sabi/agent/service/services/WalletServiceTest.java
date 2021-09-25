@@ -2,7 +2,6 @@ package com.sabi.agent.service.services;
 
 import com.sabi.agent.core.wallet_integration.request.DebitUserRequest;
 import com.sabi.agent.core.wallet_integration.response.WalletResponse;
-import com.sabi.framework.dto.responseDto.SpaceResponse;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.service.ExternalTokenService;
 import org.junit.Test;
@@ -29,8 +28,9 @@ public class WalletServiceTest {
 
     @Test
     public void testDebitUser() {
-        SpaceResponse spaceResponse = new SpaceResponse();
-        spaceResponse.setToken("ABC123");
+//        SpaceResponse spaceResponse = new SpaceResponse();
+//        spaceResponse.setToken("ABC123");
+        String spaceResponse = "ABC123";
         when(externalTokenService.getToken()).thenReturn(spaceResponse);
         WalletResponse walletResponse = new WalletResponse();
         when(aPI.post((String) any(), (Object) any(), (Class<Object>) any(), (java.util.Map<String, String>) any()))
