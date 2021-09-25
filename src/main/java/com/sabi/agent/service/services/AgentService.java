@@ -6,7 +6,10 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentBvnVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentUpdateDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
-import com.sabi.agent.core.dto.requestDto.*;
+import com.sabi.agent.core.dto.requestDto.BvnVerificationData;
+import com.sabi.agent.core.dto.requestDto.EmailVerificationDto;
+import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
+import com.sabi.agent.core.dto.requestDto.ValidateOTPRequest;
 import com.sabi.agent.core.dto.responseDto.*;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentVerification;
@@ -22,10 +25,10 @@ import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.PreviousPasswords;
 import com.sabi.framework.models.User;
 import com.sabi.framework.notification.requestDto.NotificationRequestDto;
+import com.sabi.framework.notification.service.NotificationService;
 import com.sabi.framework.repositories.PreviousPasswordRepository;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
-import com.sabi.framework.service.NotificationService;
 import com.sabi.framework.utils.Constants;
 import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.Utility;
@@ -127,7 +130,7 @@ public class AgentService {
                 saveAgent.setRegistrationToken(Utility.registrationCode());
                 saveAgent.setRegistrationTokenExpiration(Utility.expiredTime());
                 saveAgent.setActive(false);
-                saveAgent.setIsEmailVerified(false);
+                saveAgent.setEmailVerified(false);
                 saveAgent.setCreatedBy(0l);
            agentRepository.save(saveAgent);
 
@@ -451,7 +454,7 @@ public class AgentService {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " Email does not exist !");
         }
         Agent agent = agentRepository.findByUserId(user.getId());
-        agent.setIsEmailVerified(true);
+        agent.setEmailVerified(true);
         agentRepository.save(agent);
     }
 
