@@ -22,6 +22,7 @@ import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.PreviousPasswords;
 import com.sabi.framework.models.User;
 import com.sabi.framework.notification.requestDto.NotificationRequestDto;
+import com.sabi.framework.notification.requestDto.RecipientRequest;
 import com.sabi.framework.repositories.PreviousPasswordRepository;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
@@ -41,11 +42,10 @@ import org.springframework.stereotype.Service;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+
+@SuppressWarnings("ALL")
 @Slf4j
 @Service
 public class AgentService {
@@ -121,6 +121,7 @@ public class AgentService {
                 .build();
         previousPasswordRepository.save(previousPasswords);
 
+
         Agent saveAgent = new Agent();
                 saveAgent.setUserId(user.getId());
                 saveAgent.setReferralCode(Utility.guidID());
@@ -129,22 +130,23 @@ public class AgentService {
                 saveAgent.setActive(false);
                 saveAgent.setIsEmailVerified(false);
                 saveAgent.setCreatedBy(0l);
-           agentRepository.save(saveAgent);
+        Agent agentResponse= agentRepository.save(saveAgent);
+        log.debug("Create new agent  - {}"+ new Gson().toJson(saveAgent));
 
 // --------  sending token to agent -----------
-        try{
-            NotificationRequestDto notification = new NotificationRequestDto();
-            notification.setTitle(Constants.NOTIFICATION);
-            User emailRecipient = userRepository.getOne(user.getId());
-            System.out.println(":::; user details :::" + emailRecipient);
-            notification.setEmail(emailRecipient.getEmail());
-            notification.setMessage("Activation Otp " +" "+saveAgent.getRegistrationToken());
-            notification.setFingerprint("e0224b3d-74f5-49c5-930f-61d7079c7b3b");
-            notificationService.emailNotificationRequest(notification);
 
-        }catch (Exception e){
-            log.info(String.format(":notification Exception:  %s",  e.getMessage()));
-        }
+        NotificationRequestDto notificationRequestDto = new NotificationRequestDto();
+        User emailRecipient = userRepository.getOne(user.getId());
+        notificationRequestDto.setMessage("Activation Otp " + " " + agentResponse.getRegistrationToken());
+        List<RecipientRequest> recipient = new ArrayList<>();
+        recipient.add(RecipientRequest.builder()
+                .email(emailRecipient.getEmail())
+                .build());
+        notificationRequestDto.setRecipient(recipient);
+        System.out.println(":::::: AGENT NOTIFICATION ::::" + notificationRequestDto);
+        notificationService.emailNotificationRequest(notificationRequestDto);
+
+
         return mapper.map(user, CreateAgentResponseDto.class);
     }
 
@@ -165,19 +167,19 @@ public class AgentService {
        Agent agent = agentRepository.findByUserId(user.getId());
         agent.setRegistrationToken(Utility.registrationCode());
         agent.setRegistrationTokenExpiration(Utility.expiredTime());
-        agentRepository.save(agent);
+        Agent agentResponse = agentRepository.save(agent);
 
-        try{
-            NotificationRequestDto notification = new NotificationRequestDto();
-            notification.setTitle(Constants.NOTIFICATION);
-            notification.setEmail(user.getEmail());
-            notification.setMessage("Activation Otp " +" "+agent.getRegistrationToken());
-            notification.setFingerprint("e0224b3d-74f5-49c5-930f-61d7079c7b3b");
-            notificationService.emailNotificationRequest(notification);
+        NotificationRequestDto notificationRequestDto = new NotificationRequestDto();
+        User emailRecipient = userRepository.getOne(user.getId());
+        notificationRequestDto.setMessage("Activation Otp " + " " + agentResponse.getRegistrationToken());
+        List<RecipientRequest> recipient = new ArrayList<>();
+        recipient.add(RecipientRequest.builder()
+                .email(emailRecipient.getEmail())
+                .build());
+        notificationRequestDto.setRecipient(recipient);
+        System.out.println(":::::: AGENT NOTIFICATION ::::" + notificationRequestDto);
+        notificationService.emailNotificationRequest(notificationRequestDto);
 
-        }catch (Exception e){
-            log.info(String.format(":notification Exception:  %s",  e.getMessage()));
-        }
     }
 
 
@@ -445,15 +447,71 @@ public class AgentService {
 
 
 
-    public void agentEmailVerifications (EmailVerificationDto request) {
+    public EmailVerificationResponseDto agentEmailVerifications (EmailVerificationDto request) {
         User user = userRepository.findByEmail(request.getEmail());
         if(user == null){
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " Email does not exist !");
         }
+
         Agent agent = agentRepository.findByUserId(user.getId());
+        agent.setRegistrationToken(Utility.registrationCode());
+        agent.setRegistrationTokenExpiration(Utility.expiredTime());
         agent.setIsEmailVerified(true);
-        agentRepository.save(agent);
+        Agent agentResponse = agentRepository.save(agent);
+
+
+        NotificationRequestDto notificationRequestDto = new NotificationRequestDto();
+        User emailRecipient = userRepository.getOne(user.getId());
+        notificationRequestDto.setMessage("Activation Otp " + " " + agentResponse.getRegistrationToken());
+        List<RecipientRequest> recipient = new ArrayList<>();
+        recipient.add(RecipientRequest.builder()
+                .email(emailRecipient.getEmail())
+                .build());
+        notificationRequestDto.setRecipient(recipient);
+        notificationService.emailNotificationRequest(notificationRequestDto);
+
+        EmailVerificationResponseDto responseDto = EmailVerificationResponseDto.builder()
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .isEmailVerified(agentResponse.getIsEmailVerified())
+                .build();
+        return responseDto;
     }
+
+
+    public EmailVerificationResponseDto agentPhoneVerifications (EmailVerificationDto request) {
+        User user = userRepository.findByPhone(request.getPhone());
+        if(user == null){
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " Phone number does not exist !");
+        }
+
+        Agent agent = agentRepository.findByUserId(user.getId());
+        agent.setRegistrationToken(Utility.registrationCode());
+        agent.setRegistrationTokenExpiration(Utility.expiredTime());
+        agent.setIsEmailVerified(true);
+        Agent agentResponse = agentRepository.save(agent);
+
+        NotificationRequestDto notificationRequestDto = new NotificationRequestDto();
+        User emailRecipient = userRepository.getOne(user.getId());
+        notificationRequestDto.setMessage("Activation Otp " + " " + agentResponse.getRegistrationToken());
+        List<RecipientRequest> recipient = new ArrayList<>();
+        recipient.add(RecipientRequest.builder()
+                .email(emailRecipient.getEmail())
+                .build());
+        notificationRequestDto.setRecipient(recipient);;
+        notificationService.emailNotificationRequest(notificationRequestDto);
+
+        EmailVerificationResponseDto responseDto = EmailVerificationResponseDto.builder()
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .isEmailVerified(agentResponse.getIsEmailVerified())
+                .build();
+        return responseDto;
+    }
+
+
+
+
 
 
     }
