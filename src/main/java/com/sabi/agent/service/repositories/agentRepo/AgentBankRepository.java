@@ -3,6 +3,8 @@ package com.sabi.agent.service.repositories.agentRepo;
 import com.sabi.agent.core.models.agentModel.AgentBank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,5 +23,9 @@ public interface AgentBankRepository extends JpaRepository<AgentBank, Long>, Jpa
     AgentBank findByAgentIdAndBankId (Long  agentId, Long bankId);
 
     List<AgentBank> findByIsActive(Boolean isActive);
+
+    @Modifying
+    @Query(value = "UPDATE agentbank SET isDefault = 0", nativeQuery = true)
+    void updateIsDefault();
 
 }
