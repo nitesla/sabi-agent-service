@@ -161,7 +161,7 @@ public class AgentBankService {
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      * @return
      */
-    public List<AgentBankResponseDto> findAll(Long agentId, Long bankId, String bankName, Integer accountNumber, PageRequest pageRequest ) {
+    public List<AgentBankResponseDto> findAll(Long agentId, Long bankId, String bankName, String accountNumber, PageRequest pageRequest ) {
 
         GenericSpecification<AgentBank> genericSpecification = new GenericSpecification<AgentBank>();
 
