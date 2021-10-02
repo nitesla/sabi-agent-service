@@ -105,6 +105,10 @@ public class Validations {
 
 
     public void validateAgentCategory(AgentCategoryDto agentCategoryDto) {
+        if(agentCategoryDto.getDescription() == null || agentCategoryDto.getDescription().trim().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Description cannot be empty");
+        if(agentCategoryDto.getImage().trim()==null || agentCategoryDto.getImage().trim().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Image cannot be empty");
         if (agentCategoryDto.getName() == null || agentCategoryDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
     }
@@ -163,7 +167,7 @@ public class Validations {
     }
 
     public void validateAgentBank (AgentBankDto agentBankDto){
-        if (agentBankDto.getAccountNumber() == null)
+        if (agentBankDto.getAccountNumber().trim() == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Account Number cannot be empty");
         if (!Utility.isNumeric(agentBankDto.getAccountNumber()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Account Number ");

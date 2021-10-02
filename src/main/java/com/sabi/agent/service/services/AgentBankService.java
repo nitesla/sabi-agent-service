@@ -6,22 +6,31 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentBankDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.AgentBankResponseDto;
 import com.sabi.agent.core.models.Bank;
+import com.sabi.agent.core.models.Market;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentBank;
 import com.sabi.agent.service.helper.*;
 import com.sabi.agent.service.repositories.BankRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentBankRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @SuppressWarnings("ALL")
@@ -38,14 +47,16 @@ public class AgentBankService {
     private Exists exists;
     @Autowired
     private AgentBankRepository agentBankRepository;
+    private final UserRepository userRepository;
 
 
-    public AgentBankService(AgentRepository agentRepository, BankRepository bankRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations) {
+    public AgentBankService(AgentRepository agentRepository, BankRepository bankRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations, UserRepository userRepository) {
         this.agentRepository = agentRepository;
         this.bankRepository = bankRepository;
         this.mapper = mapper;
         this.objectMapper = objectMapper;
         this.validations = validations;
+        this.userRepository = userRepository;
     }
 
     /** <summary>
@@ -63,9 +74,26 @@ public class AgentBankService {
         agentBank.setDefault(false);
         agentBank = agentBankRepository.save(agentBank);
         log.debug("Create new Agent Bank - {}"+ new Gson().toJson(agentBank));
-        return mapper.map(agentBank, AgentBankResponseDto.class);
+         return getAgentBankResponseDto(agentBank);
     }
 
+    private AgentBankResponseDto getAgentBankResponseDto(AgentBank agentBank) {
+        AgentBankResponseDto map = mapper.map(agentBank, AgentBankResponseDto.class);
+        Agent agent = agentRepository.findById(agentBank.getAgentId()).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                "Requested Agent does not exist!"));
+        long uId = agent.getUserId();
+        User user = userRepository.findById(uId).orElseThrow(
+                () -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested Agent Bank does not exist!"));
+        map.setAgentFirstName(user.getFirstName());
+        map.setAgentLastName(user.getLastName());
+        Bank bank = bankRepository.findById(agentBank.getBankId()).orElseThrow(()->
+                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested Agent Bank does not exist!")
+        );
+        map.setBankName(bank.getName());
+        return map;
+    }
 
 
     /** <summary>
@@ -81,10 +109,27 @@ public class AgentBankService {
                         "Requested Agent Bank does not exist!"));
         mapper.map(request, agentBank);
         agentBank.setUpdatedBy(0l);
-        exists.AgentBankUpateExist(request);
+        GenericSpecification<AgentBank> genericSpecification = new GenericSpecification<AgentBank>();
+        genericSpecification.add(new SearchCriteria("agentId", agentBank.getAgentId(), SearchOperation.EQUAL));
+        genericSpecification.add(new SearchCriteria("accountNumber", agentBank.getAccountNumber(), SearchOperation.EQUAL));
+        genericSpecification.add(new SearchCriteria("bankId", agentBank.getBankId(),SearchOperation.EQUAL));
+        List<AgentBank> agentBanks = agentBankRepository.findAll(genericSpecification);
+        if(!agentBanks.isEmpty())
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " AgentBank already exist");
+        agentBank.setDefault(agentBank.isDefault());
         agentBankRepository.save(agentBank);
         log.debug("Agent Bank record updated - {}" + new Gson().toJson(agentBank));
-        return mapper.map(agentBank, AgentBankResponseDto.class);
+        return getAgentBankResponseDto(agentBank);
+    }
+
+    @Transactional
+    public AgentBankResponseDto setDefalult(long id){
+        AgentBank agentBank = agentBankRepository.findById(id).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                "Requested Agent Bank does not exist!"));
+            agentBankRepository.updateIsDefault();
+        agentBank.setDefault(true);
+        agentBankRepository.save(agentBank);
+        return getAgentBankResponseDto(agentBank);
     }
 
 
@@ -105,21 +150,7 @@ public class AgentBankService {
         Bank bank = bankRepository.findById(agentBank.getBankId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Bank ID!"));
-        AgentBankResponseDto response = AgentBankResponseDto.builder()
-                .id(agentBank.getId())
-                .agentId(agentBank.getAgentId())
-                .bankId(agentBank.getBankId())
-                .bankName(agentBank.getBankName())
-                .isDefault(agentBank.isDefault())
-                .accountNumber(agentBank.getAccountNumber())
-                .createdDate(agentBank.getCreatedDate())
-                .createdBy(agentBank.getCreatedBy())
-                .updatedBy(agentBank.getUpdatedBy())
-                .updatedDate(agentBank.getUpdatedDate())
-                .isActive(agentBank.isActive())
-                .build();
-
-        return response;
+       return getAgentBankResponseDto(agentBank);
     }
 
 
@@ -128,12 +159,9 @@ public class AgentBankService {
      * Find all Agent Bank
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
+     * @return
      */
-
-
-
-
-    public Page<AgentBank> findAll(Long agentId, Long bankId, String bankName, Integer accountNumber, PageRequest pageRequest ) {
+    public List<AgentBankResponseDto> findAll(Long agentId, Long bankId, String bankName, String accountNumber, PageRequest pageRequest ) {
 
         GenericSpecification<AgentBank> genericSpecification = new GenericSpecification<AgentBank>();
 
@@ -162,9 +190,7 @@ public class AgentBankService {
         if (agentBanks == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
-
-        return agentBanks;
-
+        return agentBanks.stream().map((agentBank)-> getAgentBankResponseDto(agentBank)).collect(Collectors.toList());
     }
 
 
@@ -183,10 +209,10 @@ public class AgentBankService {
 
     }
 
-    public List<AgentBank> getAll(Boolean isActive){
+    public List<AgentBankResponseDto> getAll(Boolean isActive){
         List<AgentBank> agentBanks = agentBankRepository.findByIsActive(isActive);
-        return agentBanks;
-
+        return agentBanks.stream().map((agentBank ->
+                getAgentBankResponseDto(agentBank))).collect(Collectors.toList());
     }
 
 
