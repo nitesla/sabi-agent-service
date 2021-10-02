@@ -27,7 +27,8 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
     List<Agent> findByIsActive(Boolean isActive);
 
 
-    @Query("SELECT t FROM Agent t WHERE ((:userId IS NULL) OR (:userId IS NOT NULL AND t.userId = :userId)) " +
+
+    @Query("SELECT t FROM Agent t  WHERE ((:userId IS NULL) OR (:userId IS NOT NULL AND t.userId = :userId)) " +
             " AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND t.isActive = :isActive))"+
     " AND ((:referrer IS NULL) OR (:referrer IS NOT NULL AND t.referrer = :referrer))")
     Page<Agent> findAgents(@Param("userId")Long userId,

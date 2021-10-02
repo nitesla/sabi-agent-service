@@ -349,4 +349,10 @@ public class Validations {
                 throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter a valid location type");
         }
     }
+
+
+    public void validateVerification (Verification request){
+        if (request.getStatus() != CustomResponseCode.ENABLE_VERIFICATION_STATUS || request.getStatus() != CustomResponseCode.FAILED_VERIFICATION_STATUS)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid status");
+    }
 }

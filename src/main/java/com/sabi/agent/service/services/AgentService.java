@@ -2,6 +2,7 @@ package com.sabi.agent.service.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.sabi.agent.core.dto.ValidateEmailOtpRequest;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentBvnVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentUpdateDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
@@ -252,7 +253,7 @@ public class AgentService {
         AgentActivationResponse response = AgentActivationResponse.builder()
                 .userId(user.getId())
                 .agentId(agent.getId())
-                .phoneNumber(user.getPhone())
+                .phone(user.getPhone())
                 .build();
 
         return response;
@@ -284,49 +285,16 @@ public class AgentService {
      * </summary>
      * <remarks>this method is responsible for getting a single record</remarks>
      */
-    public QueryAgentResponseDto findAgent(Long id){
+    public Agent findAgent(Long id){
         Agent agent  = agentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent id does not exist!"));
-//        Optional<AgentCategory> category = agentCategoryRepository.findById(agent.getAgentCategoryId());
-
-
-//        User user = userRepository.getOne(agent.getUserId());
-//        CreditLevel creditLevel = creditLevelRepository.getOne(agent.getCreditLevelId());
-//        IdType idType = idTypeRepository.getOne(agent.getIdTypeId());
-//        State state = stateRepository.getOne(agent.getStateId());
-//        Bank bank = bankRepository.getOne(agent.getBankId());
-//        Country country = countryRepository.getOne(agent.getCountryId());
-
-        QueryAgentResponseDto response = QueryAgentResponseDto.builder()
-                .id(agent.getId())
-//                .agentCategory(category.get().getName())
-//                .user(user.getFirstName()+ " " + user.getLastName())
-                .scope(agent.getScope())
-                .referralCode(agent.getReferralCode())
-                .address(agent.getAddress())
-                .bvn(agent.getBvn())
-                .agentType(agent.getAgentType())
-                .creditLimit(agent.getCreditLimit())
-                .payBackDuration(agent.getPayBackDuration())
-                .comment(agent.getComment())
-                .cardToken(agent.getCardToken())
-                .status(agent.getStatus())
-                .walletId(agent.getWalletId())
-                .picture(agent.getPicture())
-                .hasCustomizedTarget(agent.getHasCustomizedTarget())
-//                .creditLevel(creditLevel.getLimits())
-//                .idType(idType.getName())
-//                .state(state.getName())
-//                .bank(bank.getName())
-//                .country(country.getName())
-                .createdDate(agent.getCreatedDate())
-                .createdBy(agent.getCreatedBy())
-                .updatedBy(agent.getUpdatedBy())
-                .updatedDate(agent.getUpdatedDate())
-                .isActive(agent.isActive())
-                .build();
-        return response;
+            User user = userRepository.getOne(agent.getUserId());
+            agent.setFirstName(user.getFirstName());
+            agent.setLastName(user.getLastName());
+            agent.setEmail(user.getEmail());
+            agent.setPhone(user.getPhone());
+        return agent;
     }
 
 
@@ -342,7 +310,6 @@ public class AgentService {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
         return agents;
-
     }
 
 
@@ -378,6 +345,7 @@ public class AgentService {
             agent = agentRepository.save(agent);
 
             AgentVerification addressVerification = AgentVerification.builder()
+                    .name("ADDRESS")
                     .agentId(agent.getId())
                     .component(agent.getAddress())
                     .dateSubmitted(agent.getCreatedDate())
@@ -418,6 +386,7 @@ public class AgentService {
            log.debug("bvn updated - {}"+ new Gson().toJson(agent));
 
            AgentVerification bvnVerification = AgentVerification.builder()
+                   .name("BVN")
                    .agentId(agent.getId())
                    .component(agent.getBvn())
                    .dateSubmitted(agent.getCreatedDate())
@@ -436,6 +405,7 @@ public class AgentService {
             agent = agentRepository.save(agent);
 
             AgentVerification idVerification = AgentVerification.builder()
+                    .name("IDCARD")
                     .agentId(agent.getId())
                     .component(agent.getIdCard())
                     .dateSubmitted(agent.getCreatedDate())
@@ -456,7 +426,7 @@ public class AgentService {
         Agent agent = agentRepository.findByUserId(user.getId());
         agent.setRegistrationToken(Utility.registrationCode());
         agent.setRegistrationTokenExpiration(Utility.expiredTime());
-        agent.setIsEmailVerified(true);
+        agent.setIsEmailVerified(false);
         Agent agentResponse = agentRepository.save(agent);
 
 
@@ -472,12 +442,10 @@ public class AgentService {
 
         EmailVerificationResponseDto responseDto = EmailVerificationResponseDto.builder()
                 .email(user.getEmail())
-                .phone(user.getPhone())
                 .isEmailVerified(agentResponse.getIsEmailVerified())
                 .build();
         return responseDto;
     }
-
 
     public EmailVerificationResponseDto agentPhoneVerifications (EmailVerificationDto request) {
         User user = userRepository.findByPhone(request.getPhone());
@@ -488,8 +456,9 @@ public class AgentService {
         Agent agent = agentRepository.findByUserId(user.getId());
         agent.setRegistrationToken(Utility.registrationCode());
         agent.setRegistrationTokenExpiration(Utility.expiredTime());
-        agent.setIsEmailVerified(true);
+        agent.setIsEmailVerified(false);
         Agent agentResponse = agentRepository.save(agent);
+
 
         NotificationRequestDto notificationRequestDto = new NotificationRequestDto();
         User emailRecipient = userRepository.getOne(user.getId());
@@ -498,11 +467,10 @@ public class AgentService {
         recipient.add(RecipientRequest.builder()
                 .email(emailRecipient.getEmail())
                 .build());
-        notificationRequestDto.setRecipient(recipient);;
+        notificationRequestDto.setRecipient(recipient);
         notificationService.emailNotificationRequest(notificationRequestDto);
 
         EmailVerificationResponseDto responseDto = EmailVerificationResponseDto.builder()
-                .email(user.getEmail())
                 .phone(user.getPhone())
                 .isEmailVerified(agentResponse.getIsEmailVerified())
                 .build();
@@ -510,8 +478,30 @@ public class AgentService {
     }
 
 
+    public void validateOTPForEmailVerification (ValidateEmailOtpRequest request){
+        Agent otpExist = agentRepository.findByRegistrationToken(request.getRegistrationToken());
+        if(otpExist ==null){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " Invalid OTP supplied");
+        }
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Calendar calobj = Calendar.getInstance();
+        String currentDate = df.format(calobj.getTime());
+        String regDate = otpExist.getRegistrationTokenExpiration();
+        String result = String.valueOf(currentDate.compareTo(regDate));
+        if(result.equals("1")){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " OTP invalid/expired");
+        }
+        request.setIsEmailVerified(true);
+        Agent response = emailOTPValidation(otpExist,request);
 
 
+    }
+
+
+    public Agent emailOTPValidation(Agent agent, ValidateEmailOtpRequest validateOTPRequest) {
+        agent.setIsEmailVerified(validateOTPRequest.getIsEmailVerified());
+        return agentRepository.saveAndFlush(agent);
+    }
 
 
     }
