@@ -65,7 +65,7 @@ public class BillPaymentService {
 
         Map<String,String> map = new HashMap();
         map.put("fingerprint", airtimeRequestDto.getFingerprint().trim());
-        map.put("Authorization","bearer"+ " " +extToken);
+        map.put("Authorization", "Bearer " + extToken);
         AirtimeResponseDto response = api.post(airtime, request, AirtimeResponseDto.class, map);
         Airtime airtime = mapper.map(response, Airtime.class);
         airtime = airtimeRepository.save(airtime);
@@ -84,7 +84,7 @@ public class BillPaymentService {
 
         Map<String,String> map = new HashMap();
         map.put("fingerprint", fingerprint);
-        map.put("Authorization","bearer"+ " " +externalTokenService.getToken().toString());
+        map.put("Authorization","Bearer " + externalTokenService.getToken().toString());
         ResponseDto items = api.get(builder.toUriString(), ResponseDto.class, map);
         return items;
     }
@@ -96,7 +96,7 @@ public class BillPaymentService {
 
         Map map = new HashMap();
         map.put("fingerprint", fingerprint.trim());
-        map.put("Authorization","bearer"+ " " +externalTokenService.getToken());
+        map.put("Authorization","Bearer " + externalTokenService.getToken());
         ResponseDto items = api.get(builder.toUriString(), ResponseDto.class, map);
         return items;
     }
