@@ -97,7 +97,7 @@ public class Validations {
 
 
     public void validateBank(BankDto bankDto) {
-        if (bankDto.getName() == null || bankDto.getName().isEmpty())
+        if (bankDto.getName() == null || bankDto.getName().trim().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
         if (bankDto.getBankCode() == null || bankDto.getBankCode().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Bank code cannot be empty");
