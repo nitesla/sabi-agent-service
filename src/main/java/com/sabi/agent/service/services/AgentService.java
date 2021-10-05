@@ -28,6 +28,7 @@ import com.sabi.framework.repositories.PreviousPasswordRepository;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.NotificationService;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.Constants;
 import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.Utility;
@@ -111,6 +112,8 @@ public class AgentService {
         String password = Utility.getSaltString();
         user.setPassword(passwordEncoder.encode(password));
         user.setUserCategory(Constants.AGENT_USER);
+        user.setUsername(request.getPhone());
+        user.setLoginAttempts(0l);
         user.setCreatedBy(0l);
         user.setActive(false);
         user = userRepository.save(user);
@@ -267,11 +270,12 @@ public class AgentService {
      */
 
     public AgentUpdateResponseDto updateAgent(AgentUpdateDto request) {
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Agent agent = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested  id does not exist!"));
         mapper.map(request, agent);
-        agent.setUpdatedBy(0l);
+        agent.setUpdatedBy(userCurrent.getId());
         agentRepository.save(agent);
         log.debug("Agent record updated - {}"+ new Gson().toJson(agent));
         return mapper.map(agent, AgentUpdateResponseDto.class);
@@ -320,11 +324,12 @@ public class AgentService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableAgent (EnableDisEnableDto request){
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Agent agent  = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
         agent.setActive(request.isActive());
-        agent.setUpdatedBy(0l);
+        agent.setUpdatedBy(userCurrent.getId());
         agentRepository.save(agent);
 
     }
