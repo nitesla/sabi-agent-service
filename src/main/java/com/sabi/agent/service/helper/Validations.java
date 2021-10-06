@@ -295,10 +295,10 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid phone number  length");
         if (!Utility.isNumeric(agent.getPhone()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
-        User userExist = userRepository.findByPhone(agent.getPhone());
-        if(userExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
-        }
+//        User userExist = userRepository.findByPhone(agent.getPhone());
+//        if(userExist !=null){
+//            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
+//        }
     }
 
 

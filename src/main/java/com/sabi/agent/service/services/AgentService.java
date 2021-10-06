@@ -18,6 +18,7 @@ import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentVerificationRepository;
 import com.sabi.framework.dto.requestDto.ChangePasswordDto;
 import com.sabi.framework.exceptions.BadRequestException;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.PreviousPasswords;
@@ -109,6 +110,29 @@ public class AgentService {
     public CreateAgentResponseDto agentSignUp(CreateAgentRequestDto request) {
          validations.validateAgent(request);
         User user = mapper.map(request,User.class);
+
+        User exist = userRepository.findByPhone(request.getPhone());
+        if(exist !=null && exist.getPasswordChangedOn()== null){
+          Agent existAgent = agentRepository.findByUserId(exist.getId());
+            existAgent.setRegistrationToken(Utility.registrationCode());
+            existAgent.setRegistrationTokenExpiration(Utility.expiredTime());
+            Agent agentExist =agentRepository.save(existAgent);
+
+            NotificationRequestDto notificationRequestDto = new NotificationRequestDto();
+            User emailRecipient = userRepository.getOne(exist.getId());
+            notificationRequestDto.setMessage("Activation Otp " + " " + agentExist.getRegistrationToken());
+            List<RecipientRequest> recipient = new ArrayList<>();
+            recipient.add(RecipientRequest.builder()
+                    .email(emailRecipient.getEmail())
+                    .build());
+            notificationRequestDto.setRecipient(recipient);
+            notificationService.emailNotificationRequest(notificationRequestDto);
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist, a new OTP sent to your email");
+
+        }else if(exist !=null && exist.getPasswordChangedOn() !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
+        }
+
         String password = Utility.getSaltString();
         user.setPassword(passwordEncoder.encode(password));
         user.setUserCategory(Constants.AGENT_USER);
@@ -124,7 +148,6 @@ public class AgentService {
                 .password(user.getPassword())
                 .build();
         previousPasswordRepository.save(previousPasswords);
-
 
         Agent saveAgent = new Agent();
                 saveAgent.setUserId(user.getId());
