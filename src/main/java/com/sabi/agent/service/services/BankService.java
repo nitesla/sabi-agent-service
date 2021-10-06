@@ -6,6 +6,10 @@ import com.sabi.agent.core.dto.requestDto.BankDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.BankResponseDto;
 import com.sabi.agent.core.models.Bank;
+import com.sabi.agent.core.models.agentModel.AgentBank;
+import com.sabi.agent.service.helper.GenericSpecification;
+import com.sabi.agent.service.helper.SearchCriteria;
+import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.BankRepository;
 import com.sabi.framework.exceptions.ConflictException;
@@ -13,6 +17,7 @@ import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -72,6 +77,13 @@ public class BankService {
                         "Requested bank id does not exist!"));
         mapper.map(request, bank);
         bank.setUpdatedBy(0l);
+        GenericSpecification<Bank> genericSpecification = new GenericSpecification<>();
+        genericSpecification.add(new SearchCriteria("name", bank.getName(), SearchOperation.EQUAL));
+        genericSpecification.add(new SearchCriteria("bankCode", bank.getBankCode(), SearchOperation.EQUAL));
+        List<Bank> banks = bankRepository.findAll(genericSpecification);
+        if(!banks.isEmpty())
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, "Bank already exist");
+
         bankRepository.save(bank);
         log.debug("Bank record updated - {}"+ new Gson().toJson(bank));
         return mapper.map(bank, BankResponseDto.class);
