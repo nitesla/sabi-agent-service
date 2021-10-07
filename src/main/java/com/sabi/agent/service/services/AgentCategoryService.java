@@ -20,6 +20,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -54,6 +58,7 @@ public class AgentCategoryService {
         }
         agentCategory.setCreatedBy(0l);
         agentCategory.setActive(true);
+        agentCategory.setDefault(false);
         agentCategory = agentCategoryRepository.save(agentCategory);
         log.debug("Create new agent category - {}"+ new Gson().toJson(agentCategory));
         return mapper.map(agentCategory, AgentCategoryResponseDto.class);
@@ -133,5 +138,30 @@ public class AgentCategoryService {
         agentCategory.setUpdatedBy(0l);
         agentCategoryRepository.save(agentCategory);
 
+    }
+
+    public List<AgentCategoryResponseDto> getAllByStatus(Boolean isActive) {
+        List<AgentCategory> agentCategories = agentCategoryRepository.findByIsActive(isActive);
+        return agentCategories
+                .stream()
+                .map(user -> mapper.map(user, AgentCategoryResponseDto.class))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public AgentCategoryResponseDto setDefalult(long id){
+        AgentCategory agentCategory = agentCategoryRepository.findById(id).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                "Requested Agent Bank does not exist!"));
+        agentCategoryRepository.updateIsDefault();
+        agentCategory.setDefault(true);
+        AgentCategory defaultAgentCat = agentCategoryRepository.save(agentCategory);
+        return mapper.map(defaultAgentCat, AgentCategoryResponseDto.class);
+    }
+
+    public List<AgentCategoryResponseDto> getDefault(){
+        List<AgentCategory> agentCategories = agentCategoryRepository.findByIsDefault(true);
+        return  agentCategories.stream()
+                .map(agentCategory -> mapper.map(agentCategory, AgentCategoryResponseDto.class))
+                .collect(Collectors.toList());
     }
 }
