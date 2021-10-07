@@ -59,7 +59,8 @@ public class AgentBankService {
         this.userRepository = userRepository;
     }
 
-    /** <summary>
+    /**
+     * <summary>
      * AgentBank creation
      * </summary>
      * <remarks>this method is responsible for creation of new Agent Bank</remarks>
@@ -67,14 +68,14 @@ public class AgentBankService {
 
     public AgentBankResponseDto createAgentBank(AgentBankDto request) {
         validations.validateAgentBank(request);
-        AgentBank agentBank = mapper.map(request,AgentBank.class);
+        AgentBank agentBank = mapper.map(request, AgentBank.class);
         exists.agentBankExist(request);
         agentBank.setCreatedBy(0l);
         agentBank.setActive(false);
         agentBank.setDefault(false);
         agentBank = agentBankRepository.save(agentBank);
-        log.debug("Create new Agent Bank - {}"+ new Gson().toJson(agentBank));
-         return getAgentBankResponseDto(agentBank);
+        log.debug("Create new Agent Bank - {}" + new Gson().toJson(agentBank));
+        return getAgentBankResponseDto(agentBank);
     }
 
     private AgentBankResponseDto getAgentBankResponseDto(AgentBank agentBank) {
@@ -82,21 +83,23 @@ public class AgentBankService {
         Agent agent = agentRepository.findById(agentBank.getAgentId()).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                 "Requested Agent does not exist!"));
         long uId = agent.getUserId();
-        User user = userRepository.findById(uId).orElseThrow(
-                () -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Requested Agent Bank does not exist!"));
-        map.setAgentFirstName(user.getFirstName());
-        map.setAgentLastName(user.getLastName());
-        Bank bank = bankRepository.findById(agentBank.getBankId()).orElseThrow(()->
-                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Requested Agent Bank does not exist!")
-        );
-        map.setBankName(bank.getName());
+        log.info("User IDs    " + uId);
+
+        Optional<User> user = userRepository.findById(uId);
+        if (user.isPresent()) {
+            map.setAgentFirstName(user.get().getFirstName());
+            map.setAgentLastName(user.get().getLastName());
+        }
+        Optional<Bank> bank = bankRepository.findById(agentBank.getBankId());
+
+        if (bank.isPresent())
+            map.setBankName(bank.get().getName());
         return map;
     }
 
 
-    /** <summary>
+    /**
+     * <summary>
      * Agent Bank update
      * </summary>
      * <remarks>this method is responsible for updating already existing Agent Bank</remarks>
@@ -112,9 +115,9 @@ public class AgentBankService {
         GenericSpecification<AgentBank> genericSpecification = new GenericSpecification<AgentBank>();
         genericSpecification.add(new SearchCriteria("agentId", agentBank.getAgentId(), SearchOperation.EQUAL));
         genericSpecification.add(new SearchCriteria("accountNumber", agentBank.getAccountNumber(), SearchOperation.EQUAL));
-        genericSpecification.add(new SearchCriteria("bankId", agentBank.getBankId(),SearchOperation.EQUAL));
+        genericSpecification.add(new SearchCriteria("bankId", agentBank.getBankId(), SearchOperation.EQUAL));
         List<AgentBank> agentBanks = agentBankRepository.findAll(genericSpecification);
-        if(!agentBanks.isEmpty())
+        if (!agentBanks.isEmpty())
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " AgentBank already exist");
         agentBank.setDefault(agentBank.isDefault());
         agentBankRepository.save(agentBank);
@@ -123,83 +126,83 @@ public class AgentBankService {
     }
 
     @Transactional
-    public AgentBankResponseDto setDefalult(long id){
+    public AgentBankResponseDto setDefalult(long id) {
         AgentBank agentBank = agentBankRepository.findById(id).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                 "Requested Agent Bank does not exist!"));
-            agentBankRepository.updateIsDefault();
+        agentBankRepository.updateIsDefault();
         agentBank.setDefault(true);
         agentBankRepository.save(agentBank);
         return getAgentBankResponseDto(agentBank);
     }
 
 
-    /** <summary>
+    /**
+     * <summary>
      * Find Agent Bank
      * </summary>
      * <remarks>this method is responsible for getting a single record</remarks>
      */
-    public AgentBankResponseDto findAgentBank(Long id){
+    public AgentBankResponseDto findAgentBank(Long id) {
         AgentBank agentBank = agentBankRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Bank Id does not exist!"));
 
-        Agent agent =  agentRepository.findById(agentBank.getAgentId())
+        Agent agent = agentRepository.findById(agentBank.getAgentId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Agent!"));
 
         Bank bank = bankRepository.findById(agentBank.getBankId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Bank ID!"));
-       return getAgentBankResponseDto(agentBank);
+        return getAgentBankResponseDto(agentBank);
     }
 
 
-
-    /** <summary>
+    /**
+     * <summary>
      * Find all Agent Bank
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
+     *
      * @return
      */
-    public List<AgentBankResponseDto> findAll(Long agentId, Long bankId, String bankName, String accountNumber, PageRequest pageRequest ) {
+    public List<AgentBankResponseDto> findAll(Long agentId, Long bankId, String bankName, String accountNumber, PageRequest pageRequest) {
 
         GenericSpecification<AgentBank> genericSpecification = new GenericSpecification<AgentBank>();
 
-        if (agentId != null)
-        {
+        if (agentId != null) {
             genericSpecification.add(new SearchCriteria("agentId", agentId, SearchOperation.EQUAL));
         }
 
-        if (bankId != null )
-        {
+        if (bankId != null) {
             genericSpecification.add(new SearchCriteria("bankId", bankId, SearchOperation.EQUAL));
         }
-        if (bankName != null )
-        {
+        if (bankName != null) {
             genericSpecification.add(new SearchCriteria("bankName", bankName, SearchOperation.EQUAL));
         }
 
 
-        if (accountNumber != null)
-        {
+        if (accountNumber != null) {
             genericSpecification.add(new SearchCriteria("accountNumber", accountNumber, SearchOperation.EQUAL));
         }
 
+        log.info("Searching for Data");
         Page<AgentBank> agentBanks = agentBankRepository.findAll(genericSpecification, pageRequest);
 
         if (agentBanks == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
-        return agentBanks.stream().map((agentBank)-> getAgentBankResponseDto(agentBank)).collect(Collectors.toList());
+        return agentBanks.stream().map((agentBank) -> getAgentBankResponseDto(agentBank)).collect(Collectors.toList());
     }
 
 
-    /** <summary>
+    /**
+     * <summary>
      * Enable disenable
      * </summary>
      * <remarks>this method is responsible for enabling and dis enabling a Agent Bank</remarks>
      */
-    public void enableDisableAgentBank (EnableDisEnableDto request){
+    public void enableDisableAgentBank(EnableDisEnableDto request) {
         AgentBank agentBank = agentBankRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Bank does not exist!"));
@@ -209,7 +212,7 @@ public class AgentBankService {
 
     }
 
-    public List<AgentBankResponseDto> getAll(Boolean isActive){
+    public List<AgentBankResponseDto> getAll(Boolean isActive) {
         List<AgentBank> agentBanks = agentBankRepository.findByIsActive(isActive);
         return agentBanks.stream().map((agentBank ->
                 getAgentBankResponseDto(agentBank))).collect(Collectors.toList());
