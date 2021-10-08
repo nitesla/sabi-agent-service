@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @SuppressWarnings("ALL")
@@ -39,7 +40,6 @@ public class AgentCategoryTargetService {
     private Exists exists;
 
 
-
     public AgentCategoryTargetService(AgentCategoryTargetRepository agentCategoryTargetRepository, TargetTypeRepository targetTypeRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations) {
         this.agentCategoryTargetRepository = agentCategoryTargetRepository;
         this.targetTypeRepository = targetTypeRepository;
@@ -48,7 +48,8 @@ public class AgentCategoryTargetService {
         this.validations = validations;
     }
 
-    /** <summary>
+    /**
+     * <summary>
      * AgentCategoryTarget creation
      * </summary>
      * <remarks>this method is responsible for creation of new Agent Category Target</remarks>
@@ -56,18 +57,22 @@ public class AgentCategoryTargetService {
 
     public AgentCategoryTargetResponseDto createAgentCategoryTarget(AgentCategoryTargetDto request) {
         validations.validateAgentCategoryTarget(request);
-        AgentCategoryTarget agentCategoryTarget = mapper.map(request,AgentCategoryTarget.class);
+        AgentCategoryTarget agentCategoryTarget = mapper.map(request, AgentCategoryTarget.class);
         exists.agentCategoryTargetExist(request);
         agentCategoryTarget.setCreatedBy(0l);
         agentCategoryTarget.setActive(false);
         agentCategoryTarget = agentCategoryTargetRepository.save(agentCategoryTarget);
-        log.debug("Create new Agent Category Target - {}"+ new Gson().toJson(agentCategoryTarget));
+        log.debug("Create new Agent Category Target - {}" + new Gson().toJson(agentCategoryTarget));
+        //AgentCategoryTargetResponseDto map = mapper.map(agentCategoryTarget, AgentCategoryTargetResponseDto.class);
+        //        AgentCategory agentCategory = agentCategoryRepository.findById(agentCategoryTarget.getAgentCategoryId()).orElseThrow(()->
+        //                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+        //                        "Requested Agent Category Target does not exist!"));
         return mapper.map(agentCategoryTarget, AgentCategoryTargetResponseDto.class);
     }
 
 
-
-    /** <summary>
+    /**
+     * <summary>
      * Agent Category Target update
      * </summary>
      * <remarks>this method is responsible for updating already existing Agent Category Target</remarks>
@@ -87,17 +92,18 @@ public class AgentCategoryTargetService {
     }
 
 
-    /** <summary>
+    /**
+     * <summary>
      * Find Agent Category Target
      * </summary>
      * <remarks>this method is responsible for getting a single record</remarks>
      */
-    public AgentCategoryTargetResponseDto findAgentCategoryTarget(Long id){
+    public AgentCategoryTargetResponseDto findAgentCategoryTarget(Long id) {
         AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Target Id does not exist!"));
 
-        AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTarget.getAgentCategoryId())
+        AgentCategory agentCategory = agentCategoryRepository.findById(agentCategoryTarget.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Agent Category!"));
 
@@ -123,42 +129,35 @@ public class AgentCategoryTargetService {
     }
 
 
-
-    /** <summary>
+    /**
+     * <summary>
      * Find all Agent Category Target
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
 
 
-
-
-    public Page<AgentCategoryTarget> findAll(String name, Boolean isActive, Integer min, Integer max, Integer superMax,  PageRequest pageRequest ) {
+    public Page<AgentCategoryTarget> findAll(String name, Boolean isActive, Integer min, Integer max, Integer superMax, PageRequest pageRequest) {
 
         GenericSpecification<AgentCategoryTarget> genericSpecification = new GenericSpecification<AgentCategoryTarget>();
 
-        if (name != null && !name.isEmpty())
-        {
+        if (name != null && !name.isEmpty()) {
             genericSpecification.add(new SearchCriteria("name", name, SearchOperation.MATCH));
         }
 
-        if (isActive != null )
-        {
+        if (isActive != null) {
             genericSpecification.add(new SearchCriteria("isActive", isActive, SearchOperation.EQUAL));
         }
 
-        if (min != null)
-        {
+        if (min != null) {
             genericSpecification.add(new SearchCriteria("min", min, SearchOperation.EQUAL));
         }
 
-        if (max != null)
-        {
+        if (max != null) {
             genericSpecification.add(new SearchCriteria("max", max, SearchOperation.EQUAL));
         }
 
-        if (superMax != null)
-        {
+        if (superMax != null) {
             genericSpecification.add(new SearchCriteria("superMax", superMax, SearchOperation.EQUAL));
         }
 
@@ -173,12 +172,13 @@ public class AgentCategoryTargetService {
     }
 
 
-    /** <summary>
+    /**
+     * <summary>
      * Enable disenable
      * </summary>
      * <remarks>this method is responsible for enabling and dis enabling a Agent Category Target</remarks>
      */
-    public void enableDisableAgtCatTarget (EnableDisEnableDto request){
+    public void enableDisableAgtCatTarget(EnableDisEnableDto request) {
         AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Target does not exist!"));
@@ -188,9 +188,18 @@ public class AgentCategoryTargetService {
 
     }
 
-    public List<AgentCategoryTarget> getAll(Boolean isActive){
+    public List<AgentCategoryTarget> getAll(Boolean isActive) {
         List<AgentCategoryTarget> agentCategoryTargetList = agentCategoryTargetRepository.findByIsActive(isActive);
         return agentCategoryTargetList;
 
+    }
+
+    public List<AgentCategoryTargetResponseDto> getByAgentCatID(long catId) {
+        agentCategoryRepository.findById(catId).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                " Agent Category does not exist!"));
+        List<AgentCategoryTarget> targets = agentCategoryTargetRepository.findByAgentCategoryId(catId);
+        return targets.stream()
+                .map(agentCategoryTarget -> mapper.map(agentCategoryTarget, AgentCategoryTargetResponseDto.class))
+                .collect(Collectors.toList());
     }
 }

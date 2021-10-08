@@ -22,4 +22,6 @@ public interface AgentCategoryTargetRepository extends JpaRepository<AgentCatego
 
     List<AgentCategoryTarget> findByIsActive(Boolean isActive);
 
+    List<AgentCategoryTarget> findByAgentCategoryId(Long agentCategoryId);
+
 }

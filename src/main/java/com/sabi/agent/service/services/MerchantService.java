@@ -37,7 +37,8 @@ public class MerchantService {
     }
 
     public MerchantSignUpResponse createMerchant(MerchantSignUpRequest signUpRequest, String fingerPrint){
-        MerchantSignUpResponse signUpResponse = api.post(baseUrl + "/api/v3/completeSignup", signUpRequest, MerchantSignUpResponse.class, getHeaders(fingerPrint));
+        MerchantSignUpResponse signUpResponse = api.post( "https://api-dev.spaceso2o.com/api/v3/completeSignup",
+                signUpRequest, MerchantSignUpResponse.class, getHeaders(fingerPrint));
         return signUpResponse;
     }
 

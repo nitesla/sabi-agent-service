@@ -30,6 +30,9 @@ public class BillPaymentService {
     @Value("${space.airtime.url}")
     private String airtime;
 
+    @Value("${second.url}")
+    private String secondUrl;
+
     @Value("${space.billcategories.url}")
     private String billCategories;
 
@@ -89,15 +92,21 @@ public class BillPaymentService {
         return items;
     }
 
-    public ResponseDto getBillCategoryId(Integer billCategoryId, String fingerprint){
+    public ResponseDto getBillCategoryId(int billCategoryId, String fingerprint){
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(billers)
                 .queryParam("billCategoryId",billCategoryId);
 
         Map map = new HashMap();
+        String url = billers+"/"+ billCategoryId;
+        String token = externalTokenService.getToken();
         map.put("fingerprint", fingerprint.trim());
-        map.put("Authorization","Bearer " + externalTokenService.getToken());
-        ResponseDto items = api.get(builder.toUriString(), ResponseDto.class, map);
+        map.put("Authorization","Bearer " + token);
+        log.info("bill payment uri ========" +url + "     " + billCategoryId);
+        log.info("TOKEN .......................... "+ token + "...." +fingerprint);
+        ResponseDto items = api.get(url, ResponseDto.class, map);
+
+        log.info(items.getData().toString());
         return items;
     }
 }
