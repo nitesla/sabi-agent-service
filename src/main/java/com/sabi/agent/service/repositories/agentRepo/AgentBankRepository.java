@@ -25,7 +25,7 @@ public interface AgentBankRepository extends JpaRepository<AgentBank, Long>, Jpa
     List<AgentBank> findByIsActive(Boolean isActive);
 
     @Modifying
-    @Query(value = "UPDATE agentbank SET isDefault = 0", nativeQuery = true)
+    @Query(value = "UPDATE AgentBank SET isDefault = 0", nativeQuery = true)
     void updateIsDefault();
 
 }

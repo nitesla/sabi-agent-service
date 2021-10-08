@@ -25,6 +25,7 @@ import com.sabi.framework.models.PreviousPasswords;
 import com.sabi.framework.models.User;
 import com.sabi.framework.notification.requestDto.NotificationRequestDto;
 import com.sabi.framework.notification.requestDto.RecipientRequest;
+import com.sabi.framework.notification.requestDto.SmsRequest;
 import com.sabi.framework.repositories.PreviousPasswordRepository;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
@@ -127,6 +128,11 @@ public class AgentService {
                     .build());
             notificationRequestDto.setRecipient(recipient);
             notificationService.emailNotificationRequest(notificationRequestDto);
+
+            SmsRequest smsRequest = SmsRequest.builder()
+                    .message("Activation Otp " + " " + agentExist.getRegistrationToken())
+                    .phoneNumber(emailRecipient.getPhone())
+                    .build();
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist, a new OTP sent to your email");
 
         }else if(exist !=null && exist.getPasswordChangedOn() !=null){
@@ -151,6 +157,7 @@ public class AgentService {
 
         Agent saveAgent = new Agent();
                 saveAgent.setUserId(user.getId());
+                saveAgent.setReferrer(request.getReferrer());
                 saveAgent.setReferralCode(Utility.guidID());
                 saveAgent.setRegistrationToken(Utility.registrationCode());
                 saveAgent.setRegistrationTokenExpiration(Utility.expiredTime());
@@ -170,8 +177,15 @@ public class AgentService {
                 .email(emailRecipient.getEmail())
                 .build());
         notificationRequestDto.setRecipient(recipient);
-        System.out.println(":::::: AGENT NOTIFICATION ::::" + notificationRequestDto);
+
+        SmsRequest smsRequest = SmsRequest.builder()
+                .message("Activation Otp " + " " + agentResponse.getRegistrationToken())
+                .phoneNumber(emailRecipient.getPhone())
+                .build();
+
         notificationService.emailNotificationRequest(notificationRequestDto);
+
+
 
 
         return mapper.map(user, CreateAgentResponseDto.class);
@@ -204,7 +218,12 @@ public class AgentService {
                 .email(emailRecipient.getEmail())
                 .build());
         notificationRequestDto.setRecipient(recipient);
-        System.out.println(":::::: AGENT NOTIFICATION ::::" + notificationRequestDto);
+
+        SmsRequest smsRequest = SmsRequest.builder()
+                .message("Activation Otp " + " " + agentResponse.getRegistrationToken())
+                .phoneNumber(emailRecipient.getPhone())
+                .build();
+
         notificationService.emailNotificationRequest(notificationRequestDto);
 
     }
@@ -497,6 +516,11 @@ public class AgentService {
                 .build());
         notificationRequestDto.setRecipient(recipient);
         notificationService.emailNotificationRequest(notificationRequestDto);
+
+        SmsRequest smsRequest = SmsRequest.builder()
+                .message("Activation Otp " + " " + agentResponse.getRegistrationToken())
+                .phoneNumber(emailRecipient.getPhone())
+                .build();
 
         EmailVerificationResponseDto responseDto = EmailVerificationResponseDto.builder()
                 .phone(user.getPhone())
