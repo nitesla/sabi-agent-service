@@ -133,6 +133,7 @@ public class AgentService {
                     .message("Activation Otp " + " " + agentExist.getRegistrationToken())
                     .phoneNumber(emailRecipient.getPhone())
                     .build();
+            notificationService.smsNotificationRequest(smsRequest);
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist, a new OTP sent to your email");
 
         }else if(exist !=null && exist.getPasswordChangedOn() !=null){
@@ -177,16 +178,14 @@ public class AgentService {
                 .email(emailRecipient.getEmail())
                 .build());
         notificationRequestDto.setRecipient(recipient);
+        notificationService.emailNotificationRequest(notificationRequestDto);
+
 
         SmsRequest smsRequest = SmsRequest.builder()
                 .message("Activation Otp " + " " + agentResponse.getRegistrationToken())
                 .phoneNumber(emailRecipient.getPhone())
                 .build();
-
-        notificationService.emailNotificationRequest(notificationRequestDto);
-
-
-
+        notificationService.smsNotificationRequest(smsRequest);
 
         return mapper.map(user, CreateAgentResponseDto.class);
     }
@@ -218,13 +217,14 @@ public class AgentService {
                 .email(emailRecipient.getEmail())
                 .build());
         notificationRequestDto.setRecipient(recipient);
+        notificationService.emailNotificationRequest(notificationRequestDto);
 
         SmsRequest smsRequest = SmsRequest.builder()
                 .message("Activation Otp " + " " + agentResponse.getRegistrationToken())
                 .phoneNumber(emailRecipient.getPhone())
                 .build();
+        notificationService.smsNotificationRequest(smsRequest);
 
-        notificationService.emailNotificationRequest(notificationRequestDto);
 
     }
 
@@ -355,6 +355,17 @@ public class AgentService {
         if (agents == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
+
+        agents.getContent().forEach( agent -> {
+            User user = userRepository.getOne(agent.getId());
+            agent.setLastName(user.getLastName());
+            agent.setFirstName(user.getFirstName());
+            agent.setEmail(user.getEmail());
+            agent.setPhone(user.getPhone());
+
+        });
+
+
         return agents;
     }
 
@@ -398,6 +409,7 @@ public class AgentService {
                     .dateSubmitted(agent.getCreatedDate())
                     .status(0)
                     .build();
+        validations.validateComponentVerification(addressVerification);
         log.debug("address verification - {}"+ new Gson().toJson(addressVerification));
             agentVerificationRepository.save(addressVerification);
     }
@@ -439,6 +451,7 @@ public class AgentService {
                    .dateSubmitted(agent.getCreatedDate())
                    .status(0)
                    .build();
+           validations.validateComponentVerification(bvnVerification);
            log.debug("bvn verification - {}"+ new Gson().toJson(bvnVerification));
            agentVerificationRepository.save(bvnVerification);
        }
@@ -458,6 +471,7 @@ public class AgentService {
                     .dateSubmitted(agent.getCreatedDate())
                     .status(0)
                     .build();
+        validations.validateComponentVerification(idVerification);
         log.debug("id verification - {}"+ new Gson().toJson(idVerification));
             agentVerificationRepository.save(idVerification);
         }
@@ -521,6 +535,7 @@ public class AgentService {
                 .message("Activation Otp " + " " + agentResponse.getRegistrationToken())
                 .phoneNumber(emailRecipient.getPhone())
                 .build();
+        notificationService.smsNotificationRequest(smsRequest);
 
         EmailVerificationResponseDto responseDto = EmailVerificationResponseDto.builder()
                 .phone(user.getPhone())
