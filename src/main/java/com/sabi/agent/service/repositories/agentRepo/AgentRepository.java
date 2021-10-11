@@ -2,9 +2,6 @@ package com.sabi.agent.service.repositories.agentRepo;
 
 
 import com.sabi.agent.core.models.agentModel.Agent;
-import com.sabi.framework.models.User;
-import org.aspectj.weaver.ast.And;
-import org.hibernate.sql.Select;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

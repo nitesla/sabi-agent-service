@@ -1,5 +1,5 @@
 package com.sabi.agent.service.services;
-import com.fasterxml.jackson.core.JsonProcessingException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.sabi.agent.core.dto.ValidateEmailOtpRequest;
@@ -35,17 +35,14 @@ import com.sabi.framework.utils.Constants;
 import com.sabi.framework.utils.CustomResponseCode;
 import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
-
-import org.apache.http.protocol.HTTP;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.*;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.PublicKey;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -355,73 +352,69 @@ public class AgentService {
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
 
-    public Page<Agent> findAll(Long userId,Boolean isActive,String referrer, PageRequest pageRequest ) throws Exception {
-//        log.info("the lastName value is {} " + lastName );
+    public Page<Agent> findAllAgents(Long userId,Boolean isActive,String referrer, PageRequest pageRequest ) throws Exception {
         Page<Agent> agents = agentRepository.findAgents(userId, isActive, referrer, pageRequest);
         if (agents == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
-        log.info("agets fetched " + objectMapper.writeValueAsString(agents));
-
         agents.getContent().forEach(agent -> {
-            User user = userRepository.getOne(agent.getId());
+            User user = userRepository.getOne(agent.getUserId());
             agent.setLastName(user.getLastName());
             agent.setFirstName(user.getFirstName());
             agent.setEmail(user.getEmail());
             agent.setPhone(user.getPhone());
         });
-        log.info("agets fetched 222222: " + this.objectMapper.writeValueAsString(agents));
         return agents;
 
     }
 
 
-//    *****
 
-    public Agent findByFirstNameOrLastName(Boolean isActive,String referrer,String firstName,
-                                           String lastName) {
-        Agent savedAgent;
-        User savedUser;
-        if (firstName != null){
-            savedUser =  userRepository.findByFirstName(firstName);
-        } else if(lastName != null) {
-            savedUser = userRepository.findByLastName(lastName);
-        } else {
-            throw new BadRequestException(String.valueOf(HttpStatus.BAD_REQUEST.value()),
-                    "lastname or firstname can not be null!");
+    public Page<User> findAgentUser(String firstName,String lastName, PageRequest pageRequest ){
+        Page<User> agentUser = userRepository.findAgentUser(firstName,lastName,pageRequest);
+        if(agentUser == null){
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
-        if (savedUser != null){
-           savedAgent = findAgent(savedUser.getId());
-           if (savedAgent != null){
-               return savedAgent;
-           } else {
-               throw new NotFoundException(String.valueOf(HttpStatus.NOT_FOUND.value()),"Agent Not Found!");
-           }
-        }
-        else {
-            throw new NotFoundException(String.valueOf(HttpStatus.NOT_FOUND.value()),"User Not Found!");
-        }
+        agentUser.getContent().forEach(users -> {
+            Agent agent = agentRepository.findByUserId(users.getId());
+            users.setAgentId(agent.getId());
+            users.setAgentCategoryId(agent.getAgentCategoryId());
+            users.setScope(agent.getScope());
+            users.setReferralCode(agent.getReferralCode());
+            users.setReferrer(agent.getReferrer());
+            users.setAddress(agent.getAddress());
+            users.setBvn(agent.getBvn());
+            users.setAgentType(agent.getAgentType());
+            users.setCreditLimit(agent.getCreditLimit());
+            users.setPayBackDuration(agent.getPayBackDuration());
+            users.setBalance(agent.getBalance());
+            users.setVerificationDate(agent.getVerificationDate());
+            users.setSupervisorId(agent.getSupervisorId());
+            users.setVerificationStatus(agent.getVerificationStatus());
+            users.setComment(agent.getComment());
+            users.setCardToken(agent.getCardToken());
+            users.setStatus(agent.getStatus());
+            users.setWalletId(agent.getWalletId());
+            users.setPicture(agent.getPicture());
+            users.setHasCustomizedTarget(agent.getHasCustomizedTarget());
+            users.setCreditLevelId(agent.getCreditLevelId());
+            users.setIdTypeId(agent.getIdTypeId());
+            users.setIdCard(agent.getIdCard());
+            users.setStateId(agent.getStateId());
+            users.setBankId(agent.getBankId());
+            users.setCountryId(agent.getCountryId());
+            users.setAccountNonLocked(agent.isAccountNonLocked());
+            users.setRegistrationTokenExpiration(agent.getRegistrationTokenExpiration());
+            users.setRegistrationToken(agent.getRegistrationToken());
+            users.setIsEmailVerified(agent.getIsEmailVerified());
+        });
+        return agentUser;
+
     }
 
-    public Page<Agent> findAllAgentsBySort(Long userId,Boolean isActive,String referrer,String firstName,String lastName,PageRequest pageRequest) throws Exception {
-        Page<Agent> savedAgent;
-        if (firstName != null){
-            Agent agent =  findByFirstNameOrLastName(isActive,referrer,firstName,lastName);
-            List<Agent> listOfAgent = new ArrayList<>();
-            listOfAgent.add(agent);
-             savedAgent = new PageImpl<>(listOfAgent);
 
-//            savedAgent = (Page<Agent>) findByFirstNameOrLastName(isActive,referrer,firstName,lastName);
-        } else if (lastName != null){
-            Agent agent =  findByFirstNameOrLastName(isActive,referrer,firstName,lastName);
-            List<Agent> listOfAgent = new ArrayList<>();
-            listOfAgent.add(agent);
-            savedAgent = new PageImpl<>(listOfAgent);
-            savedAgent = (Page<Agent>) findByFirstNameOrLastName(isActive,referrer,lastName,firstName);
-        } else
-            savedAgent = findAll(userId,isActive,referrer, pageRequest);
-        return savedAgent;
-    }
+
+
 
 
 

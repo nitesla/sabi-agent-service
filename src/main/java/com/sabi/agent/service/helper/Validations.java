@@ -3,6 +3,7 @@ package com.sabi.agent.service.helper;
 
 import com.sabi.agent.core.dto.agentDto.requestDto.*;
 import com.sabi.agent.core.dto.requestDto.*;
+import com.sabi.agent.core.integrations.order.PlaceOrder;
 import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
@@ -378,7 +379,13 @@ public class Validations {
             agentVerificationRepository.save(agentVerification);
 
         }
+    }
 
 
+
+    public void validateOrder(PlaceOrder request){
+        Agent agent  = agentRepository.findById(request.getAgentId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Agent id does not exist!"));
     }
 }
