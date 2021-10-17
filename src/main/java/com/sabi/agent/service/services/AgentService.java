@@ -114,6 +114,7 @@ public class AgentService {
         User user = mapper.map(request,User.class);
 
         User exist = userRepository.findByPhone(request.getPhone());
+        AgentCategory savedCategory = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
         if(exist !=null && exist.getPasswordChangedOn()== null){
           Agent existAgent = agentRepository.findByUserId(exist.getId());
             existAgent.setRegistrationToken(Utility.registrationCode());
@@ -166,6 +167,10 @@ public class AgentService {
                 saveAgent.setActive(false);
                 saveAgent.setIsEmailVerified(false);
                 saveAgent.setCreatedBy(0l);
+//                saveAgent.setCountryCode(request.getCountryCode());
+//                if (savedCategory != null) {
+//                    saveAgent.setAgentCategoryId(savedCategory.getId());
+//                }
         Agent agentResponse= agentRepository.save(saveAgent);
         log.debug("Create new agent  - {}"+ new Gson().toJson(saveAgent));
 
@@ -314,9 +319,14 @@ public class AgentService {
 
     public AgentUpdateResponseDto updateAgent(AgentUpdateDto request) {
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        AgentCategory savedCategory = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
         Agent agent = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested  id does not exist!"));
+        if (savedCategory != null) {
+            agent.setAgentCategoryId(savedCategory.getId());
+        }
+
         mapper.map(request, agent);
         agent.setUpdatedBy(userCurrent.getId());
         agentRepository.save(agent);
