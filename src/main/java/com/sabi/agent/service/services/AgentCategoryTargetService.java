@@ -61,7 +61,7 @@ public class AgentCategoryTargetService {
         validations.validateAgentCategoryTarget(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategoryTarget agentCategoryTarget = mapper.map(request, AgentCategoryTarget.class);
-        exists.agentCategoryTargetExist(request);
+//        exists.agentCategoryTargetExist(request);
         agentCategoryTarget.setCreatedBy(userCurrent.getId());
         agentCategoryTarget.setActive(false);
         agentCategoryTarget = agentCategoryTargetRepository.save(agentCategoryTarget);
@@ -89,7 +89,7 @@ public class AgentCategoryTargetService {
                         "Requested Agent Category Target does not exist!"));
         mapper.map(request, agentCategoryTarget);
         agentCategoryTarget.setUpdatedBy(userCurrent.getId());
-        exists.agentCategoryTargetUpateExist(request);
+//        exists.agentCategoryTargetUpateExist(request);
         agentCategoryTargetRepository.save(agentCategoryTarget);
         log.debug("Agent Category Target record updated - {}" + new Gson().toJson(agentCategoryTarget));
         return mapper.map(agentCategoryTarget, AgentCategoryTargetResponseDto.class);
