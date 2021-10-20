@@ -3,9 +3,11 @@ package com.sabi.agent.service.helper;
 
 import com.sabi.agent.core.dto.agentDto.requestDto.*;
 import com.sabi.agent.core.dto.requestDto.*;
+import com.sabi.agent.core.merchant_integration.request.MerchantSignUpRequest;
 import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
+import com.sabi.agent.core.wallet_integration.request.WalletSignUpRequest;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
@@ -358,5 +360,15 @@ public class Validations {
     public void validateVerification (Verification request){
         if (request.getStatus() != CustomResponseCode.ENABLE_VERIFICATION_STATUS || request.getStatus() != CustomResponseCode.FAILED_VERIFICATION_STATUS)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid status");
+    }
+
+    public void validateMerchant(MerchantSignUpRequest signUpRequest){
+        if(signUpRequest.getAgentId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id can not be null");
+        if (signUpRequest.getAgentId().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id can not be empty");
+        agentRepository.findById(Long.parseLong(signUpRequest.getAgentId())).orElseThrow(()->
+                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Agent Signing up merchant  does not exist"));
     }
 }
