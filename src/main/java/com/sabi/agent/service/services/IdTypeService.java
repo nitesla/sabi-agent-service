@@ -11,6 +11,8 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.IdTypeRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -45,12 +47,13 @@ public class IdTypeService {
 
     public IdTypeResponseDto createIdType(IdTypeDto request) {
         validations.validateIdType(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         IdType idType = mapper.map(request,IdType.class);
         IdType idExist = idTypeRepository.findByName(request.getName());
         if(idExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " IdType already exist");
         }
-        idType.setCreatedBy(0l);
+        idType.setCreatedBy(userCurrent.getId());
         idType.setActive(true);
         idType = idTypeRepository.save(idType);
         log.debug("Create new IdType - {}"+ new Gson().toJson(idType));
@@ -66,11 +69,12 @@ public class IdTypeService {
 
     public IdTypeResponseDto updateIdType(IdTypeDto request) {
         validations.validateIdType(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         IdType idType = idTypeRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Id type does not exist!"));
         mapper.map(request, idType);
-        idType.setUpdatedBy(0l);
+        idType.setUpdatedBy(userCurrent.getId());
         idTypeRepository.save(idType);
         log.debug("Id Type record updated - {}"+ new Gson().toJson(idType));
         return mapper.map(idType, IdTypeResponseDto.class);
@@ -115,11 +119,12 @@ public class IdTypeService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         IdType idType  = idTypeRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Id type does not exist!"));
         idType.setActive(request.isActive());
-        idType.setUpdatedBy(0L);
+        idType.setUpdatedBy(userCurrent.getId());
         idTypeRepository.save(idType);
 
     }

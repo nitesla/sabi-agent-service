@@ -13,6 +13,8 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.TargetTypeRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -46,12 +48,13 @@ public class TargetTypeService {
 
     public TargetTypeResponseDto createTargetType(TargetTypeDto request) {
         validations.validateTargetType(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         TargetType targetType = mapper.map(request,TargetType.class);
         TargetType targetTypeExist = targetTypeRepository.findByName(request.getName());
         if(targetTypeExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " TargetType already exist");
         }
-        targetType.setCreatedBy(0l);
+        targetType.setCreatedBy(userCurrent.getId());
         targetType.setActive(false);
         targetType = targetTypeRepository.save(targetType);
         log.debug("Create new Target Type - {}"+ new Gson().toJson(targetType));
@@ -66,11 +69,12 @@ public class TargetTypeService {
 
     public TargetTypeResponseDto updateTargetType(TargetTypeDto request) {
         validations.validateTargetType(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         TargetType targetType = targetTypeRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Target Type Id does not exist!"));
         mapper.map(request, targetType);
-        targetType.setUpdatedBy(0l);
+        targetType.setUpdatedBy(userCurrent.getId());
 
         TargetType targetTypeExist = targetTypeRepository.findByName(targetType.getName());
         if(targetTypeExist !=null){
@@ -138,11 +142,12 @@ public class TargetTypeService {
      */
 
     public void enableDisableTargetType (EnableDisEnableDto request){
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         TargetType targetType = targetTypeRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Target Type does not exist!"));
         targetType.setActive(request.isActive());
-        targetType.setUpdatedBy(0l);
+        targetType.setUpdatedBy(userCurrent.getId());
         targetTypeRepository.save(targetType);
 
     }

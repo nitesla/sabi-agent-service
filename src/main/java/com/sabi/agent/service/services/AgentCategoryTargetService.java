@@ -13,6 +13,8 @@ import com.sabi.agent.service.repositories.TargetTypeRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryTargetRepository;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -57,9 +59,10 @@ public class AgentCategoryTargetService {
 
     public AgentCategoryTargetResponseDto createAgentCategoryTarget(AgentCategoryTargetDto request) {
         validations.validateAgentCategoryTarget(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategoryTarget agentCategoryTarget = mapper.map(request, AgentCategoryTarget.class);
         exists.agentCategoryTargetExist(request);
-        agentCategoryTarget.setCreatedBy(0l);
+        agentCategoryTarget.setCreatedBy(userCurrent.getId());
         agentCategoryTarget.setActive(false);
         agentCategoryTarget = agentCategoryTargetRepository.save(agentCategoryTarget);
         log.debug("Create new Agent Category Target - {}" + new Gson().toJson(agentCategoryTarget));
@@ -80,11 +83,12 @@ public class AgentCategoryTargetService {
 
     public AgentCategoryTargetResponseDto updateAgentCategoryTarget(AgentCategoryTargetDto request) {
         validations.validateAgentCategoryTarget(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Target does not exist!"));
         mapper.map(request, agentCategoryTarget);
-        agentCategoryTarget.setUpdatedBy(0l);
+        agentCategoryTarget.setUpdatedBy(userCurrent.getId());
         exists.agentCategoryTargetUpateExist(request);
         agentCategoryTargetRepository.save(agentCategoryTarget);
         log.debug("Agent Category Target record updated - {}" + new Gson().toJson(agentCategoryTarget));
@@ -179,11 +183,12 @@ public class AgentCategoryTargetService {
      * <remarks>this method is responsible for enabling and dis enabling a Agent Category Target</remarks>
      */
     public void enableDisableAgtCatTarget(EnableDisEnableDto request) {
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Target does not exist!"));
         agentCategoryTarget.setActive(request.isActive());
-        agentCategoryTarget.setUpdatedBy(0l);
+        agentCategoryTarget.setUpdatedBy(userCurrent.getId());
         agentCategoryTargetRepository.save(agentCategoryTarget);
 
     }

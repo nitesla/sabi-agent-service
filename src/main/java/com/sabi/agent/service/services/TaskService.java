@@ -10,6 +10,8 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.TaskRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -46,12 +48,13 @@ public class TaskService {
 
     public TaskResponseDto createTask(TaskDto request) {
         validations.validateTask(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Task task = mapper.map(request,Task.class);
         Task taskExist = taskRepository.findByNameAndTaskType(request.getName(),request.getTaskType());
         if(taskExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Task already exist");
         }
-        task.setCreatedBy(0l);
+        task.setCreatedBy(userCurrent.getId());
         task.setActive(true);
         task = taskRepository.save(task);
         log.debug("Create new Task - {}"+ new Gson().toJson(task));
@@ -67,11 +70,12 @@ public class TaskService {
 
     public TaskResponseDto updateTask(TaskDto request) {
         validations.validateTask(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Task task = taskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Task Id does not exist!"));
         mapper.map(request, task);
-        task.setUpdatedBy(0l);
+        task.setUpdatedBy(userCurrent.getId());
         taskRepository.save(task);
         log.debug("task record updated - {}"+ new Gson().toJson(task));
         return mapper.map(task, TaskResponseDto.class);
@@ -112,11 +116,12 @@ public class TaskService {
      */
 
     public void enableDisEnableTask (EnableDisEnableDto request){
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Task task = taskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Task Id does not exist!"));
         task.setActive(request.isActive());
-        task.setUpdatedBy(0l);
+        task.setUpdatedBy(userCurrent.getId());
         taskRepository.save(task);
 
     }

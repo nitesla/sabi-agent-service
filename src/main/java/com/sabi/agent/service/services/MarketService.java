@@ -13,9 +13,12 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MarketRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,12 +54,13 @@ public class MarketService {
 
     public MarketResponseDto createMarket(MarketDto request) {
         validations.validateMarket(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Market market = mapper.map(request, Market.class);
         Market marketExist = marketRepository.findByName(request.getName());
         if (marketExist != null) {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Market already exist");
         }
-        market.setCreatedBy(0L);
+        market.setCreatedBy(userCurrent.getId());
         market.setActive(false);
         market = marketRepository.save(market);
         log.debug("Create new Market - {}" + new Gson().toJson(market));
@@ -65,6 +69,7 @@ public class MarketService {
 
     public MarketDto updateMarket(MarketDto request) {
         validations.validateMarket(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Market market = marketRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Country Id does not exist!"));
@@ -73,7 +78,7 @@ public class MarketService {
         if (exists) {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Market already exist");
         }
-        market.setUpdatedBy(0L);
+        market.setUpdatedBy(userCurrent.getId());
         marketRepository.save(market);
         log.debug("Country record updated - {}" + new Gson().toJson(market));
         return mapper.map(market, MarketDto.class);
@@ -119,11 +124,12 @@ public class MarketService {
      * <remarks>this method is responsible for enabling and dis enabling a market</remarks>
      */
     public void enableDisEnableState(EnableDisEnableDto request) {
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Market market = marketRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested market id does not exist!"));
         market.setActive(request.isActive());
-        market.setUpdatedBy(0L);
+        market.setUpdatedBy(userCurrent.getId());
         marketRepository.save(market);
 
     }

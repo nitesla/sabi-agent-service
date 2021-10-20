@@ -10,6 +10,8 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.StateRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -52,12 +54,13 @@ public class StateService {
 
     public StateResponseDto createState(StateDto request) {
         validations.validateState(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         State state = mapper.map(request,State.class);
         State stateExist = stateRepository.findByName(request.getName());
         if(stateExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " State already exist");
         }
-        state.setCreatedBy(0l);
+        state.setCreatedBy(userCurrent.getId());
         state.setActive(true);
         state = stateRepository.save(state);
         log.debug("Create new State - {}"+ new Gson().toJson(state));
@@ -73,11 +76,12 @@ public class StateService {
 
     public StateResponseDto updateState(StateDto request) {
         validations.validateState(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         State state = stateRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested State Id does not exist!"));
         mapper.map(request, state);
-        state.setUpdatedBy(0l);
+        state.setUpdatedBy(userCurrent.getId());
         stateRepository.save(state);
         log.debug("State record updated - {}"+ new Gson().toJson(state));
         return mapper.map(state, StateResponseDto.class);
@@ -118,11 +122,12 @@ public class StateService {
      * <remarks>this method is responsible for enabling and dis enabling a state</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         State state = stateRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested State Id does not exist!"));
         state.setActive(request.isActive());
-        state.setUpdatedBy(0l);
+        state.setUpdatedBy(userCurrent.getId());
         stateRepository.save(state);
 
     }

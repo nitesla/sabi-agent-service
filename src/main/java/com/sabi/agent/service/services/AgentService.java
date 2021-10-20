@@ -9,6 +9,7 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.dto.responseDto.*;
+import com.sabi.agent.core.models.Country;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.core.models.agentModel.AgentVerification;
@@ -320,13 +321,16 @@ public class AgentService {
     public AgentUpdateResponseDto updateAgent(AgentUpdateDto request) {
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategory savedCategory = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
+        Country savedCountry = countryRepository.findById(request.getCountryId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested country id does not exist!"));
         Agent agent = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Requested  id does not exist!"));
+                        "Requested Agent id does not exist!"));
         if (savedCategory != null) {
             agent.setAgentCategoryId(savedCategory.getId());
         }
-
+        agent.setCountryCode(savedCountry.getCode());
         mapper.map(request, agent);
         agent.setUpdatedBy(userCurrent.getId());
         agentRepository.save(agent);
@@ -346,8 +350,9 @@ public class AgentService {
         Agent agent  = agentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent id does not exist!"));
-            User user = userRepository.getOne(agent.getUserId());
-        log.info("Agent category *********************************************** " +agent.getAgentCategoryId());
+//        log.info("Agent  *********************************************** " +agent);
+        User user = userRepository.getOne(agent.getUserId());
+//        log.info("Agent category *********************************************** " +agent.getAgentCategoryId());
         AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent category id does not exist!"));

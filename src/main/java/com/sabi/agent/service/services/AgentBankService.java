@@ -6,7 +6,6 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentBankDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.AgentBankResponseDto;
 import com.sabi.agent.core.models.Bank;
-import com.sabi.agent.core.models.Market;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentBank;
 import com.sabi.agent.service.helper.*;
@@ -17,11 +16,11 @@ import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -68,9 +67,11 @@ public class AgentBankService {
 
     public AgentBankResponseDto createAgentBank(AgentBankDto request) {
         validations.validateAgentBank(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentBank agentBank = mapper.map(request, AgentBank.class);
         exists.agentBankExist(request);
-        agentBank.setCreatedBy(0l);
+        agentBank.setCreatedBy(userCurrent.getId());
         agentBank.setActive(false);
         agentBank.setDefault(false);
         agentBank = agentBankRepository.save(agentBank);
@@ -107,11 +108,13 @@ public class AgentBankService {
 
     public AgentBankResponseDto updateAgentBank(AgentBankDto request) {
         validations.validateAgentBank(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("Auth info ****************************** " + userCurrent);
         AgentBank agentBank = agentBankRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Bank does not exist!"));
         mapper.map(request, agentBank);
-        agentBank.setUpdatedBy(0l);
+        agentBank.setUpdatedBy(userCurrent.getId());
         GenericSpecification<AgentBank> genericSpecification = new GenericSpecification<AgentBank>();
         genericSpecification.add(new SearchCriteria("agentId", agentBank.getAgentId(), SearchOperation.EQUAL));
         genericSpecification.add(new SearchCriteria("accountNumber", agentBank.getAccountNumber(), SearchOperation.EQUAL));
@@ -203,11 +206,12 @@ public class AgentBankService {
      * <remarks>this method is responsible for enabling and dis enabling a Agent Bank</remarks>
      */
     public void enableDisableAgentBank(EnableDisEnableDto request) {
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentBank agentBank = agentBankRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Bank does not exist!"));
         agentBank.setActive(request.isActive());
-        agentBank.setUpdatedBy(0l);
+        agentBank.setUpdatedBy(userCurrent.getId());
         agentBankRepository.save(agentBank);
 
     }

@@ -14,6 +14,8 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.BankRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -50,12 +52,13 @@ public class BankService {
 
     public BankResponseDto createBank(BankDto request) {
         validations.validateBank(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Bank bank = mapper.map(request,Bank.class);
         Bank bankExist = bankRepository.findByName(request.getName());
         if(bankExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Bank already exist");
         }
-        bank.setCreatedBy(0l);
+        bank.setCreatedBy(userCurrent.getId());
         bank.setActive(true);
         bank = bankRepository.save(bank);
         log.debug("Create new bank - {}"+ new Gson().toJson(bank));
@@ -72,11 +75,12 @@ public class BankService {
 
     public BankResponseDto updateBank(BankDto request) {
         validations.validateBank(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Bank bank = bankRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested bank id does not exist!"));
         mapper.map(request, bank);
-        bank.setUpdatedBy(0l);
+        bank.setUpdatedBy(userCurrent.getId());
         GenericSpecification<Bank> genericSpecification = new GenericSpecification<>();
         genericSpecification.add(new SearchCriteria("name", bank.getName(), SearchOperation.EQUAL));
         genericSpecification.add(new SearchCriteria("bankCode", bank.getBankCode(), SearchOperation.EQUAL));
@@ -125,11 +129,12 @@ public class BankService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Bank bank  = bankRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested bank Id does not exist!"));
         bank.setActive(request.isActive());
-        bank.setUpdatedBy(0l);
+        bank.setUpdatedBy(userCurrent.getId());
         bankRepository.save(bank);
 
     }
