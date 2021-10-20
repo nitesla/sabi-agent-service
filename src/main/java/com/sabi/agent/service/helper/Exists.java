@@ -120,10 +120,10 @@ public class Exists {
     }
 
     public void userTaskExist(UserTaskDto request){
-        UserTask userExist = userTaskRepository.findByUserId(request.getUserId());
-        if(userExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " User Task already exist");
-        }
+//        UserTask userExist = userTaskRepository.findByUserId(request.getUserId());
+//        if(userExist !=null){
+//            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " User already exist");
+//        }
 
         UserTask taskExist = userTaskRepository.findByTaskId(request.getTaskId());
         if(taskExist !=null){

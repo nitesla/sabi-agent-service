@@ -13,6 +13,8 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.agentRepo.AgentTargetRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -50,12 +52,14 @@ public class AgentTargetService {
 
     public AgentTargetResponseDto createAgentTarget(AgentTargetDto request) {
         validations.validateAgentTarget(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentTarget agentTarget = mapper.map(request, AgentTarget.class);
         Optional<AgentTarget> agentTargetExist = agentTargetRepository.findByName(request.getName());
         if(agentTargetExist.isPresent()){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent target already exist");
         }
-        agentTarget.setCreatedBy(0L);
+        agentTarget.setCreatedBy(userCurrent.getId());
         agentTarget.setActive(false);
         agentTarget = agentTargetRepository.save(agentTarget);
         log.debug("Create new agent target - {}"+ new Gson().toJson(agentTarget));
@@ -72,13 +76,15 @@ public class AgentTargetService {
 
     public AgentTargetResponseDto updateAgentTarget(AgentTargetDto request) {
         validations.validateAgentTarget(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentTarget agentTarget = agentTargetRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent target id does not exist!"));
         mapper.map(request, agentTarget);
         boolean exists = agentTargetRepository.exists(Example.of(agentTarget));
         if(exists)throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent target already exist");
-        agentTarget.setUpdatedBy(0L);
+        agentTarget.setUpdatedBy(userCurrent.getId());
         agentTargetRepository.save(agentTarget);
         log.debug("Agent target record updated - {}"+ new Gson().toJson(agentTarget));
         return mapper.map(agentTarget, AgentTargetResponseDto.class);
@@ -134,11 +140,13 @@ public class AgentTargetService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentTarget agentTarget  = agentTargetRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent target Id does not exist!"));
         agentTarget.setActive(request.isActive());
-        agentTarget.setUpdatedBy(0L);
+        agentTarget.setUpdatedBy(userCurrent.getId());
         agentTargetRepository.save(agentTarget);
 
     }

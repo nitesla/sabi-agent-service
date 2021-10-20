@@ -12,6 +12,7 @@ import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -47,12 +48,14 @@ public class SupervisorService {
 
     public SupervisorResponseDto createSupervisor(SupervisorDto request) {
         validations.validateSupervisor(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         Supervisor supervisor = mapper.map(request,Supervisor.class);
         Supervisor userExist = supervisorRepository.findByUserId(request.getUserId());
         if(userExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " User Task already exist");
         }
-        supervisor.setCreatedBy(0l);
+        supervisor.setCreatedBy(userCurrent.getId());
         supervisor.setActive(true);
         supervisor = supervisorRepository.save(supervisor);
         log.debug("Create new supervisor - {}"+ new Gson().toJson(supervisor));
@@ -67,11 +70,13 @@ public class SupervisorService {
 
     public SupervisorResponseDto updateSupervisor(SupervisorDto request) {
         validations.validateSupervisor(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         Supervisor supervisor = supervisorRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested supervisor Id does not exist!"));
         mapper.map(request, supervisor);
-        supervisor.setUpdatedBy(0l);
+        supervisor.setUpdatedBy(userCurrent.getId());
         supervisorRepository.save(supervisor);
         log.debug("Supervisor record updated - {}" + new Gson().toJson(supervisor));
         return mapper.map(supervisor, SupervisorResponseDto.class);
@@ -122,11 +127,13 @@ public class SupervisorService {
      * <remarks>this method is responsible for enabling and dis enabling a Supervisor</remarks>
      */
     public void enableDisableSupervisor (EnableDisEnableDto request){
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         Supervisor supervisor = supervisorRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Supervisor Id does not exist!"));
         supervisor.setActive(request.isActive());
-        supervisor.setUpdatedBy(0l);
+        supervisor.setUpdatedBy(userCurrent.getId());
         supervisorRepository.save(supervisor);
 
     }

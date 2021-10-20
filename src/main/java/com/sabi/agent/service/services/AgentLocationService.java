@@ -13,6 +13,8 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.agentRepo.AgentLocationRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -50,12 +52,14 @@ public class AgentLocationService {
 
     public AgentLocationResponseDto createAgentLocation(AgentLocationDto request) {
         validations.validateAgentLocation(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentLocation agentLocation = mapper.map(request, AgentLocation.class);
         boolean agentLocationExist = agentLocationRepository.existsByAgentId(request.getAgentId());
         if (agentLocationExist) {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentLocation already exist");
         }
-        agentLocation.setCreatedBy(0L);
+        agentLocation.setCreatedBy(userCurrent.getId());
         agentLocation.setActive(false);
         agentLocation = agentLocationRepository.save(agentLocation);
         log.debug("Create new agentLocation - {}" + new Gson().toJson(agentLocation));
@@ -64,11 +68,13 @@ public class AgentLocationService {
 
     public AgentLocationDto updateAgentLocation(AgentLocationDto request) {
         validations.validateAgentLocation(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentLocation agentLocation = agentLocationRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Country Id does not exist!"));
         mapper.map(request, agentLocation);
-        agentLocation.setUpdatedBy(0L);
+        agentLocation.setUpdatedBy(userCurrent.getId());
         boolean alreadyExists = agentLocationRepository.exists(Example.of(agentLocation));
         if (alreadyExists) {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentLocation already exist");
@@ -119,11 +125,13 @@ public class AgentLocationService {
      * <remarks>this method is responsible for enabling and dis enabling a agentLocation</remarks>
      */
     public void enableDisEnableState(EnableDisEnableDto request) {
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentLocation agentLocation = agentLocationRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agentLocation id does not exist!"));
         agentLocation.setActive(request.isActive());
-        agentLocation.setUpdatedBy(0L);
+        agentLocation.setUpdatedBy(userCurrent.getId());
         agentLocationRepository.save(agentLocation);
 
     }
