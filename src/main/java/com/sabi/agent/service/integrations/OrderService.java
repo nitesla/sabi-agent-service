@@ -3,13 +3,18 @@ package com.sabi.agent.service.integrations;
 
 import com.sabi.agent.core.integrations.order.*;
 import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
+import com.sabi.agent.core.integrations.request.MerchBuyRequest;
+import com.sabi.agent.core.integrations.response.MerchBuyResponse;
 import com.sabi.agent.core.models.AgentOrder;
+import com.sabi.agent.core.wallet_integration.response.WalletResponse;
+import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.OrderRepository;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.utils.CustomResponseCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -23,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class OrderService {
 
     @Autowired
@@ -44,6 +50,8 @@ public class OrderService {
     @Value("${finger.print}")
     private String fingerPrint;
 
+    @Value("${merchantbuy.url}")
+    private String merchBuyUrl;
 
 
     public CreateOrderResponse placeOrder (PlaceOrder request) throws IOException {
@@ -91,6 +99,14 @@ public class OrderService {
         return response;
     }
 
+    public MerchBuyResponse merchBuy(MerchBuyRequest request){
+        Map<String, String> map =new HashMap<>();
+        map.put("fingerprint",fingerPrint);
+        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        log.info("Merchant buy url " + merchBuyUrl);
+        return  api.post(merchBuyUrl, request,  MerchBuyResponse.class);
+    }
+
 
 
 
@@ -118,8 +134,4 @@ public class OrderService {
         }
         return agentOrder;
     }
-
-
-
-
 }
