@@ -6,7 +6,7 @@ import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
 import com.sabi.agent.core.integrations.request.MerchBuyRequest;
 import com.sabi.agent.core.integrations.response.MerchBuyResponse;
 import com.sabi.agent.core.models.AgentOrder;
-import com.sabi.agent.core.wallet_integration.response.WalletResponse;
+import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.OrderRepository;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
@@ -35,6 +35,8 @@ public class OrderService {
     private ExternalTokenService externalTokenService;
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private Validations validations;
     @Value("${order.history.url}")
     private String orderHistory;
     @Value("${order.url}")
@@ -55,7 +57,15 @@ public class OrderService {
         Map map=new HashMap();
         map.put("fingerprint",fingerPrint);
         map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
-        CreateOrderResponse response = api.post(processOrder ,request, CreateOrderResponse.class,map);
+        PlaceOrder placeOrder = PlaceOrder.builder()
+                .checkoutUserType(request.getCheckoutUserType())
+                .customerComment(request.getCustomerComment())
+                .location(request.getLocation())
+                .orderDelivery(request.getOrderDelivery())
+                .products(request.getProducts())
+                .build();
+
+        CreateOrderResponse response = api.post(processOrder ,placeOrder, CreateOrderResponse.class,map);
         saveOrder(request,response);
         return response;
     }
@@ -99,14 +109,16 @@ public class OrderService {
 
 
     private void saveOrder(PlaceOrder request, CreateOrderResponse response) {
+
         AgentOrder order = AgentOrder.builder()
                 .createdDate(new Date())
                 .status(response.isStatus())
-                .agentId(Long.valueOf(response.getData().getId()))
+                .agentId(request.getAgentId())
                 .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
                 .totalAmount(Long.valueOf(request.getOrderDelivery().getTotal()))
                 .userName(response.getData().getUserName())
                 .build();
+        validations.validateOrder(request);
         orderRepository.save(order);
 
     }
