@@ -3,14 +3,15 @@ package com.sabi.agent.service.helper;
 
 import com.sabi.agent.core.dto.agentDto.requestDto.*;
 import com.sabi.agent.core.dto.requestDto.*;
-import com.sabi.agent.core.merchant_integration.request.MerchantSignUpRequest;
+import com.sabi.agent.core.integrations.order.PlaceOrder;
 import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
-import com.sabi.agent.core.wallet_integration.request.WalletSignUpRequest;
+import com.sabi.agent.core.models.agentModel.AgentVerification;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentVerificationRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
@@ -39,6 +40,7 @@ public class Validations {
     private AgentRepository agentRepository;
     private SupervisorRepository supervisorRepository;
     private MarketRepository marketRepository;
+    private AgentVerificationRepository agentVerificationRepository;
 
     @Autowired
     private BankRepository bankRepository;
@@ -46,7 +48,9 @@ public class Validations {
 
     public Validations(StateRepository stateRepository,MarketRepository marketRepository,
                        LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository,
-                       TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
+                       TargetTypeRepository targetTypeRepository, TaskRepository taskRepository,
+                       UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository,
+                       SupervisorRepository supervisorRepository,AgentVerificationRepository agentVerificationRepository) {
         this.stateRepository = stateRepository;
         this.lgaRepository = lgaRepository;
         this.agentCategoryRepository = agentCategoryRepository;
@@ -57,6 +61,7 @@ public class Validations {
         this.agentRepository = agentRepository;
         this.marketRepository = marketRepository;
         this.supervisorRepository = supervisorRepository;
+        this.agentVerificationRepository = agentVerificationRepository;
     }
 
     public void validateState(StateDto stateDto) {
@@ -297,10 +302,10 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid phone number  length");
         if (!Utility.isNumeric(agent.getPhone()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
-        User userExist = userRepository.findByPhone(agent.getPhone());
-        if(userExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
-        }
+//        User userExist = userRepository.findByPhone(agent.getPhone());
+//        if(userExist !=null){
+//            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
+//        }
     }
 
 
@@ -362,13 +367,25 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid status");
     }
 
-    public void validateMerchant(MerchantSignUpRequest signUpRequest){
-        if(signUpRequest.getAgentId() == null)
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id can not be null");
-        if (signUpRequest.getAgentId().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id can not be empty");
-        agentRepository.findById(Long.parseLong(signUpRequest.getAgentId())).orElseThrow(()->
-                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Agent Signing up merchant  does not exist"));
+
+    public void validateComponentVerification(AgentVerification request){
+
+        AgentVerification agentVerification = agentVerificationRepository.findByAgentIdAndComponent(request.getAgentId(),request.getComponent());
+        if(agentVerification !=null){
+            AgentVerification saveVerification = agentVerificationRepository.getOne(agentVerification.getId());
+            saveVerification.setComponent(request.getComponent());
+            saveVerification.setAgentId(request.getAgentId());
+
+            agentVerificationRepository.save(agentVerification);
+
+        }
+    }
+
+
+
+    public void validateOrder(PlaceOrder request){
+        Agent agent  = agentRepository.findById(request.getAgentId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Agent id does not exist!"));
     }
 }

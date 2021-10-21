@@ -10,6 +10,7 @@ import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.dto.responseDto.*;
 import com.sabi.agent.core.models.agentModel.Agent;
+import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.core.models.agentModel.AgentVerification;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.*;
@@ -18,12 +19,14 @@ import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentVerificationRepository;
 import com.sabi.framework.dto.requestDto.ChangePasswordDto;
 import com.sabi.framework.exceptions.BadRequestException;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.PreviousPasswords;
 import com.sabi.framework.models.User;
 import com.sabi.framework.notification.requestDto.NotificationRequestDto;
 import com.sabi.framework.notification.requestDto.RecipientRequest;
+import com.sabi.framework.notification.requestDto.SmsRequest;
 import com.sabi.framework.repositories.PreviousPasswordRepository;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
@@ -46,7 +49,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 
-
+//1
 @SuppressWarnings("ALL")
 @Slf4j
 @Service
@@ -109,6 +112,35 @@ public class AgentService {
     public CreateAgentResponseDto agentSignUp(CreateAgentRequestDto request) {
          validations.validateAgent(request);
         User user = mapper.map(request,User.class);
+
+        User exist = userRepository.findByPhone(request.getPhone());
+        if(exist !=null && exist.getPasswordChangedOn()== null){
+          Agent existAgent = agentRepository.findByUserId(exist.getId());
+            existAgent.setRegistrationToken(Utility.registrationCode());
+            existAgent.setRegistrationTokenExpiration(Utility.expiredTime());
+            Agent agentExist =agentRepository.save(existAgent);
+
+            NotificationRequestDto notificationRequestDto = new NotificationRequestDto();
+            User emailRecipient = userRepository.getOne(exist.getId());
+            notificationRequestDto.setMessage("Activation Otp " + " " + agentExist.getRegistrationToken());
+            List<RecipientRequest> recipient = new ArrayList<>();
+            recipient.add(RecipientRequest.builder()
+                    .email(emailRecipient.getEmail())
+                    .build());
+            notificationRequestDto.setRecipient(recipient);
+            notificationService.emailNotificationRequest(notificationRequestDto);
+
+            SmsRequest smsRequest = SmsRequest.builder()
+                    .message("Activation Otp " + " " + agentExist.getRegistrationToken())
+                    .phoneNumber(emailRecipient.getPhone())
+                    .build();
+            notificationService.smsNotificationRequest(smsRequest);
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist, a new OTP sent to your email");
+
+        }else if(exist !=null && exist.getPasswordChangedOn() !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
+        }
+
         String password = Utility.getSaltString();
         user.setPassword(passwordEncoder.encode(password));
         user.setUserCategory(Constants.AGENT_USER);
@@ -125,9 +157,9 @@ public class AgentService {
                 .build();
         previousPasswordRepository.save(previousPasswords);
 
-
         Agent saveAgent = new Agent();
                 saveAgent.setUserId(user.getId());
+                saveAgent.setReferrer(request.getReferrer());
                 saveAgent.setReferralCode(Utility.guidID());
                 saveAgent.setRegistrationToken(Utility.registrationCode());
                 saveAgent.setRegistrationTokenExpiration(Utility.expiredTime());
@@ -147,9 +179,14 @@ public class AgentService {
                 .email(emailRecipient.getEmail())
                 .build());
         notificationRequestDto.setRecipient(recipient);
-        System.out.println(":::::: AGENT NOTIFICATION ::::" + notificationRequestDto);
         notificationService.emailNotificationRequest(notificationRequestDto);
 
+
+        SmsRequest smsRequest = SmsRequest.builder()
+                .message("Activation Otp " + " " + agentResponse.getRegistrationToken())
+                .phoneNumber(emailRecipient.getPhone())
+                .build();
+        notificationService.smsNotificationRequest(smsRequest);
 
         return mapper.map(user, CreateAgentResponseDto.class);
     }
@@ -181,8 +218,14 @@ public class AgentService {
                 .email(emailRecipient.getEmail())
                 .build());
         notificationRequestDto.setRecipient(recipient);
-        System.out.println(":::::: AGENT NOTIFICATION ::::" + notificationRequestDto);
         notificationService.emailNotificationRequest(notificationRequestDto);
+
+        SmsRequest smsRequest = SmsRequest.builder()
+                .message("Activation Otp " + " " + agentResponse.getRegistrationToken())
+                .phoneNumber(emailRecipient.getPhone())
+                .build();
+        notificationService.smsNotificationRequest(smsRequest);
+
 
     }
 
@@ -294,12 +337,20 @@ public class AgentService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent id does not exist!"));
             User user = userRepository.getOne(agent.getUserId());
+        log.info("Agent category *********************************************** " +agent.getAgentCategoryId());
+        AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested agent category id does not exist!"));
+
             agent.setFirstName(user.getFirstName());
             agent.setLastName(user.getLastName());
             agent.setEmail(user.getEmail());
             agent.setPhone(user.getPhone());
+        agent.setAgentCategoryName(agentCategory.getName());
         return agent;
     }
+
+
 
 
     /** <summary>
@@ -308,13 +359,78 @@ public class AgentService {
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
 
-    public Page<Agent> findAll(Long userId,Boolean isActive,String referrer, PageRequest pageRequest ) {
-        Page<Agent> agents = agentRepository.findAgents(userId,isActive,referrer, pageRequest);
+    public Page<Agent> findAllAgents(Long userId,Boolean isActive,String referrer, PageRequest pageRequest ) throws Exception {
+        Page<Agent> agents = agentRepository.findAgents(userId, isActive, referrer, pageRequest);
         if (agents == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
+        agents.getContent().forEach(agent -> {
+            User user = userRepository.getOne(agent.getUserId());
+            AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
+                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                            "Requested agent category id does not exist!"));
+            agent.setLastName(user.getLastName());
+            agent.setFirstName(user.getFirstName());
+            agent.setEmail(user.getEmail());
+            agent.setPhone(user.getPhone());
+            agent.setAgentCategoryName(agentCategory.getName());
+
+        });
         return agents;
+
     }
+
+
+
+    public Page<User> findAgentUser(String firstName,String lastName, PageRequest pageRequest ){
+        Page<User> agentUser = userRepository.findAgentUser(firstName,lastName,pageRequest);
+        if(agentUser == null){
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
+        }
+        agentUser.getContent().forEach(users -> {
+            Agent agent = agentRepository.findByUserId(users.getId());
+            AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
+                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                            "Requested agent category id does not exist!"));
+            users.setAgentId(agent.getId());
+            users.setAgentCategoryId(agent.getAgentCategoryId());
+            users.setScope(agent.getScope());
+            users.setReferralCode(agent.getReferralCode());
+            users.setReferrer(agent.getReferrer());
+            users.setAddress(agent.getAddress());
+            users.setBvn(agent.getBvn());
+            users.setAgentType(agent.getAgentType());
+            users.setCreditLimit(agent.getCreditLimit());
+            users.setPayBackDuration(agent.getPayBackDuration());
+            users.setBalance(agent.getBalance());
+            users.setVerificationDate(agent.getVerificationDate());
+            users.setSupervisorId(agent.getSupervisorId());
+            users.setVerificationStatus(agent.getVerificationStatus());
+            users.setComment(agent.getComment());
+            users.setCardToken(agent.getCardToken());
+            users.setStatus(agent.getStatus());
+            users.setWalletId(agent.getWalletId());
+            users.setPicture(agent.getPicture());
+            users.setHasCustomizedTarget(agent.getHasCustomizedTarget());
+            users.setCreditLevelId(agent.getCreditLevelId());
+            users.setIdTypeId(agent.getIdTypeId());
+            users.setIdCard(agent.getIdCard());
+            users.setStateId(agent.getStateId());
+            users.setBankId(agent.getBankId());
+            users.setCountryId(agent.getCountryId());
+            users.setAccountNonLocked(agent.isAccountNonLocked());
+            users.setRegistrationTokenExpiration(agent.getRegistrationTokenExpiration());
+            users.setRegistrationToken(agent.getRegistrationToken());
+            users.setIsEmailVerified(agent.getIsEmailVerified());
+            users.setAgentCategoryName(agentCategory.getName());
+        });
+        return agentUser;
+
+    }
+
+
+
+
 
 
 
@@ -356,6 +472,7 @@ public class AgentService {
                     .dateSubmitted(agent.getCreatedDate())
                     .status(0)
                     .build();
+        validations.validateComponentVerification(addressVerification);
         log.debug("address verification - {}"+ new Gson().toJson(addressVerification));
             agentVerificationRepository.save(addressVerification);
     }
@@ -397,6 +514,7 @@ public class AgentService {
                    .dateSubmitted(agent.getCreatedDate())
                    .status(0)
                    .build();
+           validations.validateComponentVerification(bvnVerification);
            log.debug("bvn verification - {}"+ new Gson().toJson(bvnVerification));
            agentVerificationRepository.save(bvnVerification);
        }
@@ -416,6 +534,7 @@ public class AgentService {
                     .dateSubmitted(agent.getCreatedDate())
                     .status(0)
                     .build();
+        validations.validateComponentVerification(idVerification);
         log.debug("id verification - {}"+ new Gson().toJson(idVerification));
             agentVerificationRepository.save(idVerification);
         }
@@ -474,6 +593,12 @@ public class AgentService {
                 .build());
         notificationRequestDto.setRecipient(recipient);
         notificationService.emailNotificationRequest(notificationRequestDto);
+
+        SmsRequest smsRequest = SmsRequest.builder()
+                .message("Activation Otp " + " " + agentResponse.getRegistrationToken())
+                .phoneNumber(emailRecipient.getPhone())
+                .build();
+        notificationService.smsNotificationRequest(smsRequest);
 
         EmailVerificationResponseDto responseDto = EmailVerificationResponseDto.builder()
                 .phone(user.getPhone())

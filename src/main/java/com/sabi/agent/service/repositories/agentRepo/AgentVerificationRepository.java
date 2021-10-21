@@ -15,6 +15,7 @@ import org.springframework.data.repository.query.Param;
 public interface AgentVerificationRepository extends JpaRepository<AgentVerification, Long> {
 
     AgentVerification findByAgentId(Long agentId);
+    AgentVerification findByAgentIdAndComponent(Long agentId ,String component);
 
 
     @Query("SELECT a FROM AgentVerification a WHERE  ((:name IS NULL) OR (:name IS NOT NULL AND a.name = :name))"+
