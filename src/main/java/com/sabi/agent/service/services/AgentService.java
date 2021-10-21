@@ -115,7 +115,6 @@ public class AgentService {
         User user = mapper.map(request,User.class);
 
         User exist = userRepository.findByPhone(request.getPhone());
-        AgentCategory savedCategory = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
         if(exist !=null && exist.getPasswordChangedOn()== null){
           Agent existAgent = agentRepository.findByUserId(exist.getId());
             existAgent.setRegistrationToken(Utility.registrationCode());
@@ -350,9 +349,7 @@ public class AgentService {
         Agent agent  = agentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent id does not exist!"));
-//        log.info("Agent  *********************************************** " +agent);
         User user = userRepository.getOne(agent.getUserId());
-//        log.info("Agent category *********************************************** " +agent.getAgentCategoryId());
         AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent category id does not exist!"));

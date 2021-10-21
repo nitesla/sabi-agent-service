@@ -6,8 +6,6 @@ import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
 import com.sabi.agent.core.integrations.request.MerchBuyRequest;
 import com.sabi.agent.core.integrations.response.MerchBuyResponse;
 import com.sabi.agent.core.models.AgentOrder;
-import com.sabi.agent.core.wallet_integration.response.WalletResponse;
-import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.OrderRepository;
 import com.sabi.framework.exceptions.NotFoundException;

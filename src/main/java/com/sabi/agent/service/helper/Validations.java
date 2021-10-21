@@ -9,7 +9,6 @@ import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.core.models.agentModel.AgentVerification;
-import com.sabi.agent.core.wallet_integration.request.WalletSignUpRequest;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
