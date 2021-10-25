@@ -8,6 +8,7 @@ import com.sabi.agent.core.dto.responseDto.CreditLevelResponseDto;
 import com.sabi.agent.core.models.CreditLevel;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.CreditLevelRepository;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.service.TokenService;
@@ -48,10 +49,10 @@ public class CreditLevelService {
         validations.validateCreditLevel(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         CreditLevel creditLevel = mapper.map(request, CreditLevel.class);
-//        CreditLevel creditLevelExist = creditLevelRepository.findByAgentCategoryId(request.getAgentCategoryId());
-//        if(creditLevelExist !=null){
-//            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " creditLevel already exist");
-//        }
+        CreditLevel creditLevelExist = creditLevelRepository.findCreditLevelByLimits(request.getLimits());
+        if(creditLevelExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " creditLevel already exist");
+        }
         creditLevel.setCreatedBy(userCurrent.getId());
         creditLevel.setActive(true);
         creditLevel = creditLevelRepository.save(creditLevel);

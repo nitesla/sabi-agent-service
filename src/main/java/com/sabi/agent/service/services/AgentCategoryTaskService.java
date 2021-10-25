@@ -171,6 +171,7 @@ public class AgentCategoryTaskService {
      * <remarks>this method is responsible for enabling and dis enabling a Agent Category Task</remarks>
      */
     public void enableDisableAgtCatTask (EnableDisEnableDto request){
+//        validations.validateAgentCategoryTaskEnable(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategoryTask agentCategoryTask = agentCategoryTaskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
