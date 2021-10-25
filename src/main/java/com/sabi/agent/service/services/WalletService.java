@@ -82,6 +82,10 @@ public class WalletService {
         return api.get(baseUrl + "/userId/" +userId+"/publicKey/" +publicKey, ResponseMetaData.class, getHeaders(fingerPrint));
     }
 
+    public WalletBvnResponse checkBvn(WalletBvnRequest request, String fingerPrint){
+        return api.post(baseUrl + "/publicKey/"+publicKey+"/verifyBVN", request,WalletBvnResponse.class, getHeaders(fingerPrint));
+    }
+
     //ignore method
     public WalletResponse debitUser(String fingerPrint, DebitUserRequest debitUserRequest){
         return  api.post(baseUrl + "/debitUser", debitUserRequest, WalletResponse.class, getHeaders(fingerPrint));
