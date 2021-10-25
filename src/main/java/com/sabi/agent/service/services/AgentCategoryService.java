@@ -66,7 +66,7 @@ public class AgentCategoryService {
             }
         }
         agentCategory.setCreatedBy(userCurrent.getId());
-        agentCategory.setActive(true);
+        agentCategory.setIsActive(true);
         agentCategory.setDefault(false);
         agentCategory = agentCategoryRepository.save(agentCategory);
         log.debug("Create new agent category - {}"+ new Gson().toJson(agentCategory));
@@ -141,11 +141,12 @@ public class AgentCategoryService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategory agentCategory  = agentCategoryRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent category Id does not exist!"));
-        agentCategory.setActive(request.isActive());
+        agentCategory.setIsActive(request.getIsActive());
         agentCategory.setUpdatedBy(userCurrent.getId());
         agentCategoryRepository.save(agentCategory);
 

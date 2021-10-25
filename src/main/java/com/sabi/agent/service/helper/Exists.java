@@ -3,7 +3,9 @@ package com.sabi.agent.service.helper;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentBankDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryTargetDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryTaskDto;
+import com.sabi.agent.core.dto.requestDto.CreditLevelDto;
 import com.sabi.agent.core.dto.requestDto.UserTaskDto;
+import com.sabi.agent.core.models.CreditLevel;
 import com.sabi.agent.core.models.UserTask;
 import com.sabi.agent.core.models.agentModel.AgentBank;
 import com.sabi.agent.core.models.agentModel.AgentCategoryTarget;
@@ -42,6 +44,8 @@ public class Exists {
     private AgentCategoryTaskRepository agentCategoryTaskRepository;
     @Autowired
     private AgentBankRepository agentBankRepository;
+    @Autowired
+    private CreditLevelRepository creditLevelRepository;
 
 
     public Exists(StateRepository stateRepository, LGARepository lgaRepository, AgentCategoryTargetRepository agentCategoryTargetRepository, TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
@@ -59,11 +63,11 @@ public class Exists {
     public void agentCategoryTargetExist(AgentCategoryTargetDto request) {
         AgentCategoryTarget categoryTargetExist = agentCategoryTargetRepository.findByName(request.getName());
         if(categoryTargetExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " AgentCategoryTarget already exist");
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Target already exist");
         }
         AgentCategoryTarget agentCategory_TargetExist = agentCategoryTargetRepository.findByAgentCategoryIdAndTargetTypeId(request.getAgentCategoryId(), request.getTargetTypeId());
         if(agentCategory_TargetExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " AgentCategoryTarget already exist");
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Target already exist");
         }
 
        }
@@ -76,6 +80,14 @@ public class Exists {
         AgentBank agent_BankExist = agentBankRepository.findByAgentIdAndBankId(request.getAgentId(), request.getBankId());
         if(agent_BankExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Bank already exist");
+        }
+
+    }
+
+    public void creditLevelExist(CreditLevelDto request) {
+        CreditLevel creditLevel = creditLevelRepository.findByLimitsAndRepaymentPeriod(request.getLimits(), request.getRepaymentPeriod());
+        if(creditLevel !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Credit level already exist");
         }
 
     }

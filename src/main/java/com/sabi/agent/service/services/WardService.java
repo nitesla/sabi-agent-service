@@ -59,7 +59,7 @@ public class WardService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Ward already exist");
         }
         ward.setCreatedBy(userCurrent.getId());
-        ward.setActive(true);
+        ward.setIsActive(true);
         ward = wardRepository.save(ward);
         log.debug("Create new Ward - {}"+ new Gson().toJson(ward));
         return mapper.map(ward, WardResponseDto.class);
@@ -109,7 +109,7 @@ public class WardService {
                 .createdBy(ward.getCreatedBy())
                 .updatedBy(ward.getUpdatedBy())
                 .updatedDate(ward.getUpdatedDate())
-                .isActive(ward.isActive())
+                .isActive(ward.getIsActive())
                 .build();
         return response;
     }
@@ -151,11 +151,12 @@ public class WardService {
      * <remarks>this method is responsible for enabling and dis enabling a Ward</remarks>
      */
     public void enableDisableWard (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Ward ward = wardRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Ward Id does not exist!"));
-        ward.setActive(request.isActive());
+        ward.setIsActive(request.getIsActive());
         ward.setUpdatedBy(userCurrent.getId());
         wardRepository.save(ward);
 

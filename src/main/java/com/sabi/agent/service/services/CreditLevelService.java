@@ -6,6 +6,7 @@ import com.sabi.agent.core.dto.requestDto.CreditLevelDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.CreditLevelResponseDto;
 import com.sabi.agent.core.models.CreditLevel;
+import com.sabi.agent.service.helper.Exists;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.CreditLevelRepository;
 import com.sabi.framework.exceptions.ConflictException;
@@ -15,6 +16,7 @@ import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,8 @@ public class CreditLevelService {
     private final ModelMapper mapper;
     private final ObjectMapper objectMapper;
     private final Validations validations;
+    @Autowired
+    private Exists exists;
 
 
 
@@ -54,7 +58,7 @@ public class CreditLevelService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " creditLevel already exist");
         }
         creditLevel.setCreatedBy(userCurrent.getId());
-        creditLevel.setActive(true);
+        creditLevel.setIsActive(true);
         creditLevel = creditLevelRepository.save(creditLevel);
         log.debug("Create new creditLevel - {}"+ new Gson().toJson(creditLevel));
         return mapper.map(creditLevel, CreditLevelResponseDto.class);
@@ -63,6 +67,7 @@ public class CreditLevelService {
     public CreditLevelDto updateCreditLevel(CreditLevelDto request) {
         validations.validateCreditLevel(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        exists.creditLevelExist(request);
         CreditLevel creditLevel = creditLevelRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested credit level Id does not exist!"));
@@ -105,11 +110,12 @@ public class CreditLevelService {
      * <remarks>this method is responsible for enabling and dis enabling a creditLevel</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         CreditLevel creditLevel  = creditLevelRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested creditLevel id does not exist!"));
-        creditLevel.setActive(request.isActive());
+        creditLevel.setIsActive(request.getIsActive());
         creditLevel.setUpdatedBy(userCurrent.getId());
         creditLevelRepository.save(creditLevel);
 

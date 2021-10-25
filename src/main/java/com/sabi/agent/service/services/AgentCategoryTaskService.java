@@ -63,7 +63,7 @@ public class AgentCategoryTaskService {
         exists.agentCategoryTaskExist(request);
 
         agentCategoryTask.setCreatedBy(userCurrent.getId());
-        agentCategoryTask.setActive(false);
+        agentCategoryTask.setIsActive(false);
         agentCategoryTask = agentCategoryTaskRepository.save(agentCategoryTask);
         log.debug("Create new Agent Category Task - {}"+ new Gson().toJson(agentCategoryTask));
         return mapper.map(agentCategoryTask, AgentCategoryTaskResponseDto.class);
@@ -123,7 +123,7 @@ public class AgentCategoryTaskService {
                 .createdBy(agentCategoryTask.getCreatedBy())
                 .updatedBy(agentCategoryTask.getUpdatedBy())
                 .updatedDate(agentCategoryTask.getUpdatedDate())
-                .isActive(agentCategoryTask.isActive())
+                .isActive(agentCategoryTask.getIsActive())
                 .build();
 
         return response;
@@ -171,12 +171,13 @@ public class AgentCategoryTaskService {
      * <remarks>this method is responsible for enabling and dis enabling a Agent Category Task</remarks>
      */
     public void enableDisableAgtCatTask (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
 //        validations.validateAgentCategoryTaskEnable(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategoryTask agentCategoryTask = agentCategoryTaskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Task does not exist!"));
-        agentCategoryTask.setActive(request.isActive());
+        agentCategoryTask.setIsActive(request.getIsActive());
         agentCategoryTask.setUpdatedBy(userCurrent.getId());
         agentCategoryTaskRepository.save(agentCategoryTask);
 

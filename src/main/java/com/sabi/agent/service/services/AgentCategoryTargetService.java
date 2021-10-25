@@ -12,7 +12,6 @@ import com.sabi.agent.service.helper.*;
 import com.sabi.agent.service.repositories.TargetTypeRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryTargetRepository;
-import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
@@ -65,13 +64,14 @@ public class AgentCategoryTargetService {
         validations.validateAgentCategoryTarget(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategoryTarget agentCategoryTarget = mapper.map(request, AgentCategoryTarget.class);
+        exists.agentCategoryTargetExist(request);
         AgentCategoryTarget exist = agentCategoryTargetRepository.findByName(request.getName());
         if(exist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Target already exist");
         }
 //        exists.agentCategoryTargetExist(request);
         agentCategoryTarget.setCreatedBy(userCurrent.getId());
-        agentCategoryTarget.setActive(false);
+        agentCategoryTarget.setIsActive(false);
         agentCategoryTarget = agentCategoryTargetRepository.save(agentCategoryTarget);
         log.debug("Create new Agent Category Target - {}" + new Gson().toJson(agentCategoryTarget));
         //AgentCategoryTargetResponseDto map = mapper.map(agentCategoryTarget, AgentCategoryTargetResponseDto.class);
@@ -205,12 +205,13 @@ public class AgentCategoryTargetService {
      * <remarks>this method is responsible for enabling and dis enabling a Agent Category Target</remarks>
      */
     public void enableDisableAgtCatTarget(EnableDisEnableDto request) {
-        validations.validateAgentCategoryTaskEnable(request);
+        validations.validateStatus(request.getIsActive());
+//        validations.validateAgentCategoryTaskEnable(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
             AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(request.getId())
                     .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                             "Requested Agent Category Target does not exist!"));
-            agentCategoryTarget.setActive(request.isActive());
+            agentCategoryTarget.setIsActive(request.getIsActive());
             agentCategoryTarget.setUpdatedBy(userCurrent.getId());
             agentCategoryTargetRepository.save(agentCategoryTarget);
 

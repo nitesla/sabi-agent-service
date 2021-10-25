@@ -59,7 +59,7 @@ public class LGAService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " LGA already exist");
         }
         lga.setCreatedBy(userCurrent.getId());
-        lga.setActive(true);
+        lga.setIsActive(true);
         lga = lgaRepository.save(lga);
         log.debug("Create new LGA - {}"+ new Gson().toJson(lga));
         return mapper.map(lga, LGAResponseDto.class);
@@ -111,7 +111,7 @@ public class LGAService {
                 .createdBy(lga.getCreatedBy())
                 .updatedBy(lga.getUpdatedBy())
                 .updatedDate(lga.getUpdatedDate())
-                .isActive(lga.isActive())
+                .isActive(lga.getIsActive())
                 .build();
         return response;
     }
@@ -143,11 +143,12 @@ public class LGAService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         LGA lga = lgaRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested LGA Id does not exist!"));
-        lga.setActive(request.isActive());
+        lga.setIsActive(request.getIsActive());
         lga.setUpdatedBy(userCurrent.getId());
         lgaRepository.save(lga);
 

@@ -18,7 +18,6 @@ import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -61,7 +60,7 @@ public class MarketService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Market already exist");
         }
         market.setCreatedBy(userCurrent.getId());
-        market.setActive(false);
+        market.setIsActive(false);
         market = marketRepository.save(market);
         log.debug("Create new Market - {}" + new Gson().toJson(market));
         return mapper.map(market, MarketResponseDto.class);
@@ -124,11 +123,12 @@ public class MarketService {
      * <remarks>this method is responsible for enabling and dis enabling a market</remarks>
      */
     public void enableDisEnableState(EnableDisEnableDto request) {
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Market market = marketRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested market id does not exist!"));
-        market.setActive(request.isActive());
+        market.setIsActive(request.getIsActive());
         market.setUpdatedBy(userCurrent.getId());
         marketRepository.save(market);
 
