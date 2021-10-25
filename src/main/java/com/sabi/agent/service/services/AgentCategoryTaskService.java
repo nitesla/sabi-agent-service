@@ -172,6 +172,7 @@ public class AgentCategoryTaskService {
      */
     public void enableDisableAgtCatTask (EnableDisEnableDto request){
         validations.validateStatus(request.getIsActive());
+//        validations.validateAgentCategoryTaskEnable(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategoryTask agentCategoryTask = agentCategoryTaskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,

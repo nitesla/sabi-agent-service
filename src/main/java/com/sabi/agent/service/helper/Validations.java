@@ -100,6 +100,11 @@ public class Validations {
 
 
     public void validateCountry(CountryDto countryDto) {
+        String valName = countryDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
         if (countryDto.getName() == null || countryDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
         if(countryDto.getCode() == null || countryDto.getCode().isEmpty())
@@ -127,6 +132,11 @@ public class Validations {
 
 
     public void validateBank(BankDto bankDto) {
+        String valName = bankDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
         if (bankDto.getName() == null || bankDto.getName().trim().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
         if (bankDto.getBankCode() == null || bankDto.getBankCode().isEmpty())
@@ -135,6 +145,16 @@ public class Validations {
 
 
     public void validateAgentCategory(AgentCategoryDto agentCategoryDto) {
+        String valName = agentCategoryDto.getName();
+        String valDescription = agentCategoryDto.getDescription();
+        char valCharName = valName.charAt(0);
+        char valcharDescription  = valDescription.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
+        if (Character.isDigit(valcharDescription)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Description can not start with a number");
+        }
         if(agentCategoryDto.getDescription() == null || agentCategoryDto.getDescription().trim().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Description cannot be empty");
         if(agentCategoryDto.getImage().trim()==null || agentCategoryDto.getImage().trim().isEmpty())
@@ -420,5 +440,13 @@ public class Validations {
         agentRepository.findById(Long.parseLong(signUpRequest.getAgentId())).orElseThrow(()->
                 new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Agent Signing up merchant  does not exist"));
+    }
+
+    public void validateAgentCategoryTaskEnable(EnableDisEnableDto enableRequest) {
+        if (!("true".equals(enableRequest.isActive())) || (!("false".equals(enableRequest.isActive())))) {
+//            return "true".equals(value) || "false".equals(value);
+            new BadRequestException(CustomResponseCode.BAD_REQUEST,
+                    "Bad Request");
+        }
     }
 }
