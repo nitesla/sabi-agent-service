@@ -60,7 +60,7 @@ public class AgentLocationService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentLocation already exist");
         }
         agentLocation.setCreatedBy(userCurrent.getId());
-        agentLocation.setActive(false);
+        agentLocation.setIsActive(false);
         agentLocation = agentLocationRepository.save(agentLocation);
         log.debug("Create new agentLocation - {}" + new Gson().toJson(agentLocation));
         return mapper.map(agentLocation, AgentLocationResponseDto.class);
@@ -125,12 +125,13 @@ public class AgentLocationService {
      * <remarks>this method is responsible for enabling and dis enabling a agentLocation</remarks>
      */
     public void enableDisEnableState(EnableDisEnableDto request) {
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         AgentLocation agentLocation = agentLocationRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agentLocation id does not exist!"));
-        agentLocation.setActive(request.isActive());
+        agentLocation.setIsActive(request.getIsActive());
         agentLocation.setUpdatedBy(userCurrent.getId());
         agentLocationRepository.save(agentLocation);
 

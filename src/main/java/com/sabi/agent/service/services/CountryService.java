@@ -56,7 +56,7 @@ public class CountryService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Country already exist");
         }
         country.setCreatedBy(userCurrent.getId());
-        country.setActive(true);
+        country.setIsActive(true);
         country = countryRepository.save(country);
         log.debug("Create new Country - {}"+ new Gson().toJson(country));
         return mapper.map(country, CountryResponseDto.class);
@@ -121,11 +121,12 @@ public class CountryService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Country country = countryRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Country Id does not exist!"));
-        country.setActive(request.isActive());
+        country.setIsActive(request.getIsActive());
         country.setUpdatedBy(userCurrent.getId());
         countryRepository.save(country);
 

@@ -68,6 +68,11 @@ public class Validations {
     public void validateState(StateDto stateDto) {
         if (stateDto.getName() == null || stateDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (stateDto.getName() == null || stateDto.getName().trim().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (!Utility.validateName(stateDto.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+
     }
 
     public void validateTask(TaskDto taskDto) {
@@ -83,6 +88,10 @@ public class Validations {
     public void validateLGA (LGADto lgaDto){
         if (lgaDto.getName() == null || lgaDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (lgaDto.getName() == null || lgaDto.getName().trim().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (!Utility.validateName(lgaDto.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
 
         State state = stateRepository.findById(lgaDto.getStateId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -101,6 +110,19 @@ public class Validations {
     public void validateIdType(IdTypeDto idTypeDto) {
         if (idTypeDto.getName() == null || idTypeDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (idTypeDto.getName() == null || idTypeDto.getName().trim().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        if (!Utility.validateName(idTypeDto.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+
+    }
+
+    public void validateStatus(Boolean status) {
+        if (status == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Status cannot be empty");
+        if (!Utility.validateEnableDisable(status))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Status ");
+
     }
 
 

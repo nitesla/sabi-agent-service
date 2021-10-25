@@ -26,7 +26,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -72,7 +71,7 @@ public class AgentBankService {
         AgentBank agentBank = mapper.map(request, AgentBank.class);
         exists.agentBankExist(request);
         agentBank.setCreatedBy(userCurrent.getId());
-        agentBank.setActive(false);
+        agentBank.setIsActive(false);
         agentBank.setDefault(false);
         agentBank = agentBankRepository.save(agentBank);
         log.debug("Create new Agent Bank - {}" + new Gson().toJson(agentBank));
@@ -206,11 +205,12 @@ public class AgentBankService {
      * <remarks>this method is responsible for enabling and dis enabling a Agent Bank</remarks>
      */
     public void enableDisableAgentBank(EnableDisEnableDto request) {
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentBank agentBank = agentBankRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Bank does not exist!"));
-        agentBank.setActive(request.isActive());
+        agentBank.setIsActive(request.getIsActive());
         agentBank.setUpdatedBy(userCurrent.getId());
         agentBankRepository.save(agentBank);
 

@@ -60,7 +60,7 @@ public class AgentTargetService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent target already exist");
         }
         agentTarget.setCreatedBy(userCurrent.getId());
-        agentTarget.setActive(false);
+        agentTarget.setIsActive(false);
         agentTarget = agentTargetRepository.save(agentTarget);
         log.debug("Create new agent target - {}"+ new Gson().toJson(agentTarget));
         return mapper.map(agentTarget, AgentTargetResponseDto.class);
@@ -140,12 +140,13 @@ public class AgentTargetService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         AgentTarget agentTarget  = agentTargetRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent target Id does not exist!"));
-        agentTarget.setActive(request.isActive());
+        agentTarget.setIsActive(request.getIsActive());
         agentTarget.setUpdatedBy(userCurrent.getId());
         agentTargetRepository.save(agentTarget);
 

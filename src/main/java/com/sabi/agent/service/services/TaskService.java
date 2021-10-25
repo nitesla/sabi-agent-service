@@ -55,7 +55,7 @@ public class TaskService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Task already exist");
         }
         task.setCreatedBy(userCurrent.getId());
-        task.setActive(true);
+        task.setIsActive(true);
         task = taskRepository.save(task);
         log.debug("Create new Task - {}"+ new Gson().toJson(task));
         return mapper.map(task, TaskResponseDto.class);
@@ -116,11 +116,12 @@ public class TaskService {
      */
 
     public void enableDisEnableTask (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Task task = taskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Task Id does not exist!"));
-        task.setActive(request.isActive());
+        task.setIsActive(request.getIsActive());
         task.setUpdatedBy(userCurrent.getId());
         taskRepository.save(task);
 

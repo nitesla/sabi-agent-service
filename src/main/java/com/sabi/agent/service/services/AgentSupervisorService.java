@@ -71,7 +71,7 @@ public class AgentSupervisorService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentSupervisor already exist");
         }
         agentSupervisor.setCreatedBy(userCurrent.getId());
-        agentSupervisor.setActive(false);
+        agentSupervisor.setIsActive(false);
         agentSupervisor = agentSupervisorRepository.save(agentSupervisor);
         log.debug("Create new agentSupervisor - {}" + new Gson().toJson(agentSupervisor));
         return mapper.map(agentSupervisor, AgentSupervisorResponseDto.class);
@@ -145,12 +145,13 @@ public class AgentSupervisorService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState(EnableDisEnableDto request) {
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         AgentSupervisor agentSupervisor = agentSupervisorRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agentSupervisor Id does not exist!"));
-        agentSupervisor.setActive(request.isActive());
+        agentSupervisor.setIsActive(request.getIsActive());
         agentSupervisor.setUpdatedBy(userCurrent.getId());
         agentSupervisorRepository.save(agentSupervisor);
 

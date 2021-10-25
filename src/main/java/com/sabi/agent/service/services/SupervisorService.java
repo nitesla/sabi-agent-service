@@ -56,7 +56,7 @@ public class SupervisorService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " User Task already exist");
         }
         supervisor.setCreatedBy(userCurrent.getId());
-        supervisor.setActive(true);
+        supervisor.setIsActive(true);
         supervisor = supervisorRepository.save(supervisor);
         log.debug("Create new supervisor - {}"+ new Gson().toJson(supervisor));
         return mapper.map(supervisor, SupervisorResponseDto.class);
@@ -103,7 +103,7 @@ public class SupervisorService {
                 .createdBy(supervisor.getCreatedBy())
                 .updatedBy(supervisor.getUpdatedBy())
                 .updatedDate(supervisor.getUpdatedDate())
-                .isActive(supervisor.isActive())
+                .isActive(supervisor.getIsActive())
                 .build();
         return response;
     }
@@ -127,12 +127,13 @@ public class SupervisorService {
      * <remarks>this method is responsible for enabling and dis enabling a Supervisor</remarks>
      */
     public void enableDisableSupervisor (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         Supervisor supervisor = supervisorRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Supervisor Id does not exist!"));
-        supervisor.setActive(request.isActive());
+        supervisor.setIsActive(request.getIsActive());
         supervisor.setUpdatedBy(userCurrent.getId());
         supervisorRepository.save(supervisor);
 

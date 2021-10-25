@@ -148,7 +148,7 @@ public class AgentService {
         user.setUsername(request.getPhone());
         user.setLoginAttempts(0l);
         user.setCreatedBy(0l);
-        user.setActive(false);
+        user.setIsActive(false);
         user = userRepository.save(user);
         log.debug("Create new agent user - {}"+ new Gson().toJson(user));
 
@@ -164,7 +164,7 @@ public class AgentService {
                 saveAgent.setReferralCode(Utility.guidID());
                 saveAgent.setRegistrationToken(Utility.registrationCode());
                 saveAgent.setRegistrationTokenExpiration(Utility.expiredTime());
-                saveAgent.setActive(false);
+                saveAgent.setIsActive(false);
                 saveAgent.setIsEmailVerified(false);
                 saveAgent.setCreatedBy(0l);
 //                saveAgent.setCountryCode(request.getCountryCode());
@@ -260,7 +260,7 @@ public class AgentService {
           User userExist  = userRepository.findById(response.getUserId())
                   .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                           "Requested user does not exist!" + response.getUserId()));
-          userExist.setActive(true);
+          userExist.setIsActive(true);
           userExist.setUpdatedBy(0l);
           userRepository.save(userExist);
 
@@ -268,7 +268,7 @@ public class AgentService {
 
     public Agent agentOTPValidation(Agent agent, ValidateOTPRequest validateOTPRequest) {
         agent.setUpdatedBy(validateOTPRequest.getUpdatedBy());
-        agent.setActive(validateOTPRequest.getIsActive());
+        agent.setIsActive(validateOTPRequest.getIsActive());
         return agentRepository.saveAndFlush(agent);
     }
 
@@ -452,11 +452,12 @@ public class AgentService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableAgent (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Agent agent  = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
-        agent.setActive(request.isActive());
+        agent.setIsActive(request.getIsActive());
         agent.setUpdatedBy(userCurrent.getId());
         agentRepository.save(agent);
 

@@ -20,6 +20,11 @@ import java.util.List;
 @Repository
 public interface CreditLevelRepository extends JpaRepository<CreditLevel, Long> {
 
+    CreditLevel findByLimits (BigDecimal limits);
+
+    CreditLevel findByRepaymentPeriod (int repaymentPeriod);
+
+    CreditLevel findByLimitsAndRepaymentPeriod (BigDecimal limits, int repaymentPeriod);
 
     List<CreditLevel> findByIsActive(Boolean isActive);
 

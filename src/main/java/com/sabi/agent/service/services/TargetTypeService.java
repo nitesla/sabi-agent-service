@@ -55,7 +55,7 @@ public class TargetTypeService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " TargetType already exist");
         }
         targetType.setCreatedBy(userCurrent.getId());
-        targetType.setActive(false);
+        targetType.setIsActive(false);
         targetType = targetTypeRepository.save(targetType);
         log.debug("Create new Target Type - {}"+ new Gson().toJson(targetType));
         return mapper.map(targetType, TargetTypeResponseDto.class);
@@ -104,7 +104,7 @@ public class TargetTypeService {
                 .createdBy(targetType.getCreatedBy())
                 .updatedBy(targetType.getUpdatedBy())
                 .updatedDate(targetType.getUpdatedDate())
-                .isActive(targetType.isActive())
+                .isActive(targetType.getIsActive())
                 .build();
         return response;
     }
@@ -142,11 +142,12 @@ public class TargetTypeService {
      */
 
     public void enableDisableTargetType (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         TargetType targetType = targetTypeRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Target Type does not exist!"));
-        targetType.setActive(request.isActive());
+        targetType.setIsActive(request.getIsActive());
         targetType.setUpdatedBy(userCurrent.getId());
         targetTypeRepository.save(targetType);
 

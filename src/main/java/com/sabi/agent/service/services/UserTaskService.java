@@ -59,7 +59,7 @@ public class UserTaskService {
         UserTask userTask = mapper.map(request,UserTask.class);
         exists.userTaskExist(request);
         userTask.setCreatedBy(userCurrent.getId());
-        userTask.setActive(false);
+        userTask.setIsActive(false);
         userTask = userTaskRepository.save(userTask);
         log.debug("Create new User Task - {}"+ new Gson().toJson(userTask));
         return mapper.map(userTask, UserTaskResponseDto.class);
@@ -115,7 +115,7 @@ public class UserTaskService {
                 .createdBy(userTask.getCreatedBy())
                 .updatedBy(userTask.getUpdatedBy())
                 .updatedDate(userTask.getUpdatedDate())
-                .isActive(userTask.isActive())
+                .isActive(userTask.getIsActive())
                 .build();
         return response;
     }
@@ -158,12 +158,13 @@ public class UserTaskService {
      * <remarks>this method is responsible for enabling and dis enabling a User Task</remarks>
      */
     public void enableDisableUserTask (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         UserTask userTask = userTaskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested User Task Id does not exist!"));
-        userTask.setActive(request.isActive());
+        userTask.setIsActive(request.getIsActive());
         userTask.setUpdatedBy(userCurrent.getId());
         userTaskRepository.save(userTask);
 

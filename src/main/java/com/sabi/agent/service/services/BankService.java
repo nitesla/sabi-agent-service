@@ -6,7 +6,6 @@ import com.sabi.agent.core.dto.requestDto.BankDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.BankResponseDto;
 import com.sabi.agent.core.models.Bank;
-import com.sabi.agent.core.models.agentModel.AgentBank;
 import com.sabi.agent.service.helper.GenericSpecification;
 import com.sabi.agent.service.helper.SearchCriteria;
 import com.sabi.agent.service.helper.SearchOperation;
@@ -19,7 +18,6 @@ import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -59,7 +57,7 @@ public class BankService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Bank already exist");
         }
         bank.setCreatedBy(userCurrent.getId());
-        bank.setActive(true);
+        bank.setIsActive(true);
         bank = bankRepository.save(bank);
         log.debug("Create new bank - {}"+ new Gson().toJson(bank));
         return mapper.map(bank, BankResponseDto.class);
@@ -129,11 +127,12 @@ public class BankService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Bank bank  = bankRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested bank Id does not exist!"));
-        bank.setActive(request.isActive());
+        bank.setIsActive(request.getIsActive());
         bank.setUpdatedBy(userCurrent.getId());
         bankRepository.save(bank);
 
