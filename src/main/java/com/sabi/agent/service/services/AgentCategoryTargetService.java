@@ -12,6 +12,8 @@ import com.sabi.agent.service.helper.*;
 import com.sabi.agent.service.repositories.TargetTypeRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryTargetRepository;
+import com.sabi.framework.exceptions.BadRequestException;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.service.TokenService;
@@ -42,12 +44,14 @@ public class AgentCategoryTargetService {
     private Exists exists;
 
 
-    public AgentCategoryTargetService(AgentCategoryTargetRepository agentCategoryTargetRepository, TargetTypeRepository targetTypeRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations) {
+    public AgentCategoryTargetService(AgentCategoryTargetRepository agentCategoryTargetRepository, AgentCategoryRepository agentCategoryRepository, TargetTypeRepository targetTypeRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations, Exists exists) {
         this.agentCategoryTargetRepository = agentCategoryTargetRepository;
+        this.agentCategoryRepository = agentCategoryRepository;
         this.targetTypeRepository = targetTypeRepository;
         this.mapper = mapper;
         this.objectMapper = objectMapper;
         this.validations = validations;
+        this.exists = exists;
     }
 
     /**
@@ -61,6 +65,10 @@ public class AgentCategoryTargetService {
         validations.validateAgentCategoryTarget(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategoryTarget agentCategoryTarget = mapper.map(request, AgentCategoryTarget.class);
+        AgentCategoryTarget exist = agentCategoryTargetRepository.findByName(request.getName());
+        if(exist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Target already exist");
+        }
 //        exists.agentCategoryTargetExist(request);
         agentCategoryTarget.setCreatedBy(userCurrent.getId());
         agentCategoryTarget.setActive(false);
@@ -102,7 +110,37 @@ public class AgentCategoryTargetService {
      * </summary>
      * <remarks>this method is responsible for getting a single record</remarks>
      */
-    public AgentCategoryTargetResponseDto findAgentCategoryTarget(Long id) {
+//    public AgentCategoryTargetResponseDto findAgentCategoryTarget(Long id) {
+//        AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(id)
+//                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                        "Requested Agent Category Target Id does not exist!"));
+//
+//        AgentCategory agentCategory = agentCategoryRepository.findById(agentCategoryTarget.getAgentCategoryId())
+//                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                        " Enter a valid Agent Category!"));
+//
+//        TargetType targetType = targetTypeRepository.findById(agentCategoryTarget.getTargetTypeId())
+//                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                        " Enter a valid Target Type!"));
+//        AgentCategoryTargetResponseDto response = AgentCategoryTargetResponseDto.builder()
+//                .id(agentCategoryTarget.getId())
+//                .name(agentCategoryTarget.getName())
+//                .agentCategoryId(agentCategoryTarget.getAgentCategoryId())
+//                .targetTypeId(agentCategoryTarget.getTargetTypeId())
+//                .min(agentCategoryTarget.getMin())
+//                .max(agentCategoryTarget.getMax())
+//                .superMax(agentCategoryTarget.getSuperMax())
+//                .createdDate(agentCategoryTarget.getCreatedDate())
+//                .createdBy(agentCategoryTarget.getCreatedBy())
+//                .updatedBy(agentCategoryTarget.getUpdatedBy())
+//                .updatedDate(agentCategoryTarget.getUpdatedDate())
+//                .isActive(agentCategoryTarget.isActive())
+//                .build();
+//
+//        return response;
+//    }
+
+    public AgentCategoryTargetResponseDto findAgentCategoryTarget(Long id){
         AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Target Id does not exist!"));
@@ -110,26 +148,10 @@ public class AgentCategoryTargetService {
         AgentCategory agentCategory = agentCategoryRepository.findById(agentCategoryTarget.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Agent Category!"));
-
         TargetType targetType = targetTypeRepository.findById(agentCategoryTarget.getTargetTypeId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Target Type!"));
-        AgentCategoryTargetResponseDto response = AgentCategoryTargetResponseDto.builder()
-                .id(agentCategoryTarget.getId())
-                .name(agentCategoryTarget.getName())
-                .agentCategoryId(agentCategoryTarget.getAgentCategoryId())
-                .targetTypeId(agentCategoryTarget.getTargetTypeId())
-                .min(agentCategoryTarget.getMin())
-                .max(agentCategoryTarget.getMax())
-                .superMax(agentCategoryTarget.getSuperMax())
-                .createdDate(agentCategoryTarget.getCreatedDate())
-                .createdBy(agentCategoryTarget.getCreatedBy())
-                .updatedBy(agentCategoryTarget.getUpdatedBy())
-                .updatedDate(agentCategoryTarget.getUpdatedDate())
-                .isActive(agentCategoryTarget.isActive())
-                .build();
-
-        return response;
+        return mapper.map(agentCategoryTarget,AgentCategoryTargetResponseDto.class);
     }
 
 
@@ -183,13 +205,14 @@ public class AgentCategoryTargetService {
      * <remarks>this method is responsible for enabling and dis enabling a Agent Category Target</remarks>
      */
     public void enableDisableAgtCatTarget(EnableDisEnableDto request) {
+        validations.validateAgentCategoryTaskEnable(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
-        AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(request.getId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Requested Agent Category Target does not exist!"));
-        agentCategoryTarget.setActive(request.isActive());
-        agentCategoryTarget.setUpdatedBy(userCurrent.getId());
-        agentCategoryTargetRepository.save(agentCategoryTarget);
+            AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(request.getId())
+                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                            "Requested Agent Category Target does not exist!"));
+            agentCategoryTarget.setActive(request.isActive());
+            agentCategoryTarget.setUpdatedBy(userCurrent.getId());
+            agentCategoryTargetRepository.save(agentCategoryTarget);
 
     }
 
