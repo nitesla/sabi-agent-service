@@ -350,15 +350,15 @@ public class AgentService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent id does not exist!"));
         User user = userRepository.getOne(agent.getUserId());
-        AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Requested agent category id does not exist!"));
+//        AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
+//                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                        "Requested agent category id does not exist!"));
 
             agent.setFirstName(user.getFirstName());
             agent.setLastName(user.getLastName());
             agent.setEmail(user.getEmail());
             agent.setPhone(user.getPhone());
-        agent.setAgentCategoryName(agentCategory.getName());
+//        agent.setAgentCategoryName(agentCategory.getName());
         return agent;
     }
 
