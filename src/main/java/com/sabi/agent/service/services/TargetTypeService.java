@@ -142,12 +142,12 @@ public class TargetTypeService {
      */
 
     public void enableDisableTargetType (EnableDisEnableDto request){
-        validations.validateStatus(request.getIsActive());
+        validations.validateStatus(request.isActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         TargetType targetType = targetTypeRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Target Type does not exist!"));
-        targetType.setIsActive(request.getIsActive());
+        targetType.setIsActive(request.isActive());
         targetType.setUpdatedBy(userCurrent.getId());
         targetTypeRepository.save(targetType);
 

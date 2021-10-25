@@ -171,13 +171,13 @@ public class AgentCategoryTaskService {
      * <remarks>this method is responsible for enabling and dis enabling a Agent Category Task</remarks>
      */
     public void enableDisableAgtCatTask (EnableDisEnableDto request){
-        validations.validateStatus(request.getIsActive());
+        validations.validateStatus(request.isActive());
 //        validations.validateAgentCategoryTaskEnable(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategoryTask agentCategoryTask = agentCategoryTaskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Task does not exist!"));
-        agentCategoryTask.setIsActive(request.getIsActive());
+        agentCategoryTask.setIsActive(request.isActive());
         agentCategoryTask.setUpdatedBy(userCurrent.getId());
         agentCategoryTaskRepository.save(agentCategoryTask);
 

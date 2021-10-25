@@ -125,13 +125,13 @@ public class AgentLocationService {
      * <remarks>this method is responsible for enabling and dis enabling a agentLocation</remarks>
      */
     public void enableDisEnableState(EnableDisEnableDto request) {
-        validations.validateStatus(request.getIsActive());
+        validations.validateStatus(request.isActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         AgentLocation agentLocation = agentLocationRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agentLocation id does not exist!"));
-        agentLocation.setIsActive(request.getIsActive());
+        agentLocation.setIsActive(request.isActive());
         agentLocation.setUpdatedBy(userCurrent.getId());
         agentLocationRepository.save(agentLocation);
 

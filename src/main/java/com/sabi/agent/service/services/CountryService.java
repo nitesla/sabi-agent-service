@@ -6,7 +6,6 @@ import com.google.gson.Gson;
 import com.sabi.agent.core.dto.requestDto.CountryDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.CountryResponseDto;
-import com.sabi.agent.core.models.Bank;
 import com.sabi.agent.core.models.Country;
 import com.sabi.agent.service.helper.GenericSpecification;
 import com.sabi.agent.service.helper.SearchCriteria;
@@ -131,12 +130,12 @@ public class CountryService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
-        validations.validateStatus(request.getIsActive());
+        validations.validateStatus(request.isActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Country country = countryRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Country Id does not exist!"));
-        country.setIsActive(request.getIsActive());
+        country.setIsActive(request.isActive());
         country.setUpdatedBy(userCurrent.getId());
         countryRepository.save(country);
 
