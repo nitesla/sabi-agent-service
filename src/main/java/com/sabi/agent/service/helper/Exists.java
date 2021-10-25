@@ -63,11 +63,11 @@ public class Exists {
     public void agentCategoryTargetExist(AgentCategoryTargetDto request) {
         AgentCategoryTarget categoryTargetExist = agentCategoryTargetRepository.findByName(request.getName());
         if(categoryTargetExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " AgentCategoryTarget already exist");
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Target already exist");
         }
         AgentCategoryTarget agentCategory_TargetExist = agentCategoryTargetRepository.findByAgentCategoryIdAndTargetTypeId(request.getAgentCategoryId(), request.getTargetTypeId());
         if(agentCategory_TargetExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " AgentCategoryTarget already exist");
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Target already exist");
         }
 
        }

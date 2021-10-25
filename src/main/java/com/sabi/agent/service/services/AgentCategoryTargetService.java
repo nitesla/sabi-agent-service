@@ -12,7 +12,6 @@ import com.sabi.agent.service.helper.*;
 import com.sabi.agent.service.repositories.TargetTypeRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryTargetRepository;
-import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
@@ -207,7 +206,7 @@ public class AgentCategoryTargetService {
      */
     public void enableDisableAgtCatTarget(EnableDisEnableDto request) {
         validations.validateStatus(request.getIsActive());
-        validations.validateAgentCategoryTaskEnable(request);
+//        validations.validateAgentCategoryTaskEnable(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
             AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(request.getId())
                     .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
