@@ -105,6 +105,9 @@ public class Validations {
         if (Character.isDigit(valCharName)){
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
         }
+        if ((Character.isWhitespace(countryDto.getName().charAt(0))) ||(Character.isWhitespace(countryDto.getCode().charAt(0))) ){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Request parameter can not start with space! ");
+        }
         if (countryDto.getName() == null || countryDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
         if(countryDto.getCode() == null || countryDto.getCode().isEmpty())
@@ -125,7 +128,7 @@ public class Validations {
     public void validateStatus(Boolean status) {
         if (status == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Status cannot be empty");
-        if (!Utility.validateEnableDisable(status))
+//        if (!Utility.validateEnableDisable(status))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Status ");
 
     }
@@ -154,6 +157,9 @@ public class Validations {
         }
         if (Character.isDigit(valcharDescription)){
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Description can not start with a number");
+        }
+        if ((Character.isWhitespace(agentCategoryDto.getName().charAt(0))) ||(Character.isWhitespace(agentCategoryDto.getDescription().charAt(0))) ){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Request parameter can not start with space! ");
         }
         if(agentCategoryDto.getDescription() == null || agentCategoryDto.getDescription().trim().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Description cannot be empty");
