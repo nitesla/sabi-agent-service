@@ -216,6 +216,14 @@ public class Validations {
                         " Enter a valid Target Type!"));
     }
 
+    public void validateId (Long id){
+        if (id == null || id.equals(" "))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Id cannot be empty");
+        if (!Utility.isNumeric(id.toString()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for ID ");
+
+    }
+
     public void validateAgentBank (AgentBankDto agentBankDto){
         if (agentBankDto.getAccountNumber().trim() == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Account Number cannot be empty");

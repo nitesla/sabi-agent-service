@@ -85,8 +85,8 @@ public class AgentCategoryTaskService {
                         "Requested Agent Category Task does not exist!"));
         mapper.map(request, agentCategoryTask);
         agentCategoryTask.setUpdatedBy(userCurrent.getId());
-
-//        exists.agentCategoryTaskUpateExist(request);
+        exists.agentCategoryTaskExist(request);
+        exists.agentCategoryTaskUpateExist(request);
 
         agentCategoryTaskRepository.save(agentCategoryTask);
         log.debug("Agent Category Task record updated - {}" + new Gson().toJson(agentCategoryTask));
