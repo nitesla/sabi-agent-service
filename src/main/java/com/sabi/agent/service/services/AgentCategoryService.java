@@ -12,6 +12,7 @@ import com.sabi.agent.service.helper.SearchCriteria;
 import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
+import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
@@ -67,7 +68,7 @@ public class AgentCategoryService {
         }
         agentCategory.setCreatedBy(userCurrent.getId());
         agentCategory.setIsActive(true);
-        agentCategory.setDefault(false);
+        agentCategory.setDefault(true);
         agentCategory = agentCategoryRepository.save(agentCategory);
         log.debug("Create new agent category - {}"+ new Gson().toJson(agentCategory));
         return mapper.map(agentCategory, AgentCategoryResponseDto.class);
@@ -141,7 +142,7 @@ public class AgentCategoryService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
-        validations.validateStatus(request.isActive());
+//        validations.validateStatus(request.isActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategory agentCategory  = agentCategoryRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
