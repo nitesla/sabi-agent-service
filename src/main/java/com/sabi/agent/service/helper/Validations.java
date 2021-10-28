@@ -47,11 +47,11 @@ public class Validations {
     private BankRepository bankRepository;
 
 
-    public Validations(StateRepository stateRepository,MarketRepository marketRepository,
+    public Validations(StateRepository stateRepository, MarketRepository marketRepository,
                        LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository,
                        TargetTypeRepository targetTypeRepository, TaskRepository taskRepository,
                        UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository,
-                       SupervisorRepository supervisorRepository,AgentVerificationRepository agentVerificationRepository) {
+                       SupervisorRepository supervisorRepository, AgentVerificationRepository agentVerificationRepository) {
         this.stateRepository = stateRepository;
         this.lgaRepository = lgaRepository;
         this.agentCategoryRepository = agentCategoryRepository;
@@ -451,7 +451,7 @@ public class Validations {
     }
 
     public void validateAgentCategoryTaskEnable(EnableDisEnableDto enableRequest) {
-        if (!("true".equals(enableRequest.getIsActive())) || (!("false".equals(enableRequest.getIsActive())))) {
+        if (!("true".equals(enableRequest.isActive())) || (!("false".equals(enableRequest.isActive())))) {
 //            return "true".equals(value) || "false".equals(value);
             new BadRequestException(CustomResponseCode.BAD_REQUEST,
                     "Bad Request");

@@ -141,12 +141,12 @@ public class AgentCategoryService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
-        validations.validateStatus(request.getIsActive());
+        validations.validateStatus(request.isActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategory agentCategory  = agentCategoryRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent category Id does not exist!"));
-        agentCategory.setIsActive(request.getIsActive());
+        agentCategory.setIsActive(request.isActive());
         agentCategory.setUpdatedBy(userCurrent.getId());
         agentCategoryRepository.save(agentCategory);
 

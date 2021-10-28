@@ -143,12 +143,12 @@ public class LGAService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
-        validations.validateStatus(request.getIsActive());
+        validations.validateStatus(request.isActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         LGA lga = lgaRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested LGA Id does not exist!"));
-        lga.setIsActive(request.getIsActive());
+        lga.setIsActive(request.isActive());
         lga.setUpdatedBy(userCurrent.getId());
         lgaRepository.save(lga);
 

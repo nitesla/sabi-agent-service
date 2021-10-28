@@ -158,13 +158,13 @@ public class UserTaskService {
      * <remarks>this method is responsible for enabling and dis enabling a User Task</remarks>
      */
     public void enableDisableUserTask (EnableDisEnableDto request){
-        validations.validateStatus(request.getIsActive());
+        validations.validateStatus(request.isActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         UserTask userTask = userTaskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested User Task Id does not exist!"));
-        userTask.setIsActive(request.getIsActive());
+        userTask.setIsActive(request.isActive());
         userTask.setUpdatedBy(userCurrent.getId());
         userTaskRepository.save(userTask);
 

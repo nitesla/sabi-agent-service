@@ -110,12 +110,12 @@ public class CreditLevelService {
      * <remarks>this method is responsible for enabling and dis enabling a creditLevel</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
-        validations.validateStatus(request.getIsActive());
+        validations.validateStatus(request.isActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         CreditLevel creditLevel  = creditLevelRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested creditLevel id does not exist!"));
-        creditLevel.setIsActive(request.getIsActive());
+        creditLevel.setIsActive(request.isActive());
         creditLevel.setUpdatedBy(userCurrent.getId());
         creditLevelRepository.save(creditLevel);
 

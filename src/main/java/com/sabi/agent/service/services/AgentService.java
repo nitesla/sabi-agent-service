@@ -350,15 +350,15 @@ public class AgentService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent id does not exist!"));
         User user = userRepository.getOne(agent.getUserId());
-        AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Requested agent category id does not exist!"));
+//        AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
+//                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                        "Requested agent category id does not exist!"));
 
             agent.setFirstName(user.getFirstName());
             agent.setLastName(user.getLastName());
             agent.setEmail(user.getEmail());
             agent.setPhone(user.getPhone());
-        agent.setAgentCategoryName(agentCategory.getName());
+//        agent.setAgentCategoryName(agentCategory.getName());
         return agent;
     }
 
@@ -378,14 +378,16 @@ public class AgentService {
         }
         agents.getContent().forEach(agent -> {
             User user = userRepository.getOne(agent.getUserId());
-            AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
-                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                            "Requested agent category id does not exist!"));
+//            AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
+//                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                            "Requested agent category id does not exist!"));
+//            AgentCategory agentCategory = agentCategoryRepository.getOne(agent.getAgentCategoryId());
+
             agent.setLastName(user.getLastName());
             agent.setFirstName(user.getFirstName());
             agent.setEmail(user.getEmail());
             agent.setPhone(user.getPhone());
-            agent.setAgentCategoryName(agentCategory.getName());
+//            agent.setAgentCategoryName(agentCategory.getName());
 
         });
         return agents;
@@ -401,9 +403,11 @@ public class AgentService {
         }
         agentUser.getContent().forEach(users -> {
             Agent agent = agentRepository.findByUserId(users.getId());
-            AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
-                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                            "Requested agent category id does not exist!"));
+//            AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
+//                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                            "Requested agent category id does not exist!"));
+//            AgentCategory agentCategory = agentCategoryRepository.getOne(agent.getAgentCategoryId());
+
             users.setAgentId(agent.getId());
             users.setAgentCategoryId(agent.getAgentCategoryId());
             users.setScope(agent.getScope());
@@ -434,7 +438,7 @@ public class AgentService {
             users.setRegistrationTokenExpiration(agent.getRegistrationTokenExpiration());
             users.setRegistrationToken(agent.getRegistrationToken());
             users.setIsEmailVerified(agent.getIsEmailVerified());
-            users.setAgentCategoryName(agentCategory.getName());
+//            users.setAgentCategoryName(agentCategory.getName());
         });
         return agentUser;
 
@@ -452,12 +456,12 @@ public class AgentService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableAgent (EnableDisEnableDto request){
-        validations.validateStatus(request.getIsActive());
+        validations.validateStatus(request.isActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Agent agent  = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
-        agent.setIsActive(request.getIsActive());
+        agent.setIsActive(request.isActive());
         agent.setUpdatedBy(userCurrent.getId());
         agentRepository.save(agent);
 

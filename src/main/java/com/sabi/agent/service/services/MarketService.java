@@ -123,12 +123,12 @@ public class MarketService {
      * <remarks>this method is responsible for enabling and dis enabling a market</remarks>
      */
     public void enableDisEnableState(EnableDisEnableDto request) {
-        validations.validateStatus(request.getIsActive());
+        validations.validateStatus(request.isActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Market market = marketRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested market id does not exist!"));
-        market.setIsActive(request.getIsActive());
+        market.setIsActive(request.isActive());
         market.setUpdatedBy(userCurrent.getId());
         marketRepository.save(market);
 

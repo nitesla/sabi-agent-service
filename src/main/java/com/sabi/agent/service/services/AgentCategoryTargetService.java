@@ -207,13 +207,13 @@ public class AgentCategoryTargetService {
      * <remarks>this method is responsible for enabling and dis enabling a Agent Category Target</remarks>
      */
     public void enableDisableAgtCatTarget(EnableDisEnableDto request) {
-        validations.validateStatus(request.getIsActive());
+        validations.validateStatus(request.isActive());
 //        validations.validateAgentCategoryTaskEnable(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
             AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(request.getId())
                     .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                             "Requested Agent Category Target does not exist!"));
-            agentCategoryTarget.setIsActive(request.getIsActive());
+            agentCategoryTarget.setIsActive(request.isActive());
             agentCategoryTarget.setUpdatedBy(userCurrent.getId());
             agentCategoryTargetRepository.save(agentCategoryTarget);
 
