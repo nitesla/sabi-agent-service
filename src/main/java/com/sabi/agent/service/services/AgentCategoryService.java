@@ -59,12 +59,12 @@ public class AgentCategoryService {
         if(catExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent category already exist");
         }
-        if (request.getNextAgentCategory() != null) {
-            AgentCategory savedAgentCategory = agentCategoryRepository.findAgentCategoriesById(request.getNextAgentCategory());
-            if (savedAgentCategory == null) {
-                throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent category does not exist!");
-            }
-        }
+//        if (request.getNextAgentCategory() != null) {
+//            AgentCategory savedAgentCategory = agentCategoryRepository.findAgentCategoriesById(request.getNextAgentCategory());
+//            if (savedAgentCategory == null) {
+//                throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent category does not exist!");
+//            }
+//        }
         agentCategory.setCreatedBy(userCurrent.getId());
         agentCategory.setIsActive(true);
         agentCategory.setDefault(false);
@@ -141,12 +141,12 @@ public class AgentCategoryService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategory agentCategory  = agentCategoryRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent category Id does not exist!"));
-        agentCategory.setIsActive(request.isActive());
+        agentCategory.setIsActive(request.getIsActive());
         agentCategory.setUpdatedBy(userCurrent.getId());
         agentCategoryRepository.save(agentCategory);
 

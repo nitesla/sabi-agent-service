@@ -127,13 +127,13 @@ public class SupervisorService {
      * <remarks>this method is responsible for enabling and dis enabling a Supervisor</remarks>
      */
     public void enableDisableSupervisor (EnableDisEnableDto request){
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         Supervisor supervisor = supervisorRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Supervisor Id does not exist!"));
-        supervisor.setIsActive(request.isActive());
+        supervisor.setIsActive(request.getIsActive());
         supervisor.setUpdatedBy(userCurrent.getId());
         supervisorRepository.save(supervisor);
 

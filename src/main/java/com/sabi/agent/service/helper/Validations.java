@@ -451,7 +451,7 @@ public class Validations {
     }
 
     public void validateAgentCategoryTaskEnable(EnableDisEnableDto enableRequest) {
-        if (!("true".equals(enableRequest.isActive())) || (!("false".equals(enableRequest.isActive())))) {
+        if (!("true".equals(enableRequest.getIsActive())) || (!("false".equals(enableRequest.getIsActive())))) {
 //            return "true".equals(value) || "false".equals(value);
             new BadRequestException(CustomResponseCode.BAD_REQUEST,
                     "Bad Request");

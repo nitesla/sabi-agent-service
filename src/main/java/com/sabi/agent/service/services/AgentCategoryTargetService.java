@@ -98,7 +98,7 @@ public class AgentCategoryTargetService {
         mapper.map(request, agentCategoryTarget);
         agentCategoryTarget.setUpdatedBy(userCurrent.getId());
         exists.agentCategoryTargetExist(request);
-        exists.agentCategoryTargetUpateExist(request);
+//        exists.agentCategoryTargetUpateExist(request);
         agentCategoryTargetRepository.save(agentCategoryTarget);
         log.debug("Agent Category Target record updated - {}" + new Gson().toJson(agentCategoryTarget));
         return mapper.map(agentCategoryTarget, AgentCategoryTargetResponseDto.class);
@@ -207,13 +207,13 @@ public class AgentCategoryTargetService {
      * <remarks>this method is responsible for enabling and dis enabling a Agent Category Target</remarks>
      */
     public void enableDisableAgtCatTarget(EnableDisEnableDto request) {
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
 //        validations.validateAgentCategoryTaskEnable(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
             AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(request.getId())
                     .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                             "Requested Agent Category Target does not exist!"));
-            agentCategoryTarget.setIsActive(request.isActive());
+            agentCategoryTarget.setIsActive(request.getIsActive());
             agentCategoryTarget.setUpdatedBy(userCurrent.getId());
             agentCategoryTargetRepository.save(agentCategoryTarget);
 

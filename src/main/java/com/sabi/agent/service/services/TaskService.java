@@ -116,12 +116,12 @@ public class TaskService {
      */
 
     public void enableDisEnableTask (EnableDisEnableDto request){
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Task task = taskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Task Id does not exist!"));
-        task.setIsActive(request.isActive());
+        task.setIsActive(request.getIsActive());
         task.setUpdatedBy(userCurrent.getId());
         taskRepository.save(task);
 

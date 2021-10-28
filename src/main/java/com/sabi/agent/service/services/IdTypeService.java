@@ -132,12 +132,12 @@ public class IdTypeService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         IdType idType  = idTypeRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Id type does not exist!"));
-        idType.setIsActive(request.isActive());
+        idType.setIsActive(request.getIsActive());
         idType.setUpdatedBy(userCurrent.getId());
         idTypeRepository.save(idType);
 
