@@ -9,6 +9,7 @@ import com.sabi.framework.helpers.API;
 import com.sabi.framework.helpers.Encryptions;
 import com.sabi.framework.service.ExternalTokenService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,7 +65,7 @@ public class WalletService {
         //publicKey,firstName,phoneNumber,lastName,email,secretKey
         String dataToHash = publicKey + signUpDto.getFirstName() + signUpDto.getPhoneNumber() + signUpDto.getLastName()
                 + signUpDto.getEmail() + privateKey;
-        String hased = Encryptions.sha512hash(dataToHash);
+        String hased = DigestUtils.sha512Hex(dataToHash);
         log.info("?????????????????????????  ? " +hased);
         signUpDto.setHash(hased);
         signUpDto.setPublicKey(publicKey);
@@ -92,7 +93,7 @@ public class WalletService {
     }
 
     public InitiateTopUpResponse initiateTopUp(String userId, String fingerPrint, InitiateTopUpRequest initiateTopUpRequest){
-        return  api.patch(baseUrl + publicKey + "/user/"+ userId+"/initiateTopup", initiateTopUpRequest, InitiateTopUpResponse.class, getHeaders(fingerPrint), "");
+        return  api.put(baseUrl + "/publicKey/"+publicKey + "/user/"+ userId+"/initiateTopup", initiateTopUpRequest, InitiateTopUpResponse.class, getHeaders(fingerPrint));
     }
 
     public void saveWallet(CreateWalletResponse response){
