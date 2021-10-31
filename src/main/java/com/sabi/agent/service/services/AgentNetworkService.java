@@ -14,6 +14,8 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.agentRepo.AgentNetworkRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -51,13 +53,15 @@ public class AgentNetworkService {
 
     public AgentNetworkResponseDto createAgentNetwork(AgentNetworkDto request) {
         validations.validateAgentNetwork(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentNetwork agentNetwork = mapper.map(request, AgentNetwork.class);
         AgentNetwork catExist = agentNetworkRepository.findByAgentId(request.getAgentId());
         if (catExist != null) {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent network with this agent Id already exist");
         }
-        agentNetwork.setCreatedBy(0L);
-        agentNetwork.setActive(false);
+        agentNetwork.setCreatedBy(userCurrent.getId());
+        agentNetwork.setIsActive(false);
         agentNetwork = agentNetworkRepository.save(agentNetwork);
         log.debug("Create new agent network - {}" + new Gson().toJson(agentNetwork));
         return mapper.map(agentNetwork, AgentNetworkResponseDto.class);
@@ -73,13 +77,15 @@ public class AgentNetworkService {
 
     public AgentNetworkResponseDto updateAgentNetwork(AgentNetworkDto request) {
         validations.validateAgentNetwork(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentNetwork agentNetwork = agentNetworkRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent network id does not exist!"));
         mapper.map(request, agentNetwork);
         boolean exists = agentNetworkRepository.exists(Example.of(agentNetwork));
         if(exists) throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent network already exist");
-        agentNetwork.setUpdatedBy(0L);
+        agentNetwork.setUpdatedBy(userCurrent.getId());
         agentNetworkRepository.save(agentNetwork);
         log.debug("Agent network record updated - {}" + new Gson().toJson(agentNetwork));
         return mapper.map(agentNetwork, AgentNetworkResponseDto.class);
@@ -128,11 +134,14 @@ public class AgentNetworkService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState(EnableDisEnableDto request) {
+        validations.validateStatus(request.isActive());
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentNetwork agentNetwork = agentNetworkRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent network Id does not exist!"));
-        agentNetwork.setActive(request.isActive());
-        agentNetwork.setUpdatedBy(0L);
+        agentNetwork.setIsActive(request.isActive());
+        agentNetwork.setUpdatedBy(userCurrent.getId());
         agentNetworkRepository.save(agentNetwork);
 
     }

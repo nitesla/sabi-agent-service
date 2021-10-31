@@ -14,6 +14,8 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -51,14 +53,15 @@ public class AgentCategoryService {
 
     public AgentCategoryResponseDto createAgentCategory(AgentCategoryDto request) {
         validations.validateAgentCategory(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategory agentCategory = mapper.map(request,AgentCategory.class);
         AgentCategory catExist = agentCategoryRepository.findByName(request.getName());
         if(catExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent category already exist");
         }
-        agentCategory.setCreatedBy(0l);
-        agentCategory.setActive(true);
-        agentCategory.setDefault(false);
+        agentCategory.setCreatedBy(userCurrent.getId());
+        agentCategory.setIsActive(true);
+        agentCategory.setDefault(true);
         agentCategory = agentCategoryRepository.save(agentCategory);
         log.debug("Create new agent category - {}"+ new Gson().toJson(agentCategory));
         return mapper.map(agentCategory, AgentCategoryResponseDto.class);
@@ -74,11 +77,12 @@ public class AgentCategoryService {
 
     public AgentCategoryResponseDto updateAgentCategory(AgentCategoryDto request) {
         validations.validateAgentCategory(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategory agentCategory = agentCategoryRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent category id does not exist!"));
         mapper.map(request, agentCategory);
-        agentCategory.setUpdatedBy(0l);
+        agentCategory.setUpdatedBy(userCurrent.getId());
         agentCategoryRepository.save(agentCategory);
         log.debug("Agent category record updated - {}"+ new Gson().toJson(agentCategory));
         return mapper.map(agentCategory, AgentCategoryResponseDto.class);
@@ -131,11 +135,13 @@ public class AgentCategoryService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        validations.validateStatus(request.isActive());
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentCategory agentCategory  = agentCategoryRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent category Id does not exist!"));
-        agentCategory.setActive(request.isActive());
-        agentCategory.setUpdatedBy(0l);
+        agentCategory.setIsActive(request.isActive());
+        agentCategory.setUpdatedBy(userCurrent.getId());
         agentCategoryRepository.save(agentCategory);
 
     }

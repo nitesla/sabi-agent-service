@@ -13,6 +13,7 @@ import com.sabi.agent.service.repositories.UserTaskRepository;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -53,10 +54,12 @@ public class UserTaskService {
 
     public UserTaskResponseDto createUserTask(UserTaskDto request) {
         validations.validateUserTask(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         UserTask userTask = mapper.map(request,UserTask.class);
         exists.userTaskExist(request);
-        userTask.setCreatedBy(0l);
-        userTask.setActive(false);
+        userTask.setCreatedBy(userCurrent.getId());
+        userTask.setIsActive(false);
         userTask = userTaskRepository.save(userTask);
         log.debug("Create new User Task - {}"+ new Gson().toJson(userTask));
         return mapper.map(userTask, UserTaskResponseDto.class);
@@ -69,12 +72,14 @@ public class UserTaskService {
      */
     public UserTaskResponseDto updateUserTask(UserTaskDto request) {
         validations.validateUserTask(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         UserTask userTask = userTaskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested User Task does not exist!"));
         mapper.map(request, userTask);
-        userTask.setUpdatedBy(0l);
-        exists.userTaskUpateExist(request);
+        userTask.setUpdatedBy(userCurrent.getId());
+//        exists.userTaskUpateExist(request);
         userTaskRepository.save(userTask);
         log.debug("User Task record updated - {}" + new Gson().toJson(userTask));
         return mapper.map(userTask, UserTaskResponseDto.class);
@@ -110,7 +115,7 @@ public class UserTaskService {
                 .createdBy(userTask.getCreatedBy())
                 .updatedBy(userTask.getUpdatedBy())
                 .updatedDate(userTask.getUpdatedDate())
-                .isActive(userTask.isActive())
+                .isActive(userTask.getIsActive())
                 .build();
         return response;
     }
@@ -153,11 +158,14 @@ public class UserTaskService {
      * <remarks>this method is responsible for enabling and dis enabling a User Task</remarks>
      */
     public void enableDisableUserTask (EnableDisEnableDto request){
+        validations.validateStatus(request.isActive());
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         UserTask userTask = userTaskRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested User Task Id does not exist!"));
-        userTask.setActive(request.isActive());
-        userTask.setUpdatedBy(0l);
+        userTask.setIsActive(request.isActive());
+        userTask.setUpdatedBy(userCurrent.getId());
         userTaskRepository.save(userTask);
 
     }

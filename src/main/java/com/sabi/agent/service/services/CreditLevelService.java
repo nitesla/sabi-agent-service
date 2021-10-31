@@ -6,12 +6,17 @@ import com.sabi.agent.core.dto.requestDto.CreditLevelDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.CreditLevelResponseDto;
 import com.sabi.agent.core.models.CreditLevel;
+import com.sabi.agent.service.helper.Exists;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.CreditLevelRepository;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -26,6 +31,8 @@ public class CreditLevelService {
     private final ModelMapper mapper;
     private final ObjectMapper objectMapper;
     private final Validations validations;
+    @Autowired
+    private Exists exists;
 
 
 
@@ -44,13 +51,14 @@ public class CreditLevelService {
 
     public CreditLevelResponseDto createCreditLevel(CreditLevelDto request) {
         validations.validateCreditLevel(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         CreditLevel creditLevel = mapper.map(request, CreditLevel.class);
-//        CreditLevel creditLevelExist = creditLevelRepository.findByAgentCategoryId(request.getAgentCategoryId());
-//        if(creditLevelExist !=null){
-//            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " creditLevel already exist");
-//        }
-        creditLevel.setCreatedBy(0L);
-        creditLevel.setActive(true);
+        CreditLevel creditLevelExist = creditLevelRepository.findCreditLevelByLimits(request.getLimits());
+        if(creditLevelExist !=null){
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " creditLevel already exist");
+        }
+        creditLevel.setCreatedBy(userCurrent.getId());
+        creditLevel.setIsActive(true);
         creditLevel = creditLevelRepository.save(creditLevel);
         log.debug("Create new creditLevel - {}"+ new Gson().toJson(creditLevel));
         return mapper.map(creditLevel, CreditLevelResponseDto.class);
@@ -58,11 +66,13 @@ public class CreditLevelService {
 
     public CreditLevelDto updateCreditLevel(CreditLevelDto request) {
         validations.validateCreditLevel(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        exists.creditLevelExist(request);
         CreditLevel creditLevel = creditLevelRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Requested Country Id does not exist!"));
+                        "Requested credit level Id does not exist!"));
         mapper.map(request, creditLevel);
-        creditLevel.setUpdatedBy(0L);
+        creditLevel.setUpdatedBy(userCurrent.getId());
         creditLevelRepository.save(creditLevel);
         log.debug("Country record updated - {}"+ new Gson().toJson(creditLevel));
         return mapper.map(creditLevel, CreditLevelDto.class);
@@ -100,11 +110,13 @@ public class CreditLevelService {
      * <remarks>this method is responsible for enabling and dis enabling a creditLevel</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        validations.validateStatus(request.isActive());
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         CreditLevel creditLevel  = creditLevelRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested creditLevel id does not exist!"));
-        creditLevel.setActive(request.isActive());
-        creditLevel.setUpdatedBy(0L);
+        creditLevel.setIsActive(request.isActive());
+        creditLevel.setUpdatedBy(userCurrent.getId());
         creditLevelRepository.save(creditLevel);
 
     }

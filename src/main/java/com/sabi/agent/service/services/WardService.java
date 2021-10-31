@@ -15,6 +15,8 @@ import com.sabi.agent.service.repositories.LGARepository;
 import com.sabi.agent.service.repositories.WardRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -50,13 +52,14 @@ public class WardService {
 
     public WardResponseDto createWard(WardDto request) {
         validations.validateWard(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Ward ward = mapper.map(request,Ward.class);
         Ward wardExist = wardRepository.findByName(request.getName());
         if(wardExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Ward already exist");
         }
-        ward.setCreatedBy(0l);
-        ward.setActive(true);
+        ward.setCreatedBy(userCurrent.getId());
+        ward.setIsActive(true);
         ward = wardRepository.save(ward);
         log.debug("Create new Ward - {}"+ new Gson().toJson(ward));
         return mapper.map(ward, WardResponseDto.class);
@@ -69,11 +72,12 @@ public class WardService {
      */
     public WardResponseDto updateWard(WardDto request) {
         validations.validateWard(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Ward ward = wardRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Ward Id does not exist!"));
         mapper.map(request, ward);
-        ward.setUpdatedBy(0l);
+        ward.setUpdatedBy(userCurrent.getId());
         Ward wardExist = wardRepository.findByName(ward.getName());
         if(wardExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Ward name already exist");
@@ -105,7 +109,7 @@ public class WardService {
                 .createdBy(ward.getCreatedBy())
                 .updatedBy(ward.getUpdatedBy())
                 .updatedDate(ward.getUpdatedDate())
-                .isActive(ward.isActive())
+                .isActive(ward.getIsActive())
                 .build();
         return response;
     }
@@ -147,11 +151,13 @@ public class WardService {
      * <remarks>this method is responsible for enabling and dis enabling a Ward</remarks>
      */
     public void enableDisableWard (EnableDisEnableDto request){
+        validations.validateStatus(request.isActive());
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Ward ward = wardRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Ward Id does not exist!"));
-        ward.setActive(request.isActive());
-        ward.setUpdatedBy(0l);
+        ward.setIsActive(request.isActive());
+        ward.setUpdatedBy(userCurrent.getId());
         wardRepository.save(ward);
 
     }

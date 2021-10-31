@@ -20,8 +20,15 @@ import java.util.List;
 @Repository
 public interface CreditLevelRepository extends JpaRepository<CreditLevel, Long> {
 
+    CreditLevel findByLimits (BigDecimal limits);
+
+    CreditLevel findByRepaymentPeriod (int repaymentPeriod);
+
+    CreditLevel findByLimitsAndRepaymentPeriod (BigDecimal limits, int repaymentPeriod);
 
     List<CreditLevel> findByIsActive(Boolean isActive);
+
+    CreditLevel findCreditLevelByLimits(BigDecimal creditLimit);
 
     @Query("SELECT c FROM CreditLevel c WHERE ((:limits IS NULL) OR (:limits IS NOT NULL AND c.limits = :limits))" +
 //        " AND ((:repaymentPeriod IS NULL) OR (:repaymentPeriod IS NOT NULL AND c.repaymentPeriod = :repaymentPeriod))" +

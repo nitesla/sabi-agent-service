@@ -5,7 +5,6 @@ import com.sabi.agent.core.merchant_integration.response.MerchantOtpResponse;
 import com.sabi.agent.core.merchant_integration.response.MerchantOtpValidationResponse;
 import com.sabi.agent.core.merchant_integration.response.MerchantSignUpResponse;
 import com.sabi.agent.core.merchant_integration.response.MerchantWithActivityResponse;
-import com.sabi.agent.core.models.Market;
 import com.sabi.agent.core.models.RegisteredMerchant;
 import com.sabi.agent.service.helper.GenericSpecification;
 import com.sabi.agent.service.helper.SearchCriteria;

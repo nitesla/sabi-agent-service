@@ -9,6 +9,7 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.dto.responseDto.*;
+import com.sabi.agent.core.models.Country;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.core.models.agentModel.AgentVerification;
@@ -147,7 +148,7 @@ public class AgentService {
         user.setUsername(request.getPhone());
         user.setLoginAttempts(0l);
         user.setCreatedBy(0l);
-        user.setActive(false);
+        user.setIsActive(false);
         user = userRepository.save(user);
         log.debug("Create new agent user - {}"+ new Gson().toJson(user));
 
@@ -163,7 +164,7 @@ public class AgentService {
                 saveAgent.setReferralCode(Utility.guidID());
                 saveAgent.setRegistrationToken(Utility.registrationCode());
                 saveAgent.setRegistrationTokenExpiration(Utility.expiredTime());
-                saveAgent.setActive(false);
+                saveAgent.setIsActive(false);
                 saveAgent.setIsEmailVerified(false);
                 saveAgent.setCreatedBy(0l);
         Agent agentResponse= agentRepository.save(saveAgent);
@@ -255,7 +256,7 @@ public class AgentService {
           User userExist  = userRepository.findById(response.getUserId())
                   .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                           "Requested user does not exist!" + response.getUserId()));
-          userExist.setActive(true);
+          userExist.setIsActive(true);
           userExist.setUpdatedBy(0l);
           userRepository.save(userExist);
 
@@ -263,7 +264,7 @@ public class AgentService {
 
     public Agent agentOTPValidation(Agent agent, ValidateOTPRequest validateOTPRequest) {
         agent.setUpdatedBy(validateOTPRequest.getUpdatedBy());
-        agent.setActive(validateOTPRequest.getIsActive());
+        agent.setIsActive(validateOTPRequest.getIsActive());
         return agentRepository.saveAndFlush(agent);
     }
 
@@ -314,9 +315,18 @@ public class AgentService {
 
     public AgentUpdateResponseDto updateAgent(AgentUpdateDto request) {
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        AgentCategory savedCategory = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
         Agent agent = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Requested  id does not exist!"));
+                        "Requested Agent id does not exist!"));
+        if (savedCategory != null) {
+            agent.setAgentCategoryId(savedCategory.getId());
+        }
+        if (request.getCountryId() != null) {
+            Country savedCountry = countryRepository.findById(request.getCountryId())
+                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                            "Requested country id does not exist!"));
+        }
         mapper.map(request, agent);
         agent.setUpdatedBy(userCurrent.getId());
         agentRepository.save(agent);
@@ -336,17 +346,15 @@ public class AgentService {
         Agent agent  = agentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent id does not exist!"));
-            User user = userRepository.getOne(agent.getUserId());
-        log.info("Agent category *********************************************** " +agent.getAgentCategoryId());
-        AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Requested agent category id does not exist!"));
-
+        User user = userRepository.getOne(agent.getUserId());
+        if(agent.getAgentCategoryId() != null) {
+            AgentCategory agentCategory  = agentCategoryRepository.getOne(agent.getAgentCategoryId());
+            agent.setAgentCategoryName(agentCategory.getName());
+        }
             agent.setFirstName(user.getFirstName());
             agent.setLastName(user.getLastName());
             agent.setEmail(user.getEmail());
             agent.setPhone(user.getPhone());
-        agent.setAgentCategoryName(agentCategory.getName());
         return agent;
     }
 
@@ -366,14 +374,15 @@ public class AgentService {
         }
         agents.getContent().forEach(agent -> {
             User user = userRepository.getOne(agent.getUserId());
-            AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
-                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                            "Requested agent category id does not exist!"));
+           if(agent.getAgentCategoryId() != null) {
+               AgentCategory agentCategory  = agentCategoryRepository.getOne(agent.getAgentCategoryId());
+                    agent.setAgentCategoryName(agentCategory.getName());
+        }
             agent.setLastName(user.getLastName());
             agent.setFirstName(user.getFirstName());
             agent.setEmail(user.getEmail());
             agent.setPhone(user.getPhone());
-            agent.setAgentCategoryName(agentCategory.getName());
+//            agent.setAgentCategoryName(agentCategory.getName());
 
         });
         return agents;
@@ -389,9 +398,11 @@ public class AgentService {
         }
         agentUser.getContent().forEach(users -> {
             Agent agent = agentRepository.findByUserId(users.getId());
-            AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
-                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                            "Requested agent category id does not exist!"));
+//            AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
+//                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                            "Requested agent category id does not exist!"));
+//            AgentCategory agentCategory = agentCategoryRepository.getOne(agent.getAgentCategoryId());
+
             users.setAgentId(agent.getId());
             users.setAgentCategoryId(agent.getAgentCategoryId());
             users.setScope(agent.getScope());
@@ -422,7 +433,7 @@ public class AgentService {
             users.setRegistrationTokenExpiration(agent.getRegistrationTokenExpiration());
             users.setRegistrationToken(agent.getRegistrationToken());
             users.setIsEmailVerified(agent.getIsEmailVerified());
-            users.setAgentCategoryName(agentCategory.getName());
+//            users.setAgentCategoryName(agentCategory.getName());
         });
         return agentUser;
 
@@ -440,11 +451,12 @@ public class AgentService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableAgent (EnableDisEnableDto request){
+        validations.validateStatus(request.isActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Agent agent  = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
-        agent.setActive(request.isActive());
+        agent.setIsActive(request.isActive());
         agent.setUpdatedBy(userCurrent.getId());
         agentRepository.save(agent);
 

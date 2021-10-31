@@ -16,6 +16,7 @@ import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -58,6 +59,8 @@ public class AgentSupervisorService {
 
     public AgentSupervisorResponseDto createAgentSupervisor(AgentSupervisorDto request) {
         validations.validateAgentSupervisor(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentSupervisor agentSupervisor = mapper.map(request, AgentSupervisor.class);
 //        GenericSpecification<AgentSupervisor> genericSpecification = new GenericSpecification<AgentSupervisor>();
 //        genericSpecification.add(new SearchCriteria("agentId", request.getAgentId(), SearchOperation.EQUAL));
@@ -67,8 +70,8 @@ public class AgentSupervisorService {
         if (exists) {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentSupervisor already exist");
         }
-        agentSupervisor.setCreatedBy(0L);
-        agentSupervisor.setActive(false);
+        agentSupervisor.setCreatedBy(userCurrent.getId());
+        agentSupervisor.setIsActive(false);
         agentSupervisor = agentSupervisorRepository.save(agentSupervisor);
         log.debug("Create new agentSupervisor - {}" + new Gson().toJson(agentSupervisor));
         return mapper.map(agentSupervisor, AgentSupervisorResponseDto.class);
@@ -84,6 +87,8 @@ public class AgentSupervisorService {
 
     public AgentSupervisorResponseDto updateAgentSupervisor(AgentSupervisorDto request) {
         validations.validateAgentSupervisor(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentSupervisor agentSupervisor = agentSupervisorRepository.findById(request.getId())
                 .orElseThrow(()-> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agentSupervisor id does not exist!"));
@@ -91,7 +96,7 @@ public class AgentSupervisorService {
         boolean supervisor = agentSupervisorRepository.exists(Example.of(agentSupervisor));
         if(supervisor)
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentSupervisor already exist");
-        agentSupervisor.setUpdatedBy(0L);
+        agentSupervisor.setUpdatedBy(userCurrent.getId());
         agentSupervisorRepository.save(agentSupervisor);
         log.debug("agentSupervisor record updated - {}" + new Gson().toJson(agentSupervisor));
         return mapper.map(agentSupervisor, AgentSupervisorResponseDto.class);
@@ -140,11 +145,14 @@ public class AgentSupervisorService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState(EnableDisEnableDto request) {
+        validations.validateStatus(request.isActive());
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        log.info("User fetched " + userCurrent);
         AgentSupervisor agentSupervisor = agentSupervisorRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agentSupervisor Id does not exist!"));
-        agentSupervisor.setActive(request.isActive());
-        agentSupervisor.setUpdatedBy(0L);
+        agentSupervisor.setIsActive(request.isActive());
+        agentSupervisor.setUpdatedBy(userCurrent.getId());
         agentSupervisorRepository.save(agentSupervisor);
 
     }

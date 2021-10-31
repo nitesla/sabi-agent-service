@@ -12,6 +12,8 @@ import com.sabi.agent.service.repositories.LGARepository;
 import com.sabi.agent.service.repositories.StateRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.models.User;
+import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -50,13 +52,14 @@ public class LGAService {
 
     public LGAResponseDto createLga(LGADto request) {
         validations.validateLGA(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         LGA lga = mapper.map(request,LGA.class);
         LGA lgaExist = lgaRepository.findByName(request.getName());
         if(lgaExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " LGA already exist");
         }
-        lga.setCreatedBy(0l);
-        lga.setActive(true);
+        lga.setCreatedBy(userCurrent.getId());
+        lga.setIsActive(true);
         lga = lgaRepository.save(lga);
         log.debug("Create new LGA - {}"+ new Gson().toJson(lga));
         return mapper.map(lga, LGAResponseDto.class);
@@ -72,11 +75,12 @@ public class LGAService {
 
     public LGAResponseDto updateLga(LGADto request) {
         validations.validateLGA(request);
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         LGA lga = lgaRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested State Id does not exist!"));
         mapper.map(request, lga);
-        lga.setUpdatedBy(0l);
+        lga.setUpdatedBy(userCurrent.getId());
         lgaRepository.save(lga);
         log.debug("LGA record updated - {}" + new Gson().toJson(lga));
         return mapper.map(lga, LGAResponseDto.class);
@@ -107,7 +111,7 @@ public class LGAService {
                 .createdBy(lga.getCreatedBy())
                 .updatedBy(lga.getUpdatedBy())
                 .updatedDate(lga.getUpdatedDate())
-                .isActive(lga.isActive())
+                .isActive(lga.getIsActive())
                 .build();
         return response;
     }
@@ -139,11 +143,13 @@ public class LGAService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
+        validations.validateStatus(request.isActive());
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         LGA lga = lgaRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested LGA Id does not exist!"));
-        lga.setActive(request.isActive());
-        lga.setUpdatedBy(0l);
+        lga.setIsActive(request.isActive());
+        lga.setUpdatedBy(userCurrent.getId());
         lgaRepository.save(lga);
 
     }
