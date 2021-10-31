@@ -71,6 +71,7 @@ public class MerchantService {
         registeredMerchant.setEmail(signUpResponse.getEmail());
         registeredMerchant.setFirstName(signUpResponse.getFirstName());
         registeredMerchant.setAddress(signUpResponse.getAddress());
+        registeredMerchant.setIsActive(true);
         registeredMerchant.setPhoneNumber(signUpResponse.getPhoneNumber());
         registeredMerchant.setMerchantId(signUpResponse.getId());
         repository.save(registeredMerchant);
