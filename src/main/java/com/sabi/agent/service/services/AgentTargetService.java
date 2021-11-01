@@ -140,13 +140,13 @@ public class AgentTargetService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         AgentTarget agentTarget  = agentTargetRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent target Id does not exist!"));
-        agentTarget.setIsActive(request.isActive());
+        agentTarget.setIsActive(request.getIsActive());
         agentTarget.setUpdatedBy(userCurrent.getId());
         agentTargetRepository.save(agentTarget);
 

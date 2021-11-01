@@ -108,7 +108,6 @@ public class AgentBankService {
     public AgentBankResponseDto updateAgentBank(AgentBankDto request) {
         validations.validateAgentBank(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
-        log.info("Auth info ****************************** " + userCurrent);
         AgentBank agentBank = agentBankRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Bank does not exist!"));
@@ -205,12 +204,12 @@ public class AgentBankService {
      * <remarks>this method is responsible for enabling and dis enabling a Agent Bank</remarks>
      */
     public void enableDisableAgentBank(EnableDisEnableDto request) {
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         AgentBank agentBank = agentBankRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Bank does not exist!"));
-        agentBank.setIsActive(request.isActive());
+        agentBank.setIsActive(request.getIsActive());
         agentBank.setUpdatedBy(userCurrent.getId());
         agentBankRepository.save(agentBank);
 

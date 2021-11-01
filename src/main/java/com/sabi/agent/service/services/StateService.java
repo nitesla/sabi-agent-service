@@ -134,12 +134,12 @@ public class StateService {
      * <remarks>this method is responsible for enabling and dis enabling a state</remarks>
      */
     public void enableDisEnableState (EnableDisEnableDto request){
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         State state = stateRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested State Id does not exist!"));
-        state.setIsActive(request.isActive());
+        state.setIsActive(request.getIsActive());
         state.setUpdatedBy(userCurrent.getId());
         stateRepository.save(state);
 

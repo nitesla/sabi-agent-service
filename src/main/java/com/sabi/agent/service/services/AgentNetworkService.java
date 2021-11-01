@@ -134,13 +134,13 @@ public class AgentNetworkService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState(EnableDisEnableDto request) {
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         AgentNetwork agentNetwork = agentNetworkRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent network Id does not exist!"));
-        agentNetwork.setIsActive(request.isActive());
+        agentNetwork.setIsActive(request.getIsActive());
         agentNetwork.setUpdatedBy(userCurrent.getId());
         agentNetworkRepository.save(agentNetwork);
 

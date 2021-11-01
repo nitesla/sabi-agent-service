@@ -145,13 +145,13 @@ public class AgentSupervisorService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableState(EnableDisEnableDto request) {
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         AgentSupervisor agentSupervisor = agentSupervisorRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agentSupervisor Id does not exist!"));
-        agentSupervisor.setIsActive(request.isActive());
+        agentSupervisor.setIsActive(request.getIsActive());
         agentSupervisor.setUpdatedBy(userCurrent.getId());
         agentSupervisorRepository.save(agentSupervisor);
 

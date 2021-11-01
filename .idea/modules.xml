@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/sabi-agent-service.iml" filepath="$PROJECT_DIR$/sabi-agent-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sabi-agent-service.iml" filepath="$PROJECT_DIR$/sabi-agent-service.iml" />
     </modules>
   </component>
 </project>
