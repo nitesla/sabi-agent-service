@@ -50,7 +50,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 
-//1
+
 @SuppressWarnings("ALL")
 @Slf4j
 @Service
@@ -451,12 +451,12 @@ public class AgentService {
      * <remarks>this method is responsible for enabling and dis enabling a country</remarks>
      */
     public void enableDisEnableAgent (EnableDisEnableDto request){
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Agent agent  = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
-        agent.setIsActive(request.isActive());
+        agent.setIsActive(request.getIsActive());
         agent.setUpdatedBy(userCurrent.getId());
         agentRepository.save(agent);
 

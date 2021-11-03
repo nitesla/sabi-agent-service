@@ -151,12 +151,12 @@ public class WardService {
      * <remarks>this method is responsible for enabling and dis enabling a Ward</remarks>
      */
     public void enableDisableWard (EnableDisEnableDto request){
-        validations.validateStatus(request.isActive());
+        validations.validateStatus(request.getIsActive());
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         Ward ward = wardRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Ward Id does not exist!"));
-        ward.setIsActive(request.isActive());
+        ward.setIsActive(request.getIsActive());
         ward.setUpdatedBy(userCurrent.getId());
         wardRepository.save(ward);
 
