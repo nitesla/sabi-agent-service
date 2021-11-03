@@ -1,10 +1,7 @@
 package com.sabi.agent.service.services;
 
 import com.sabi.agent.core.merchant_integration.request.MerchantSignUpRequest;
-import com.sabi.agent.core.merchant_integration.response.MerchantOtpResponse;
-import com.sabi.agent.core.merchant_integration.response.MerchantOtpValidationResponse;
-import com.sabi.agent.core.merchant_integration.response.MerchantSignUpResponse;
-import com.sabi.agent.core.merchant_integration.response.MerchantWithActivityResponse;
+import com.sabi.agent.core.merchant_integration.response.*;
 import com.sabi.agent.core.models.RegisteredMerchant;
 import com.sabi.agent.service.helper.GenericSpecification;
 import com.sabi.agent.service.helper.SearchCriteria;
@@ -72,6 +69,8 @@ public class MerchantService {
         registeredMerchant.setFirstName(signUpResponse.getFirstName());
         registeredMerchant.setAddress(signUpResponse.getAddress());
         registeredMerchant.setIsActive(true);
+        registeredMerchant.setLastName(signUpRequest.getLastName());
+        registeredMerchant.setBusinessName(signUpRequest.getBusinessName());
         registeredMerchant.setPhoneNumber(signUpResponse.getPhoneNumber());
         registeredMerchant.setMerchantId(signUpResponse.getId());
         repository.save(registeredMerchant);
@@ -112,5 +111,9 @@ public class MerchantService {
             genericSpecification.add(new SearchCriteria("merchantId", merchantId, SearchOperation.EQUAL));
         }
         return repository.findAll(genericSpecification, pageRequest);
+    }
+
+    public MerchantDetailResponse merchantDetails(String userId, String fingerPrint){
+        return api.get(baseUrl + "/api/users/public/" + userId, MerchantDetailResponse.class, getHeaders(fingerPrint));
     }
 }
