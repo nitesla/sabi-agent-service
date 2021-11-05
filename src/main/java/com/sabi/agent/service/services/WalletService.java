@@ -8,7 +8,6 @@ import com.sabi.agent.core.wallet_integration.request.WalletBvnRequest;
 import com.sabi.agent.core.wallet_integration.response.*;
 import com.sabi.agent.service.repositories.WalletRepository;
 import com.sabi.framework.helpers.API;
-import com.sabi.framework.helpers.Encryptions;
 import com.sabi.framework.service.ExternalTokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -41,11 +40,13 @@ public class WalletService {
     private final API api;
     private final ExternalTokenService tokenService;
     private final ModelMapper mapper;
+    private final AgentService agentService;
 
-    public WalletService(API api, ExternalTokenService tokenService, ModelMapper mapper) {
+    public WalletService(API api, ExternalTokenService tokenService, ModelMapper mapper, AgentService agentService) {
         this.api = api;
         this.tokenService = tokenService;
         this.mapper = mapper;
+        this.agentService = agentService;
     }
 
     private Map<String, String> getHeaders(String fingerPrint){
@@ -86,7 +87,12 @@ public class WalletService {
     }
 
     public WalletBvnResponse checkBvn(WalletBvnRequest request, String fingerPrint){
-        return api.post(baseUrl + "/publicKey/"+publicKey+"/verifyBVN", request,WalletBvnResponse.class, getHeaders(fingerPrint));
+        WalletBvnResponse bvnResponse = api.post(baseUrl + "/publicKey/" + publicKey + "/verifyBVN", request, WalletBvnResponse.class, getHeaders(fingerPrint));
+        if(bvnResponse.getData() != null && bvnResponse.getData().isStatus()){
+            log.info("Bvn is verified :: ");
+            agentService.agentBvnVerifications(bvnResponse, request.getAgentId());
+        }
+        return bvnResponse;
     }
 
     //ignore method

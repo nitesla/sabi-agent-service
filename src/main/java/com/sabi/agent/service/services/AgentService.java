@@ -13,6 +13,7 @@ import com.sabi.agent.core.models.Country;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.core.models.agentModel.AgentVerification;
+import com.sabi.agent.core.wallet_integration.response.WalletBvnResponse;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
@@ -491,45 +492,24 @@ public class AgentService {
 
 
 
-    public void agentBvnVerifications (AgentBvnVerificationDto request) {
-        Agent agent = agentRepository.findById(request.getId())
+    public void agentBvnVerifications (WalletBvnResponse bvnResponse, long agentId) {
+        Agent agent = agentRepository.findById(agentId)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
            User user = userRepository.getOne(agent.getUserId());
           log.info("::: agentUser ::" + user);
 
-        BvnVerificationData data = BvnVerificationData.builder()
-                .bvn(request.getBvn())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .phoneNumber(user.getPhone())
-                .accountNumber(request.getAccountNumber())
-                .bankCode(request.getBankCode())
-                .build();
-
-        Map map=new HashMap();
-        map.put("Authorization",externalTokenService.getToken());
-
-       AgentBvnVerificationResponse response = api.post(bvnUrl, data, AgentBvnVerificationResponse.class,map);
-       if(response.getStatus().equals(false)){
-           throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " BVN validation failed !");
-       }else {
-
-           agent.setBvn(response.getData().getBvn());
-           agent = agentRepository.save(agent);
-           log.debug("bvn updated - {}"+ new Gson().toJson(agent));
 
            AgentVerification bvnVerification = AgentVerification.builder()
                    .name("BVN")
                    .agentId(agent.getId())
-                   .component(agent.getBvn())
+                   .component(bvnResponse.getData().getData().getBvn())
                    .dateSubmitted(agent.getCreatedDate())
                    .status(0)
                    .build();
            validations.validateComponentVerification(bvnVerification);
            log.debug("bvn verification - {}"+ new Gson().toJson(bvnVerification));
            agentVerificationRepository.save(bvnVerification);
-       }
     }
 
     public void agentIdCardVerifications (AgentVerificationDto request) {
