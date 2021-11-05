@@ -118,7 +118,7 @@ public class AgentService {
         User exist = userRepository.findByPhone(request.getPhone());
         if(exist !=null && exist.getPasswordChangedOn()== null){
           Agent existAgent = agentRepository.findByUserId(exist.getId());
-            existAgent.setRegistrationToken(Utility.registrationCode());
+            existAgent.setRegistrationToken(Utility.registrationCode("HHmmss"));
             existAgent.setRegistrationTokenExpiration(Utility.expiredTime());
             Agent agentExist =agentRepository.save(existAgent);
 
@@ -163,7 +163,7 @@ public class AgentService {
                 saveAgent.setUserId(user.getId());
                 saveAgent.setReferrer(request.getReferrer());
                 saveAgent.setReferralCode(Utility.guidID());
-                saveAgent.setRegistrationToken(Utility.registrationCode());
+                saveAgent.setRegistrationToken(Utility.registrationCode("HHmmss"));
                 saveAgent.setRegistrationTokenExpiration(Utility.expiredTime());
                 saveAgent.setIsActive(false);
                 saveAgent.setIsEmailVerified(false);
@@ -208,7 +208,7 @@ public class AgentService {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Invalid phone number");
         }
        Agent agent = agentRepository.findByUserId(user.getId());
-        agent.setRegistrationToken(Utility.registrationCode());
+        agent.setRegistrationToken(Utility.registrationCode("HHmmss"));
         agent.setRegistrationTokenExpiration(Utility.expiredTime());
         Agent agentResponse = agentRepository.save(agent);
 
@@ -540,7 +540,7 @@ public class AgentService {
         }
 
         Agent agent = agentRepository.findByUserId(user.getId());
-        agent.setRegistrationToken(Utility.registrationCode());
+        agent.setRegistrationToken(Utility.registrationCode("HHmmss"));
         agent.setRegistrationTokenExpiration(Utility.expiredTime());
         agent.setIsEmailVerified(false);
         Agent agentResponse = agentRepository.save(agent);
@@ -570,7 +570,7 @@ public class AgentService {
         }
 
         Agent agent = agentRepository.findByUserId(user.getId());
-        agent.setRegistrationToken(Utility.registrationCode());
+        agent.setRegistrationToken(Utility.registrationCode("HHmmss"));
         agent.setRegistrationTokenExpiration(Utility.expiredTime());
         agent.setIsEmailVerified(false);
         Agent agentResponse = agentRepository.save(agent);
