@@ -3,12 +3,17 @@ package com.sabi.agent.service.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.sabi.agent.core.dto.ValidateEmailOtpRequest;
-import com.sabi.agent.core.dto.agentDto.requestDto.AgentBvnVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentUpdateDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
-import com.sabi.agent.core.dto.requestDto.*;
-import com.sabi.agent.core.dto.responseDto.*;
+import com.sabi.agent.core.dto.requestDto.EmailVerificationDto;
+import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
+import com.sabi.agent.core.dto.requestDto.ResendOTP;
+import com.sabi.agent.core.dto.requestDto.ValidateOTPRequest;
+import com.sabi.agent.core.dto.responseDto.AgentActivationResponse;
+import com.sabi.agent.core.dto.responseDto.AgentUpdateResponseDto;
+import com.sabi.agent.core.dto.responseDto.CreateAgentResponseDto;
+import com.sabi.agent.core.dto.responseDto.EmailVerificationResponseDto;
 import com.sabi.agent.core.models.Country;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
@@ -49,7 +54,9 @@ import org.springframework.stereotype.Service;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 
 @SuppressWarnings("ALL")
@@ -145,7 +152,7 @@ public class AgentService {
 
         String password = Utility.getSaltString();
         user.setPassword(passwordEncoder.encode(password));
-        user.setUserCategory(Constants.AGENT_USER);
+        user.setUserCategory(Constants.OTHER_USER);
         user.setUsername(request.getPhone());
         user.setLoginAttempts(0l);
         user.setCreatedBy(0l);
@@ -399,11 +406,6 @@ public class AgentService {
         }
         agentUser.getContent().forEach(users -> {
             Agent agent = agentRepository.findByUserId(users.getId());
-//            AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
-//                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-//                            "Requested agent category id does not exist!"));
-//            AgentCategory agentCategory = agentCategoryRepository.getOne(agent.getAgentCategoryId());
-
             users.setAgentId(agent.getId());
             users.setAgentCategoryId(agent.getAgentCategoryId());
             users.setScope(agent.getScope());
