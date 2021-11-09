@@ -168,6 +168,7 @@ public class AgentService {
 
         Agent saveAgent = new Agent();
                 saveAgent.setUserId(user.getId());
+                saveAgent.setCountryCode(request.getCountryCode());
                 saveAgent.setReferrer(request.getReferrer());
                 saveAgent.setReferralCode(Utility.guidID());
                 saveAgent.setRegistrationToken(Utility.registrationCode("HHmmss"));

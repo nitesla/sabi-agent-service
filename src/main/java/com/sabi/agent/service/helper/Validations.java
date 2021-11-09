@@ -41,6 +41,7 @@ public class Validations {
     private SupervisorRepository supervisorRepository;
     private MarketRepository marketRepository;
     private AgentVerificationRepository agentVerificationRepository;
+    private CountryRepository countryRepository;
 
     @Autowired
     private BankRepository bankRepository;
@@ -50,7 +51,8 @@ public class Validations {
                        LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository,
                        TargetTypeRepository targetTypeRepository, TaskRepository taskRepository,
                        UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository,
-                       SupervisorRepository supervisorRepository, AgentVerificationRepository agentVerificationRepository) {
+                       SupervisorRepository supervisorRepository, AgentVerificationRepository agentVerificationRepository,
+                       CountryRepository countryRepository) {
         this.stateRepository = stateRepository;
         this.lgaRepository = lgaRepository;
         this.agentCategoryRepository = agentCategoryRepository;
@@ -62,6 +64,7 @@ public class Validations {
         this.marketRepository = marketRepository;
         this.supervisorRepository = supervisorRepository;
         this.agentVerificationRepository = agentVerificationRepository;
+        this.countryRepository = countryRepository;
     }
 
     public void validateState(StateDto stateDto) {
@@ -340,13 +343,17 @@ public class Validations {
         if (!Utility.validEmail(agent.getEmail().trim()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid Email Address");
 
-
         if (agent.getPhone() == null || agent.getPhone().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Phone number cannot be empty");
         if (agent.getPhone().length() < 8 || agent.getPhone().length() > 14)// NAME LENGTH*********
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid phone number  length");
         if (!Utility.isNumeric(agent.getPhone()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
+
+        Country country = countryRepository.findByCode(agent.getCountryCode());
+        if(country == null){
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Country code does not exist");
+        }
 
     }
 
