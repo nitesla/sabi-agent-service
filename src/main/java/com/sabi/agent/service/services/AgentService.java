@@ -437,7 +437,7 @@ public class AgentService {
             users.setRegistrationTokenExpiration(agent.getRegistrationTokenExpiration());
             users.setRegistrationToken(agent.getRegistrationToken());
             users.setIsEmailVerified(agent.getIsEmailVerified());
-//            users.setAgentCategoryName(agentCategory.getName());
+
         });
         return agentUser;
 
