@@ -130,8 +130,8 @@ public class Validations {
     public void validateStatus(Boolean status) {
         if (status == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Status cannot be empty");
-//        if (!Utility.validateEnableDisable(status))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Status ");
+////        if (!Utility.validateEnableDisable(status))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Status ");
 
     }
 
