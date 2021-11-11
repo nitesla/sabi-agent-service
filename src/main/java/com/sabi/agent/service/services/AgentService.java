@@ -324,17 +324,17 @@ public class AgentService {
 
     public AgentUpdateResponseDto updateAgent(AgentUpdateDto request) {
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
-        AgentCategory savedCategory = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
         Agent agent = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent id does not exist!"));
-        if (savedCategory != null) {
-            agent.setAgentCategoryId(savedCategory.getId());
-        }
         if (request.getCountryId() != null) {
             Country savedCountry = countryRepository.findById(request.getCountryId())
                     .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                             "Requested country id does not exist!"));
+        }
+        AgentCategory savedCategory = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
+        if (request.getAgentCategoryId() == null || request.getAgentCategoryId() < 0) {
+            agent.setAgentCategoryId(savedCategory.getId());
         }
         mapper.map(request, agent);
         agent.setUpdatedBy(userCurrent.getId());
