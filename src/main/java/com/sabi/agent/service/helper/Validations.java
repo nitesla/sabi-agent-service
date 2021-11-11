@@ -165,8 +165,6 @@ public class Validations {
         }
         if(agentCategoryDto.getDescription() == null || agentCategoryDto.getDescription().trim().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Description cannot be empty");
-        if(agentCategoryDto.getImage().trim()==null || agentCategoryDto.getImage().trim().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Image cannot be empty");
         if (agentCategoryDto.getName() == null || agentCategoryDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
     }
