@@ -3,12 +3,17 @@ package com.sabi.agent.service.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.sabi.agent.core.dto.ValidateEmailOtpRequest;
-import com.sabi.agent.core.dto.agentDto.requestDto.AgentBvnVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentUpdateDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
-import com.sabi.agent.core.dto.requestDto.*;
-import com.sabi.agent.core.dto.responseDto.*;
+import com.sabi.agent.core.dto.requestDto.EmailVerificationDto;
+import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
+import com.sabi.agent.core.dto.requestDto.ResendOTP;
+import com.sabi.agent.core.dto.requestDto.ValidateOTPRequest;
+import com.sabi.agent.core.dto.responseDto.AgentActivationResponse;
+import com.sabi.agent.core.dto.responseDto.AgentUpdateResponseDto;
+import com.sabi.agent.core.dto.responseDto.CreateAgentResponseDto;
+import com.sabi.agent.core.dto.responseDto.EmailVerificationResponseDto;
 import com.sabi.agent.core.models.Country;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
@@ -49,7 +54,9 @@ import org.springframework.stereotype.Service;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 
 @SuppressWarnings("ALL")
@@ -115,7 +122,7 @@ public class AgentService {
          validations.validateAgent(request);
         User user = mapper.map(request,User.class);
 
-        User exist = userRepository.findByPhone(request.getPhone());
+        User exist = userRepository.findByEmailOrPhone(request.getEmail(),request.getPhone());
         if(exist !=null && exist.getPasswordChangedOn()== null){
           Agent existAgent = agentRepository.findByUserId(exist.getId());
             existAgent.setRegistrationToken(Utility.registrationCode("HHmmss"));
@@ -145,7 +152,7 @@ public class AgentService {
 
         String password = Utility.getSaltString();
         user.setPassword(passwordEncoder.encode(password));
-        user.setUserCategory(Constants.AGENT_USER);
+        user.setUserCategory(Constants.OTHER_USER);
         user.setUsername(request.getPhone());
         user.setLoginAttempts(0l);
         user.setCreatedBy(0l);
@@ -161,6 +168,7 @@ public class AgentService {
 
         Agent saveAgent = new Agent();
                 saveAgent.setUserId(user.getId());
+                saveAgent.setCountryCode(request.getCountryCode());
                 saveAgent.setReferrer(request.getReferrer());
                 saveAgent.setReferralCode(Utility.guidID());
                 saveAgent.setRegistrationToken(Utility.registrationCode("HHmmss"));
@@ -316,17 +324,17 @@ public class AgentService {
 
     public AgentUpdateResponseDto updateAgent(AgentUpdateDto request) {
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
-        AgentCategory savedCategory = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
         Agent agent = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent id does not exist!"));
-        if (savedCategory != null) {
-            agent.setAgentCategoryId(savedCategory.getId());
-        }
         if (request.getCountryId() != null) {
             Country savedCountry = countryRepository.findById(request.getCountryId())
                     .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                             "Requested country id does not exist!"));
+        }
+        AgentCategory savedCategory = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
+        if (request.getAgentCategoryId() == null || request.getAgentCategoryId() < 0) {
+            agent.setAgentCategoryId(savedCategory.getId());
         }
         mapper.map(request, agent);
         agent.setUpdatedBy(userCurrent.getId());
@@ -399,11 +407,6 @@ public class AgentService {
         }
         agentUser.getContent().forEach(users -> {
             Agent agent = agentRepository.findByUserId(users.getId());
-//            AgentCategory agentCategory  = agentCategoryRepository.findById(agent.getAgentCategoryId())
-//                    .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-//                            "Requested agent category id does not exist!"));
-//            AgentCategory agentCategory = agentCategoryRepository.getOne(agent.getAgentCategoryId());
-
             users.setAgentId(agent.getId());
             users.setAgentCategoryId(agent.getAgentCategoryId());
             users.setScope(agent.getScope());
@@ -434,7 +437,7 @@ public class AgentService {
             users.setRegistrationTokenExpiration(agent.getRegistrationTokenExpiration());
             users.setRegistrationToken(agent.getRegistrationToken());
             users.setIsEmailVerified(agent.getIsEmailVerified());
-//            users.setAgentCategoryName(agentCategory.getName());
+
         });
         return agentUser;
 

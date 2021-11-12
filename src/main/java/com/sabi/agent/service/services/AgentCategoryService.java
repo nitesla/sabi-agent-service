@@ -61,7 +61,7 @@ public class AgentCategoryService {
         }
         agentCategory.setCreatedBy(userCurrent.getId());
         agentCategory.setIsActive(true);
-        agentCategory.setDefault(true);
+        agentCategory.setDefault(false);
         agentCategory = agentCategoryRepository.save(agentCategory);
         log.debug("Create new agent category - {}"+ new Gson().toJson(agentCategory));
         return mapper.map(agentCategory, AgentCategoryResponseDto.class);

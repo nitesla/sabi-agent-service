@@ -14,7 +14,6 @@ import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentVerificationRepository;
 import com.sabi.framework.exceptions.BadRequestException;
-import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
@@ -42,6 +41,7 @@ public class Validations {
     private SupervisorRepository supervisorRepository;
     private MarketRepository marketRepository;
     private AgentVerificationRepository agentVerificationRepository;
+    private CountryRepository countryRepository;
 
     @Autowired
     private BankRepository bankRepository;
@@ -51,7 +51,8 @@ public class Validations {
                        LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository,
                        TargetTypeRepository targetTypeRepository, TaskRepository taskRepository,
                        UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository,
-                       SupervisorRepository supervisorRepository, AgentVerificationRepository agentVerificationRepository) {
+                       SupervisorRepository supervisorRepository, AgentVerificationRepository agentVerificationRepository,
+                       CountryRepository countryRepository) {
         this.stateRepository = stateRepository;
         this.lgaRepository = lgaRepository;
         this.agentCategoryRepository = agentCategoryRepository;
@@ -63,6 +64,7 @@ public class Validations {
         this.marketRepository = marketRepository;
         this.supervisorRepository = supervisorRepository;
         this.agentVerificationRepository = agentVerificationRepository;
+        this.countryRepository = countryRepository;
     }
 
     public void validateState(StateDto stateDto) {
@@ -128,8 +130,8 @@ public class Validations {
     public void validateStatus(Boolean status) {
         if (status == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Status cannot be empty");
-//        if (!Utility.validateEnableDisable(status))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Status ");
+////        if (!Utility.validateEnableDisable(status))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Status ");
 
     }
 
@@ -163,8 +165,6 @@ public class Validations {
         }
         if(agentCategoryDto.getDescription() == null || agentCategoryDto.getDescription().trim().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Description cannot be empty");
-        if(agentCategoryDto.getImage().trim()==null || agentCategoryDto.getImage().trim().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Image cannot be empty");
         if (agentCategoryDto.getName() == null || agentCategoryDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
     }
@@ -340,10 +340,6 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "email cannot be empty");
         if (!Utility.validEmail(agent.getEmail().trim()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid Email Address");
-         User user = userRepository.findByEmail(agent.getEmail());
-         if(user !=null){
-             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Email already exist");
-         }
 
         if (agent.getPhone() == null || agent.getPhone().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Phone number cannot be empty");
@@ -351,10 +347,12 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid phone number  length");
         if (!Utility.isNumeric(agent.getPhone()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
-//        User userExist = userRepository.findByPhone(agent.getPhone());
-//        if(userExist !=null){
-//            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
-//        }
+
+        Country country = countryRepository.findByCode(agent.getCountryCode());
+        if(country == null){
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Country code does not exist");
+        }
+
     }
 
 

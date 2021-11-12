@@ -16,7 +16,10 @@ public interface CountryRepository extends JpaRepository<Country, Long>, JpaSpec
 
     Country findByName(String name);
     List<Country> findByIsActive(Boolean isActive);
-    Country findCountryById(Long id);
+
+    Country findByCode(String code);
+
+
 
     @Query("SELECT c FROM Country c WHERE ((:name IS NULL) OR (:name IS NOT NULL AND c.name = :name))" +
             " AND ((:code IS NULL) OR (:code IS NOT NULL AND c.code = :code))")
