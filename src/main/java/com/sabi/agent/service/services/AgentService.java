@@ -122,7 +122,7 @@ public class AgentService {
          validations.validateAgent(request);
         User user = mapper.map(request,User.class);
 
-        User exist = userRepository.findByPhone(request.getPhone());
+        User exist = userRepository.findByEmailOrPhone(request.getEmail(),request.getPhone());
         if(exist !=null && exist.getPasswordChangedOn()== null){
           Agent existAgent = agentRepository.findByUserId(exist.getId());
             existAgent.setRegistrationToken(Utility.registrationCode("HHmmss"));
