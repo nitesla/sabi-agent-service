@@ -222,6 +222,14 @@ public class Validations {
                         " Enter a valid Target Type!"));
     }
 
+    public void validateId (Long id){
+        if (id == null || id.equals(" "))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Id cannot be empty");
+        if (!Utility.isNumeric(id.toString()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for ID ");
+
+    }
+
     public void validateAgentBank (AgentBankDto agentBankDto){
         if (agentBankDto.getAccountNumber().trim() == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Account Number cannot be empty");
@@ -300,18 +308,44 @@ public class Validations {
     }
 
     public void validateAgentTarget(AgentTargetDto request) {
-        if(request.getName() == null)
+        if(request.getName() == null || request.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " Agent Target name can not be empty");
+        if (!Utility.validateName(request.getName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Agent Target Name ");
+
         if (request.getTargetId() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Target Type cannot be empty");
+        if (!Utility.isNumeric(request.getTargetId().toString()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Target ID ");
+
         if (request.getMax() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Max cannot be empty");
+        if (request.getMax() < request.getMin() )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Max cannot be less than Min");
+        if (!Utility.isNumeric(request.getMax().toString()))
+        throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Max ");
+
+
         if (request.getMin() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Min cannot be empty");
+        if (request.getMin() > request.getMax() )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Min cannot be greater than Max");
+        if (!Utility.isNumeric(request.getMin().toString()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Min ");
+
+
         if (request.getAgentId() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id cannot be empty");
+        if (!Utility.isNumeric(request.getAgentId().toString()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Agent ID ");
+
+
         if (request.getSuperMax() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Super max cannot be empty");
+        if (!Utility.isNumeric(request.getSuperMax().toString()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Super Max");
+
+
 
         agentRepository.findById(request.getAgentId()).orElseThrow(() ->
                 new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
