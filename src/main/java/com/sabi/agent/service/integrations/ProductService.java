@@ -36,7 +36,7 @@ public class ProductService {
     public SingleProductResponse productDetail (SingleProductRequest request) throws IOException {
 
         Map map=new HashMap();
-        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        map.put("fingerprint",fingerPrint);
         SingleProductResponse response = api.get(productDetail + request.getId(), SingleProductResponse.class,map);
         return response;
     }
