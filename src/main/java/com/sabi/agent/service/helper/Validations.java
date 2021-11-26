@@ -120,8 +120,6 @@ public class Validations {
     public void validateIdType(IdTypeDto idTypeDto) {
         if (idTypeDto.getName() == null || idTypeDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (idTypeDto.getName() == null || idTypeDto.getName().trim().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
         if (!Utility.validateName(idTypeDto.getName()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
 

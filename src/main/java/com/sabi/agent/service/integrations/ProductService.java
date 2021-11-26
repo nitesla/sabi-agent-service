@@ -3,8 +3,8 @@ package com.sabi.agent.service.integrations;
 
 import com.sabi.agent.core.integrations.request.AllProductsRequest;
 import com.sabi.agent.core.integrations.request.SingleProductRequest;
-import com.sabi.agent.core.integrations.response.AllProductResponse;
 import com.sabi.agent.core.integrations.response.SingleProductResponse;
+import com.sabi.agent.core.integrations.response.product.AllProductResponse;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.service.ExternalTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +28,15 @@ public class ProductService {
     private String productDetail;
     @Value("${allproducts.url}")
     private String allProductDetail;
+    @Value("${finger.print}")
+    private String fingerPrint;
 
 
 
     public SingleProductResponse productDetail (SingleProductRequest request) throws IOException {
 
         Map map=new HashMap();
-        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        map.put("fingerprint",fingerPrint);
         SingleProductResponse response = api.get(productDetail + request.getId(), SingleProductResponse.class,map);
         return response;
     }
@@ -44,19 +46,16 @@ public class ProductService {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(allProductDetail)
                 // Add query parameter
-                .queryParam("BusinessId", request.getBusinessId())
-                .queryParam("BranchId",request.getBranchId())
-                .queryParam("CategoryId",request.getCategoryId())
-                .queryParam("PageNumber",request.getPageNumber())
-                .queryParam("PageSize",request.getPageSize())
-                .queryParam("BusinessSlug",request.getBusinessSlug())
-                .queryParam("BranchSlug",request.getBranchSlug())
-                .queryParam("ProductName",request.getProductName())
-                .queryParam("State",request.getState())
-                .queryParam("Orderby",request.getOrderBy());
+                .queryParam("direction", request.getDirection())
+                .queryParam("page",request.getPageNumber())
+                .queryParam("pageSize",request.getPageSize())
+                .queryParam("searchString",request.getSearchString())
+                .queryParam("sortBy",request.getSortBy())
+                .queryParam("State",request.getState());
+
 
         Map map=new HashMap();
-        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        map.put("fingerprint",fingerPrint);
         AllProductResponse response = api.get(builder.toUriString(), AllProductResponse.class,map);
         return response;
     }
