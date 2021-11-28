@@ -112,33 +112,4 @@ public class WishListService {
         return mapper.map(state,WishListResponseDto.class);
     }
 
-//    @Param("agentId")String agentId,
-//    @Param("productId")String productId,
-//    @Param("productName")String productName,
-//    @Param("picture")String picture, Pageable pageable
-
-
-//    /** <summary>
-//     * Enable disenable
-//     * </summary>
-//     * <remarks>this method is responsible for enabling and dis enabling a state</remarks>
-//     */
-//    public void enableDisEnableState (EnableDisEnableDto request){
-//        validations.validateStatus(request.getIsActive());
-//        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
-//        State state = stateRepository.findById(request.getId())
-//                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-//                        "Requested State Id does not exist!"));
-//        state.setIsActive(request.getIsActive());
-//        state.setUpdatedBy(userCurrent.getId());
-//        stateRepository.save(state);
-//
-//    }
-
-
-//    public List<State> getAll(Boolean isActive){
-//        List<State> states = stateRepository.findByIsActive(isActive);
-//        return states;
-//
-//    }
 }
