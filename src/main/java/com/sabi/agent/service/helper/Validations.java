@@ -485,4 +485,16 @@ public class Validations {
                     "Bad Request");
         }
     }
+
+    public void validateWishList(WishListDto request) {
+        if (request.getAgentId() == null || request.getAgentId().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent id cannot be empty");
+        if (request.getProductId() == null || request.getProductId().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "product id cannot be empty");
+        if (request.getPicture() == null || request.getPicture().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Picture cannot be empty");
+        if (request.getProductName() == null || request.getProductName().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "product name cannot be empty");
+    }
+
 }

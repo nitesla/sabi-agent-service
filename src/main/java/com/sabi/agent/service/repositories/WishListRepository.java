@@ -13,8 +13,8 @@ import java.util.List;
 @Repository
 public interface WishListRepository extends JpaRepository<WishList, Long> {
 
-//    WishList findByNameAndTaskType(String name, String taskType);
-//    List<WishList> findByIsActive(Boolean isActive);
+    WishList findWishListById(Long id);
+    WishList findWishListByProductName(String productName);
 
     @Query("SELECT t FROM WishList t WHERE ((:agentId IS NULL) OR (:agentId IS NOT NULL AND t.agentId = :agentId)) " +
             "AND ((:productId IS NULL) OR (:productId IS NOT NULL AND t.productId = :productId))" +
