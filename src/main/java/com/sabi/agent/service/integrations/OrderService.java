@@ -120,6 +120,7 @@ public class OrderService {
                 .userName(response.getData().getUserName())
                 .build();
         validations.validateOrder(request);
+        log.info("::::::::::::ORDER REQUEST::::::::::::::::: " + order);
         orderRepository.save(order);
 
     }
