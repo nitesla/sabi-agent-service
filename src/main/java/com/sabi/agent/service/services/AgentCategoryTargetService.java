@@ -69,7 +69,7 @@ public class AgentCategoryTargetService {
         if(exist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent Category Target already exist");
         }
-//        exists.agentCategoryTargetExist(request);
+        exists.agentCategoryTargetExist(request);
         agentCategoryTarget.setCreatedBy(userCurrent.getId());
         agentCategoryTarget.setIsActive(false);
         agentCategoryTarget = agentCategoryTargetRepository.save(agentCategoryTarget);
@@ -97,6 +97,7 @@ public class AgentCategoryTargetService {
                         "Requested Agent Category Target does not exist!"));
         mapper.map(request, agentCategoryTarget);
         agentCategoryTarget.setUpdatedBy(userCurrent.getId());
+        exists.agentCategoryTargetExist(request);
 //        exists.agentCategoryTargetUpateExist(request);
         agentCategoryTargetRepository.save(agentCategoryTarget);
         log.debug("Agent Category Target record updated - {}" + new Gson().toJson(agentCategoryTarget));
@@ -141,6 +142,7 @@ public class AgentCategoryTargetService {
 //    }
 
     public AgentCategoryTargetResponseDto findAgentCategoryTarget(Long id){
+        validations.validateId(id);
         AgentCategoryTarget agentCategoryTarget = agentCategoryTargetRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Target Id does not exist!"));
