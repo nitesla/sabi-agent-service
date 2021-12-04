@@ -105,6 +105,11 @@ public class OrderService {
         return  api.post(merchBuyUrl, request,  MerchBuyResponse.class);
     }
 
+    public AgentOrder findById(long id){
+        return orderRepository.findById(id).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                "Requested bank id does not exist!"));
+    }
+
 
 
 
