@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("ALL")
 @Service
 @Slf4j
 public class OrderService {
@@ -119,6 +120,7 @@ public class OrderService {
                 .userName(response.getData().getUserName())
                 .build();
         validations.validateOrder(request);
+        log.info("::::::::::::ORDER REQUEST::::::::::::::::: " + order);
         orderRepository.save(order);
 
     }
