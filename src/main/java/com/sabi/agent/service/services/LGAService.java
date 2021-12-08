@@ -155,8 +155,8 @@ public class LGAService {
     }
 
 
-    public List<LGA> getAll(Boolean isActive){
-        List<LGA> lga = lgaRepository.findByIsActive(isActive);
+    public List<LGA> getAll(Boolean isActive, Long stateId){
+        List<LGA> lga = lgaRepository.findByIsActiveAndStateId(isActive, stateId);
         return lga;
 
     }

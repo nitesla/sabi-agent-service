@@ -21,7 +21,7 @@ public interface LGARepository extends JpaRepository<LGA, Long> {
 
        LGA findByName (String name);
 
-       List<LGA> findByIsActive(Boolean isActive);
+       List<LGA> findByIsActiveAndStateId(Boolean isActive, Long stateId);
 
        @Query("SELECT l FROM LGA l WHERE ((:name IS NULL) OR (:name IS NOT NULL AND l.name = :name))")
        Page<LGA> findLgas(@Param("name")String name, Pageable pageable);
