@@ -39,6 +39,9 @@ public class BillPaymentService {
     @Value("${space.billers.url}")
     private String billers;
 
+    @Value(("${space.airtime.authkey}"))
+    private String authKey;
+
     @Autowired
     ExternalTokenService externalTokenService;
 
@@ -57,7 +60,7 @@ public class BillPaymentService {
         this.mapper = mapper;
     }
 
-    public AirtimeRequestDto airtimePayment(AirtimeRequestDto airtimeRequestDto ){
+    public Airtime airtimePayment(AirtimeRequestDto airtimeRequestDto ){
         AirtimeRequestDto request = AirtimeRequestDto.builder()
                         .billerId(airtimeRequestDto.getBillerId())
                         .denomination(airtimeRequestDto.getDenomination().trim())
@@ -72,8 +75,21 @@ public class BillPaymentService {
         AirtimeResponseDto response = api.post(airtime, request, AirtimeResponseDto.class, map);
         Airtime airtime = mapper.map(response, Airtime.class);
         airtime = airtimeRepository.save(airtime);
-        return mapper.map(airtime, AirtimeRequestDto.class);
+        return airtime;
 
+    }
+
+    public Airtime airtimeStatus(String billPurchaseId, String fingerPrint){
+
+        String extToken = externalTokenService.getToken().toString();
+
+       String url = airtime + "updateStatus/" + billPurchaseId;
+        Map<String,String> map = new HashMap();
+        map.put("fingerprint", fingerPrint);
+        map.put("Authorization", "Bearer " + extToken);
+        map.put("authKey", authKey);
+        AirtimeResponseDto response = api.put(url, null, AirtimeResponseDto.class, map);
+        return mapper.map(response, Airtime.class);
     }
 
 
