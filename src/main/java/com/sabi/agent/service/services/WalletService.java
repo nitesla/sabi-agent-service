@@ -2,6 +2,7 @@ package com.sabi.agent.service.services;
 
 import com.sabi.agent.core.models.WalletEntity;
 import com.sabi.agent.core.wallet_integration.WalletSignUpDto;
+import com.sabi.agent.core.wallet_integration.request.CompleteTopUpRequest;
 import com.sabi.agent.core.wallet_integration.request.DebitUserRequest;
 import com.sabi.agent.core.wallet_integration.request.InitiateTopUpRequest;
 import com.sabi.agent.core.wallet_integration.request.WalletBvnRequest;
@@ -135,6 +136,11 @@ public class WalletService {
 
     public InitiateTopUpResponse initiateTopUp(String userId, String fingerPrint, InitiateTopUpRequest initiateTopUpRequest) {
         return api.put(baseUrl + "/publicKey/" + publicKey + "/user/" + userId + "/initiateTopup", initiateTopUpRequest, InitiateTopUpResponse.class, getHeaders(fingerPrint));
+    }
+
+    public CompleteTopUpResponse completeTopUp(CompleteTopUpRequest request, String fingerPrint){
+        String url = "https://api-wallet-dev.spaceso2o.com/api/v3/wallet/publicKey/"+ publicKey+"/completeTopup";
+        return api.put(url, request, CompleteTopUpResponse.class, getHeaders(fingerPrint));
     }
 
     public void saveWallet(CreateWalletResponse response) {
