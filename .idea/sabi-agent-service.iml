@@ -164,7 +164,6 @@
     <orderEntry type="library" name="Maven: org.modelmapper:modelmapper:2.3.2" level="project" />
     <orderEntry type="library" name="Maven: com.sabi.framework:sabi-framework:1.0" level="project" />
     <orderEntry type="library" name="Maven: com.sabi.core:sabi-agent-core:1.0" level="project" />
-    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-validation:2.1.6.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-security:2.1.6.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-aop:5.1.8.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.security:spring-security-config:5.1.5.RELEASE" level="project" />

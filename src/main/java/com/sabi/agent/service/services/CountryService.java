@@ -7,9 +7,6 @@ import com.sabi.agent.core.dto.requestDto.CountryDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.CountryResponseDto;
 import com.sabi.agent.core.models.Country;
-import com.sabi.agent.service.helper.GenericSpecification;
-import com.sabi.agent.service.helper.SearchCriteria;
-import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.CountryRepository;
 import com.sabi.framework.exceptions.ConflictException;
@@ -79,12 +76,6 @@ public class CountryService {
         Country country = countryRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Country Id does not exist!"));
-        GenericSpecification<Country> genericSpecification = new GenericSpecification<>();
-        genericSpecification.add(new SearchCriteria("name", country.getName(), SearchOperation.EQUAL));
-        genericSpecification.add(new SearchCriteria("code", country.getCode(), SearchOperation.EQUAL));
-        List<Country> countries = countryRepository.findAll(genericSpecification);
-        if(!countries.isEmpty())
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, "country already exist");
         mapper.map(request, country);
         country.setUpdatedBy(userCurrent.getId());
         countryRepository.save(country);

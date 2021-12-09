@@ -15,7 +15,9 @@ import java.util.List;
 public interface CountryRepository extends JpaRepository<Country, Long>, JpaSpecificationExecutor<Country> {
 
     Country findByName(String name);
-    List<Country> findByIsActive(Boolean isActive);
+
+    @Query("SELECT c FROM Country c WHERE ((:isActive IS NULL) OR (:isActive IS NOT NULL AND c.isActive = :isActive))")
+    List<Country> findByIsActive(@Param("isActive")Boolean isActive);
 
     Country findByCode(String code);
 
