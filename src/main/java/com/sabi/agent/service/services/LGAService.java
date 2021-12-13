@@ -161,7 +161,7 @@ public class LGAService {
 
 
     public List<LGA> getAll(Boolean isActive,Long stateId){
-        List<LGA> lga = lgaRepository.findByIsActiveAndStateId(isActive,stateId);
+        List<LGA> lga = lgaRepository.findLgaWithStateId(isActive,stateId);
         for (LGA tran : lga
                 ) {
             State state = stateRepository.getOne(tran.getStateId());

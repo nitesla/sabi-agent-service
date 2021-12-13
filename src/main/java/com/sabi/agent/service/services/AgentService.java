@@ -477,6 +477,7 @@ public class AgentService {
 
 
     public void agentAddressVerifications (AgentVerificationDto request) {
+        validations.validateAddressValidation(request);
         Agent agent = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
@@ -490,7 +491,6 @@ public class AgentService {
                     .dateSubmitted(agent.getCreatedDate())
                     .status(0)
                     .build();
-        validations.validateComponentVerification(addressVerification);
         log.debug("address verification - {}"+ new Gson().toJson(addressVerification));
             agentVerificationRepository.save(addressVerification);
     }
@@ -512,12 +512,12 @@ public class AgentService {
                    .dateSubmitted(agent.getCreatedDate())
                    .status(0)
                    .build();
-           validations.validateComponentVerification(bvnVerification);
            log.debug("bvn verification - {}"+ new Gson().toJson(bvnVerification));
            agentVerificationRepository.save(bvnVerification);
     }
 
     public void agentIdCardVerifications (AgentVerificationDto request) {
+        validations.validateIdCardValidation(request);
         Agent agent = agentRepository.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
@@ -531,7 +531,6 @@ public class AgentService {
                     .dateSubmitted(agent.getCreatedDate())
                     .status(0)
                     .build();
-        validations.validateComponentVerification(idVerification);
         log.debug("id verification - {}"+ new Gson().toJson(idVerification));
             agentVerificationRepository.save(idVerification);
         }

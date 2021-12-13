@@ -146,7 +146,7 @@ public class StateService {
 
 
     public List<State> getAll(Boolean isActive,Long stateId){
-        List<State> states = stateRepository.findByIsActiveAndCountryId(isActive,stateId);
+        List<State> states = stateRepository.findByStateWithCountryId(isActive,stateId);
 
         for (State tran : states
                 ) {

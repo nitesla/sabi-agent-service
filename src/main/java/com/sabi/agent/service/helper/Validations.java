@@ -8,7 +8,6 @@ import com.sabi.agent.core.merchant_integration.request.MerchantSignUpRequest;
 import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
-import com.sabi.agent.core.models.agentModel.AgentVerification;
 import com.sabi.agent.service.repositories.*;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
@@ -447,17 +446,32 @@ public class Validations {
     }
 
 
-    public void validateComponentVerification(AgentVerification request){
+//    public void validateComponentVerification(AgentVerification request){
+//
+//        AgentVerification agentVerification = agentVerificationRepository.findByAgentIdAndComponent(request.getAgentId(),request.getComponent());
+//        if(agentVerification !=null){
+//            AgentVerification saveVerification = agentVerificationRepository.getOne(agentVerification.getId());
+//            saveVerification.setComponent(request.getComponent());
+//            saveVerification.setAgentId(request.getAgentId());
+//
+//            agentVerificationRepository.save(agentVerification);
+//
+//        }
+//    }
 
-        AgentVerification agentVerification = agentVerificationRepository.findByAgentIdAndComponent(request.getAgentId(),request.getComponent());
-        if(agentVerification !=null){
-            AgentVerification saveVerification = agentVerificationRepository.getOne(agentVerification.getId());
-            saveVerification.setComponent(request.getComponent());
-            saveVerification.setAgentId(request.getAgentId());
+    public void validateAddressValidation(AgentVerificationDto request){
+        if (request.getAddress() == null || request.getAddress().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Address cannot be empty");
+        if(request.getId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id cannot be empty");
+    }
 
-            agentVerificationRepository.save(agentVerification);
 
-        }
+    public void validateIdCardValidation(AgentVerificationDto request){
+        if (request.getIdCard() == null || request.getIdCard().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id card cannot be empty");
+        if(request.getId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id cannot be empty");
     }
 
 
