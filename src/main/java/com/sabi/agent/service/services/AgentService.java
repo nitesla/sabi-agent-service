@@ -497,13 +497,12 @@ public class AgentService {
 
 
 
-    public void agentBvnVerifications (WalletBvnResponse bvnResponse, long agentId) {
+    public void agentBvnVerifications (WalletBvnResponse bvnResponse, Long agentId) {
         Agent agent = agentRepository.findById(agentId)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
-           User user = userRepository.getOne(agent.getUserId());
-          log.info("::: agentUser ::" + user);
-
+        agent.setBvn(bvnResponse.getData().getData().getBvn());
+        agent = agentRepository.save(agent);
 
            AgentVerification bvnVerification = AgentVerification.builder()
                    .name("BVN")
