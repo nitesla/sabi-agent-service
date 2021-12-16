@@ -492,6 +492,7 @@ public class AgentService {
                     .status(0)
                     .build();
         log.debug("address verification - {}"+ new Gson().toJson(addressVerification));
+        validations.validateComponentVerification(addressVerification);
             agentVerificationRepository.save(addressVerification);
     }
 
@@ -512,6 +513,7 @@ public class AgentService {
                    .status(0)
                    .build();
            log.debug("bvn verification - {}"+ new Gson().toJson(bvnVerification));
+        validations.validateComponentVerification(bvnVerification);
            agentVerificationRepository.save(bvnVerification);
     }
 
@@ -531,6 +533,7 @@ public class AgentService {
                     .status(0)
                     .build();
         log.debug("id verification - {}"+ new Gson().toJson(idVerification));
+        validations.validateComponentVerification(idVerification);
             agentVerificationRepository.save(idVerification);
         }
 

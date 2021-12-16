@@ -19,7 +19,6 @@ public interface AgentVerificationRepository extends JpaRepository<AgentVerifica
 
 
     @Query("SELECT a FROM AgentVerification a WHERE  ((:name IS NULL) OR (:name IS NOT NULL AND a.name = :name))"+
-            " AND ((:component IS NULL) OR (:component IS NOT NULL AND a.component = :component))"+
             " AND ((:agentId IS NULL) OR (:agentId IS NOT NULL AND a.agentId = :agentId))")
     Page<AgentVerification> agentsDetailsForVerification(@Param("name")String name,
                                                          @Param("agentId")Long agentId,
