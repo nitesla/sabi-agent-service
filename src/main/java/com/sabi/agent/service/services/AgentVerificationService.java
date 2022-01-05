@@ -80,7 +80,7 @@ public class AgentVerificationService {
                         "Requested id does not exist!"));
         agentVerification.setStatus(request.getStatus());
         agentVerification.setDateVerified(new Date());
-        agentVerification.setVerifierId(0l);
+        agentVerification.setVerifierId(1l);
         AgentVerification verificationResponse = agentVerificationRepository.save(agentVerification);
 
             Agent agent = agentRepository.findById(agentVerification.getAgentId())

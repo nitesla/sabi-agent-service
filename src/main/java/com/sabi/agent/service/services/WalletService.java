@@ -1,15 +1,19 @@
 package com.sabi.agent.service.services;
 
 import com.sabi.agent.core.models.WalletEntity;
+import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.wallet_integration.WalletSignUpDto;
+import com.sabi.agent.core.wallet_integration.request.CompleteTopUpRequest;
 import com.sabi.agent.core.wallet_integration.request.DebitUserRequest;
 import com.sabi.agent.core.wallet_integration.request.InitiateTopUpRequest;
 import com.sabi.agent.core.wallet_integration.request.WalletBvnRequest;
 import com.sabi.agent.core.wallet_integration.response.*;
 import com.sabi.agent.service.repositories.WalletRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
+import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.service.ExternalTokenService;
-import com.sun.jersey.api.uri.UriBuilderImpl;
+import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.modelmapper.ModelMapper;
@@ -17,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.core.UriBuilder;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
@@ -43,12 +46,15 @@ public class WalletService {
     private final ExternalTokenService tokenService;
     private final ModelMapper mapper;
     private final AgentService agentService;
+    private final AgentRepository agentRepository;
 
-    public WalletService(API api, ExternalTokenService tokenService, ModelMapper mapper, AgentService agentService) {
+    public WalletService(API api, ExternalTokenService tokenService, ModelMapper mapper, AgentService agentService,
+                         AgentRepository agentRepository) {
         this.api = api;
         this.tokenService = tokenService;
         this.mapper = mapper;
         this.agentService = agentService;
+        this.agentRepository = agentRepository;
     }
 
     private Map<String, String> getHeaders(String fingerPrint) {
@@ -89,10 +95,14 @@ public class WalletService {
     }
 
     public WalletBvnResponse checkBvn(WalletBvnRequest request, String fingerPrint) {
+        Agent agent = agentRepository.findById(request.getAgentId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested agent Id does not exist!"));
+        log.info("agent info :: " +agent);
         WalletBvnResponse bvnResponse = api.post(baseUrl + "/publicKey/" + publicKey + "/verifyBVN", request, WalletBvnResponse.class, getHeaders(fingerPrint));
         if (bvnResponse.getData() != null && bvnResponse.getData().isStatus()) {
             log.info("Bvn is verified :: ");
-            agentService.agentBvnVerifications(bvnResponse, request.getAgentId());
+            agentService.agentBvnVerifications(bvnResponse, agent.getId());
         }
         return bvnResponse;
     }
@@ -135,6 +145,11 @@ public class WalletService {
 
     public InitiateTopUpResponse initiateTopUp(String userId, String fingerPrint, InitiateTopUpRequest initiateTopUpRequest) {
         return api.put(baseUrl + "/publicKey/" + publicKey + "/user/" + userId + "/initiateTopup", initiateTopUpRequest, InitiateTopUpResponse.class, getHeaders(fingerPrint));
+    }
+
+    public CompleteTopUpResponse completeTopUp(CompleteTopUpRequest request, String fingerPrint){
+        String url = "https://api-wallet-dev.spaceso2o.com/api/v3/wallet/publicKey/"+ publicKey+"/completeTopup";
+        return api.put(url, request, CompleteTopUpResponse.class, getHeaders(fingerPrint));
     }
 
     public void saveWallet(CreateWalletResponse response) {
