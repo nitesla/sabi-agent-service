@@ -3,6 +3,7 @@ package com.sabi.agent.service.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.sabi.agent.core.dto.ValidateEmailOtpRequest;
+import com.sabi.agent.core.dto.agentDto.requestDto.AgentPhotoRequest;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentUpdateDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentVerificationDto;
 import com.sabi.agent.core.dto.agentDto.requestDto.CreateAgentRequestDto;
@@ -29,6 +30,8 @@ import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
+import com.sabi.framework.integrations.payment_integration.models.request.TokenisationRequest;
+import com.sabi.framework.integrations.payment_integration.models.response.TokenisationResponse;
 import com.sabi.framework.models.PreviousPasswords;
 import com.sabi.framework.models.User;
 import com.sabi.framework.notification.requestDto.NotificationRequestDto;
@@ -202,6 +205,16 @@ public class AgentService {
         return mapper.map(user, CreateAgentResponseDto.class);
     }
 
+
+    public Agent addAgentPhoto(AgentPhotoRequest request){
+        Agent agent = agentRepository.findById(request.getAgentId()).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                "Enter a valid Agent Id"));
+        agent.setPicture(request.getImageUrl());
+        log.info("Saving agent profile photo " + agent);
+        Agent savedAgent = agentRepository.save(agent);
+        log.info("Agent picture saved" + savedAgent);
+        return savedAgent;
+    }
 
 
 
