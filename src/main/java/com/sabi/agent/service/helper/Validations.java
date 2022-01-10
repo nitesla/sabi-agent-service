@@ -14,6 +14,7 @@ import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentVerificationRepository;
 import com.sabi.framework.exceptions.BadRequestException;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
@@ -442,22 +443,43 @@ public class Validations {
 
 
     public void validateVerification (Verification request){
-        if (request.getStatus() != CustomResponseCode.ENABLE_VERIFICATION_STATUS || request.getStatus() != CustomResponseCode.FAILED_VERIFICATION_STATUS)
+        if (request.getStatus() != CustomResponseCode.ENABLE_VERIFICATION_STATUS && request.getStatus() != CustomResponseCode.FAILED_VERIFICATION_STATUS)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid status");
     }
 
 
+//    public void validateComponentVerification(AgentVerification request){
+//
+//        AgentVerification agentVerification = agentVerificationRepository.findByAgentIdAndComponent(request.getAgentId(),request.getComponent());
+//        if(agentVerification !=null){
+//            AgentVerification saveVerification = agentVerificationRepository.getOne(agentVerification.getId());
+//            saveVerification.setComponent(request.getComponent());
+//            saveVerification.setAgentId(request.getAgentId());
+//
+//            agentVerificationRepository.save(agentVerification);
+//
+//        }
+//    }
+
     public void validateComponentVerification(AgentVerification request){
-
         AgentVerification agentVerification = agentVerificationRepository.findByAgentIdAndComponent(request.getAgentId(),request.getComponent());
-        if(agentVerification !=null){
-            AgentVerification saveVerification = agentVerificationRepository.getOne(agentVerification.getId());
-            saveVerification.setComponent(request.getComponent());
-            saveVerification.setAgentId(request.getAgentId());
+        if(agentVerification !=null)
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Component already exist");
+    }
 
-            agentVerificationRepository.save(agentVerification);
+    public void validateAddressValidation(AgentVerificationDto request){
+        if (request.getAddress() == null || request.getAddress().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Address cannot be empty");
+        if(request.getId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id cannot be empty");
+    }
 
-        }
+
+    public void validateIdCardValidation(AgentVerificationDto request){
+        if (request.getIdCard() == null || request.getIdCard().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id card cannot be empty");
+        if(request.getId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id cannot be empty");
     }
 
 
