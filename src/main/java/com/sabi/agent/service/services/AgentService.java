@@ -127,6 +127,7 @@ public class AgentService {
           Agent existAgent = agentRepository.findByUserId(exist.getId());
             existAgent.setRegistrationToken(Utility.registrationCode("HHmmss"));
             existAgent.setRegistrationTokenExpiration(Utility.expiredTime());
+
             Agent agentExist =agentRepository.save(existAgent);
 
             NotificationRequestDto notificationRequestDto = new NotificationRequestDto();
@@ -150,6 +151,7 @@ public class AgentService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
         }
 
+
         String password = Utility.getSaltString();
         user.setPassword(passwordEncoder.encode(password));
         user.setUserCategory(Constants.OTHER_USER);
@@ -166,6 +168,7 @@ public class AgentService {
                 .createdDate(LocalDateTime.now())
                 .build();
         previousPasswordRepository.save(previousPasswords);
+        AgentCategory savedCategory = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
 
         Agent saveAgent = new Agent();
                 saveAgent.setUserId(user.getId());
@@ -177,6 +180,7 @@ public class AgentService {
                 saveAgent.setIsActive(false);
                 saveAgent.setIsEmailVerified(false);
                 saveAgent.setCreatedBy(0l);
+                saveAgent.setAgentCategoryId(savedCategory.getId());
         Agent agentResponse= agentRepository.save(saveAgent);
         log.debug("Create new agent  - {}"+ new Gson().toJson(saveAgent));
 
