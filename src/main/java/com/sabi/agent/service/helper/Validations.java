@@ -73,14 +73,24 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
         if (stateDto.getName() == null || stateDto.getName().trim().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(stateDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(stateDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = stateDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
     }
 
     public void validateTask(TaskDto taskDto) {
         if (taskDto.getName() == null || taskDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        String valName = taskDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
         if(taskDto.getTaskType() == null || taskDto.getTaskType().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Task type cannot be empty");
         if(taskDto.getPriority() == null || taskDto.getPriority().isEmpty())
@@ -93,8 +103,14 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
         if (lgaDto.getName() == null || lgaDto.getName().trim().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(lgaDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(lgaDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = lgaDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
+
 
         State state = stateRepository.findById(lgaDto.getStateId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -121,8 +137,13 @@ public class Validations {
     public void validateIdType(IdTypeDto idTypeDto) {
         if (idTypeDto.getName() == null || idTypeDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(idTypeDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(idTypeDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = idTypeDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
     }
 
@@ -171,6 +192,11 @@ public class Validations {
     public void validateMarket(MarketDto marketDto){
         if(marketDto.getName() == null || marketDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        String valName = marketDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
         if(marketDto.getWardId() == null || marketDto.getWardId() < 0 )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Ward Id cannot be empty");
         Ward ward = wardRepository.findById(marketDto.getWardId())
@@ -182,9 +208,14 @@ public class Validations {
     public void validateWard (WardDto wardDto){
         if (wardDto.getName() == null || wardDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        String valName = wardDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
-        if (!Utility.validateName(wardDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(wardDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
 
 
         LGA lga = lgaRepository.findById(wardDto.getLgaId())
@@ -201,16 +232,26 @@ public class Validations {
     public void validateTargetType (TargetTypeDto targetTypeDto){
         if (targetTypeDto.getName() == null || targetTypeDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(targetTypeDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(targetTypeDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = targetTypeDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
     }
 
     public void validateAgentCategoryTarget (AgentCategoryTargetDto agentCategoryTargetDto){
         if (agentCategoryTargetDto.getName() == null || agentCategoryTargetDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(agentCategoryTargetDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(agentCategoryTargetDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = agentCategoryTargetDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
         AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTargetDto.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -275,8 +316,13 @@ public class Validations {
     public void validateAgentCategoryTask (AgentCategoryTaskDto agentCategoryTaskDto){
         if (agentCategoryTaskDto.getName() == null || agentCategoryTaskDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(agentCategoryTaskDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(agentCategoryTaskDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = agentCategoryTaskDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
 
         AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTaskDto.getAgentCategoryId())
@@ -309,8 +355,13 @@ public class Validations {
     public void validateAgentTarget(AgentTargetDto request) {
         if(request.getName() == null || request.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " Agent Target name can not be empty");
-        if (!Utility.validateName(request.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Agent Target Name ");
+//        if (!Utility.validateName(request.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Agent Target Name ");
+        String valName = request.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
         if (request.getTargetId() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Target Type cannot be empty");
