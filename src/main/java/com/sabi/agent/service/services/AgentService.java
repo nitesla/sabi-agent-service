@@ -434,8 +434,8 @@ public class AgentService {
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
 
-    public Page<Agent> findAllAgents(Long userId,Boolean isActive,String referrer, PageRequest pageRequest ) throws Exception {
-        Page<Agent> agents = agentRepository.findAgents(userId, isActive, referrer, pageRequest);
+    public Page<Agent> findAllAgents(Long userId,Boolean isActive,String referralCode,String referrer, PageRequest pageRequest ) throws Exception {
+        Page<Agent> agents = agentRepository.findAgents(userId, isActive,referralCode, referrer, pageRequest);
         if (agents == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
