@@ -4,6 +4,7 @@ package com.sabi.agent.service.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryDto;
+import com.sabi.agent.core.dto.agentDto.requestDto.AgentPhotoRequest;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.AgentCategoryResponseDto;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
@@ -169,5 +170,14 @@ public class AgentCategoryService {
         return  agentCategories.stream()
                 .map(agentCategory -> mapper.map(agentCategory, AgentCategoryResponseDto.class))
                 .collect(Collectors.toList());
+    }
+
+    public AgentCategoryResponseDto setCategoryPhoto(AgentPhotoRequest request){
+        AgentCategory agentCategory = agentCategoryRepository.findById(request.getAgentId()).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                "Enter a valid Agent Id"));
+        agentCategory.setImage(request.getImageUrl());
+        log.info("Saving Agent category: " + agentCategory);
+        AgentCategory saved = agentCategoryRepository.save(agentCategory);
+        return mapper.map(saved, AgentCategoryResponseDto.class);
     }
 }
