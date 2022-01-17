@@ -101,7 +101,7 @@ public class MerchantService {
         return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
     }
 
-    public Page<RegisteredMerchant> findMerchant(String agentId, String merchantId, PageRequest pageRequest) {
+    public Page<RegisteredMerchant> findMerchant(String agentId, String merchantId, String firstName, String lastName,PageRequest pageRequest) {
         GenericSpecification<RegisteredMerchant> genericSpecification = new GenericSpecification<RegisteredMerchant>();
 
         if (agentId != null && !agentId.isEmpty()) {
@@ -110,6 +110,10 @@ public class MerchantService {
         if (merchantId != null && !merchantId.isEmpty()) {
             genericSpecification.add(new SearchCriteria("merchantId", merchantId, SearchOperation.EQUAL));
         }
+        if(firstName != null && !firstName.isEmpty())
+            genericSpecification.add(new SearchCriteria("firstName", firstName, SearchOperation.MATCH));
+        if(lastName !=null && !lastName.isEmpty())
+            genericSpecification.add(new SearchCriteria("lastName", lastName, SearchOperation.MATCH));
         return repository.findAll(genericSpecification, pageRequest);
     }
 

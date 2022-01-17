@@ -132,8 +132,8 @@ public class OrderService {
 
 
 
-    public Page<AgentOrder> findAll(Long orderId, Boolean status, Date createdDate,Long agentId, PageRequest pageRequest ) {
-        Page<AgentOrder> agentOrder = orderRepository.findOrders(orderId,status,createdDate,agentId, pageRequest);
+    public Page<AgentOrder> findAll(Long orderId, Boolean status, Date createdDate,Long agentId, String userName,PageRequest pageRequest ) {
+        Page<AgentOrder> agentOrder = orderRepository.findOrders(orderId,status,createdDate,agentId, userName,pageRequest);
         if (agentOrder == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }

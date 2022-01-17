@@ -560,24 +560,27 @@ public class AgentService {
     }
 
 
-
-    public void agentBvnVerifications (WalletBvnResponse bvnResponse, Long agentId) {
+    public void agentBvnVerifications(WalletBvnResponse bvnResponse, Long agentId) {
         Agent agent = agentRepository.findById(agentId)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent Id does not exist!"));
         agent.setBvn(bvnResponse.getData().getData().getBvn());
+
         agent = agentRepository.save(agent);
 
-           AgentVerification bvnVerification = AgentVerification.builder()
-                   .name("BVN")
-                   .agentId(agent.getId())
-                   .component(bvnResponse.getData().getData().getBvn())
-                   .dateSubmitted(agent.getCreatedDate())
-                   .status(0)
-                   .build();
-           log.debug("bvn verification - {}"+ new Gson().toJson(bvnVerification));
+        AgentVerification bvnVerification = AgentVerification.builder()
+                .name("BVN")
+                .agentId(agent.getId())
+                .component(bvnResponse.getData().getData().getBvn())
+                .dateSubmitted(agent.getCreatedDate())
+                .build();
+
+        if (bvnResponse.getData().isStatus())
+            bvnVerification.setStatus(1);
+        else bvnVerification.setStatus(0);
+        log.debug("bvn verification - {}" + new Gson().toJson(bvnVerification));
         validations.validateComponentVerification(bvnVerification);
-           agentVerificationRepository.save(bvnVerification);
+        agentVerificationRepository.save(bvnVerification);
     }
 
     public void agentIdCardVerifications (AgentVerificationDto request) {

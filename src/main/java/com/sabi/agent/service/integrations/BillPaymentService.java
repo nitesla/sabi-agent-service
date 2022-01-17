@@ -73,8 +73,8 @@ public class BillPaymentService {
         String extToken = externalTokenService.getToken().toString();
 
         Map<String, String> map = new HashMap();
-        map.put("fingerprint", airtimeRequestDto.getFingerprint().trim());
-        map.put("Authorization", "Bearer " + extToken);
+//        map.put("fingerprint", airtimeRequestDto.getFingerprint().trim());
+//        map.put("Authorization", "Bearer " + extToken);
         map.put("authKey", authKey);
         AirtimeResponseDto response = api.post(airtime, request, AirtimeResponseDto.class, map);
         Airtime airtime = mapper.map(response, Airtime.class);
