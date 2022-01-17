@@ -12,6 +12,7 @@ import com.sabi.agent.service.helper.SearchCriteria;
 import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
+import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
@@ -61,7 +62,7 @@ public class AgentCategoryService {
         }
         agentCategory.setCreatedBy(userCurrent.getId());
         agentCategory.setIsActive(true);
-        agentCategory.setDefault(false);
+        agentCategory.setIsDefault(false);
         agentCategory = agentCategoryRepository.save(agentCategory);
         log.debug("Create new agent category - {}"+ new Gson().toJson(agentCategory));
         return mapper.map(agentCategory, AgentCategoryResponseDto.class);
@@ -82,9 +83,17 @@ public class AgentCategoryService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent category id does not exist!"));
         mapper.map(request, agentCategory);
-        agentCategory.setUpdatedBy(userCurrent.getId());
-        agentCategoryRepository.save(agentCategory);
-        log.debug("Agent category record updated - {}"+ new Gson().toJson(agentCategory));
+
+        if(request.getIsDefault().equals(true)){
+            AgentCategory getDefault = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
+            if(getDefault !=null)
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Default category already exist" );
+
+        }
+                agentCategory.setUpdatedBy(userCurrent.getId());
+                agentCategoryRepository.save(agentCategory);
+                log.debug("Agent category record updated - {}" + new Gson().toJson(agentCategory));
+
         return mapper.map(agentCategory, AgentCategoryResponseDto.class);
     }
 
@@ -159,7 +168,7 @@ public class AgentCategoryService {
         AgentCategory agentCategory = agentCategoryRepository.findById(id).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                 "Requested Agent Bank does not exist!"));
         agentCategoryRepository.updateIsDefault();
-        agentCategory.setDefault(true);
+        agentCategory.setIsDefault(true);
         AgentCategory defaultAgentCat = agentCategoryRepository.save(agentCategory);
         return mapper.map(defaultAgentCat, AgentCategoryResponseDto.class);
     }

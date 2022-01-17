@@ -23,7 +23,7 @@ public interface AgentCategoryRepository extends JpaRepository<AgentCategory, Lo
 
     AgentCategory findByName(String name);
 
-    AgentCategory findAgentCategoriesByIsDefault(boolean isDefault);
+    AgentCategory findAgentCategoriesByIsDefault(Boolean isDefault);
 
     AgentCategory findAgentCategoriesById(Long id);
 

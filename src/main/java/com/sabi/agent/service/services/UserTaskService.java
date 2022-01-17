@@ -13,6 +13,7 @@ import com.sabi.agent.service.repositories.UserTaskRepository;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
+import com.sabi.framework.service.AuditTrailService;
 import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
@@ -37,13 +38,16 @@ public class UserTaskService {
     private final ModelMapper mapper;
     private final ObjectMapper objectMapper;
     private final Validations validations;
+    private final AuditTrailService auditTrailService;
     @Autowired
     private Exists exists;
 
-    public UserTaskService(ModelMapper mapper, ObjectMapper objectMapper, Validations validations) {
+    public UserTaskService(ModelMapper mapper, ObjectMapper objectMapper, Validations validations,
+                           AuditTrailService auditTrailService) {
         this.mapper = mapper;
         this.objectMapper = objectMapper;
         this.validations = validations;
+        this.auditTrailService = auditTrailService;
     }
 
     /** <summary>
