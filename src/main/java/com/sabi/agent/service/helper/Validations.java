@@ -43,6 +43,7 @@ public class Validations {
     private MarketRepository marketRepository;
     private AgentVerificationRepository agentVerificationRepository;
     private CountryRepository countryRepository;
+    private final MerchantRepository merchantRepository;
 
     @Autowired
     private BankRepository bankRepository;
@@ -53,7 +54,7 @@ public class Validations {
                        TargetTypeRepository targetTypeRepository, TaskRepository taskRepository,
                        UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository,
                        SupervisorRepository supervisorRepository, AgentVerificationRepository agentVerificationRepository,
-                       CountryRepository countryRepository) {
+                       CountryRepository countryRepository, MerchantRepository merchantRepository) {
         this.stateRepository = stateRepository;
         this.lgaRepository = lgaRepository;
         this.agentCategoryRepository = agentCategoryRepository;
@@ -66,6 +67,7 @@ public class Validations {
         this.supervisorRepository = supervisorRepository;
         this.agentVerificationRepository = agentVerificationRepository;
         this.countryRepository = countryRepository;
+        this.merchantRepository = merchantRepository;
     }
 
     public void validateState(StateDto stateDto) {
@@ -536,9 +538,12 @@ public class Validations {
 
 
     public void validateOrder(PlaceOrder request){
+
         Agent agent  = agentRepository.findById(request.getAgentId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Agent id does not exist!"));
+        merchantRepository.findById(request.getMerchantId()).orElseThrow(()->
+                new NotFoundException(CustomResponseCode.BAD_REQUEST, "Merchant id does not exist"));
     }
 
     public void validateMerchant(MerchantSignUpRequest signUpRequest){

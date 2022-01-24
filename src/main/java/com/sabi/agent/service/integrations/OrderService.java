@@ -23,6 +23,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("ALL")
@@ -120,23 +121,30 @@ public class OrderService {
                 .createdDate(new Date())
                 .status(response.isStatus())
                 .agentId(request.getAgentId())
+                .merchantId(request.getMerchantId())
                 .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
                 .totalAmount(String.valueOf(request.getOrderDelivery().getTotal()))
                 .userName(response.getData().getUserName())
                 .build();
+        log.info("validating order " + request);
         validations.validateOrder(request);
         log.info("::::::::::::ORDER REQUEST::::::::::::::::: " + order);
         orderRepository.save(order);
-
     }
 
 
 
-    public Page<AgentOrder> findAll(Long orderId, Boolean status, Date createdDate,Long agentId, String userName,PageRequest pageRequest ) {
+    public Page<AgentOrder> findAll(Long orderId, Boolean status, Date createdDate,Long agentId, String userName,PageRequest pageRequest) {
         Page<AgentOrder> agentOrder = orderRepository.findOrders(orderId,status,createdDate,agentId, userName,pageRequest);
         if (agentOrder == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
         return agentOrder;
+    }
+
+    public List<String> multiSearch(String searchTerm){
+        List<String> objects = orderRepository.singleSearch(searchTerm);
+        log.info("No. Of items from search " + objects.size());
+        return objects;
     }
 }
