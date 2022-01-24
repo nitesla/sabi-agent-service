@@ -18,7 +18,7 @@ public interface AgentVerificationRepository extends JpaRepository<AgentVerifica
     AgentVerification findByAgentIdAndComponent(Long agentId ,String component);
 
 
-    @Query("SELECT a FROM AgentVerification a WHERE  ((:name IS NULL) OR (:name IS NOT NULL AND a.name = :name))"+
+    @Query("SELECT a FROM AgentVerification a WHERE  ((:name IS NULL) OR (:name IS NOT NULL AND a.name LIKE %:name%))"+
             " AND ((:agentId IS NULL) OR (:agentId IS NOT NULL AND a.agentId = :agentId))")
     Page<AgentVerification> agentsDetailsForVerification(@Param("name")String name,
                                                          @Param("agentId")Long agentId,
