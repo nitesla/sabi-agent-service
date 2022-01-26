@@ -3,6 +3,7 @@ package com.sabi.agent.service.integrations;
 
 import com.sabi.agent.core.integrations.order.*;
 import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
+import com.sabi.agent.core.integrations.request.CompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.MerchBuyRequest;
 import com.sabi.agent.core.integrations.response.MerchBuyResponse;
 import com.sabi.agent.core.models.AgentOrder;
@@ -146,5 +147,13 @@ public class OrderService {
         List<String> objects = orderRepository.singleSearch(searchTerm);
         log.info("No. Of items from search " + objects.size());
         return objects;
+    }
+
+    public void completeOrder(CompleteOrderRequest request){
+        Map map=new HashMap();
+        map.put("fingerprint",fingerPrint);
+        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        Map post = api.post(orderDetail + "transaction", request, Map.class, map);
+
     }
 }
