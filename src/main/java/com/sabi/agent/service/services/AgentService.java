@@ -38,6 +38,7 @@ import com.sabi.framework.notification.requestDto.SmsRequest;
 import com.sabi.framework.notification.requestDto.WhatsAppRequest;
 import com.sabi.framework.repositories.PreviousPasswordRepository;
 import com.sabi.framework.repositories.UserRepository;
+import com.sabi.framework.repositories.UserRoleRepository;
 import com.sabi.framework.service.*;
 import com.sabi.framework.utils.AuditTrailFlag;
 import com.sabi.framework.utils.Constants;
@@ -91,13 +92,15 @@ public class AgentService {
     private final Validations validations;
     private final AuditTrailService auditTrailService;
     private final WhatsAppService whatsAppService;
+    private final UserRoleRepository userRoleRepository;
 
     public AgentService(AgentVerificationRepository agentVerificationRepository,ExternalTokenService externalTokenService,CountryRepository countryRepository,
                         BankRepository bankRepository,StateRepository stateRepository,IdTypeRepository idTypeRepository,
                         CreditLevelRepository creditLevelRepository,SupervisorRepository supervisorRepository,
                         PreviousPasswordRepository previousPasswordRepository,UserRepository userRepository,AgentRepository agentRepository,
                         AgentCategoryRepository agentCategoryRepository,NotificationService notificationService, ModelMapper mapper, ObjectMapper objectMapper,
-                        Validations validations,AuditTrailService auditTrailService,WhatsAppService whatsAppService) {
+                        Validations validations,AuditTrailService auditTrailService,WhatsAppService whatsAppService,
+                        UserRoleRepository userRoleRepository) {
         this.agentVerificationRepository = agentVerificationRepository;
         this.externalTokenService = externalTokenService;
         this.countryRepository = countryRepository;
@@ -116,6 +119,7 @@ public class AgentService {
         this.validations = validations;
         this.auditTrailService = auditTrailService;
         this.whatsAppService = whatsAppService;
+        this.userRoleRepository = userRoleRepository;
     }
 
 
@@ -133,7 +137,7 @@ public class AgentService {
 
           Agent existAgent = agentRepository.findByUserId(exist.getId());
 
-          if(exist == null){
+          if(existAgent == null){
               throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "User not an agent");
           }
             existAgent.setRegistrationToken(Utility.registrationCode("HHmmss"));
@@ -173,7 +177,7 @@ public class AgentService {
         user.setPassword(passwordEncoder.encode(password));
         user.setUserCategory(Constants.OTHER_USER);
         user.setUsername(request.getPhone());
-        user.setLoginAttempts(0l);
+        user.setLoginAttempts(0);
         user.setCreatedBy(0l);
         user.setIsActive(false);
         user = userRepository.save(user);
