@@ -57,12 +57,14 @@ public class MerchantService {
         validations.validateMerchant(signUpRequest);
         MerchantSignUpResponse signUpResponse = api.post("https://api-dev.spaceso2o.com/api/v4/completeSignup",
                 signUpRequest, MerchantSignUpResponse.class, getHeaders(fingerPrint));
-        if (signUpResponse.getId() != null)
-            saveMerchant(signUpResponse, signUpRequest);
+        if (signUpResponse.getId() != null){
+             RegisteredMerchant registeredMerchant = saveMerchant(signUpResponse, signUpRequest);
+            signUpResponse.setLocalId(registeredMerchant.getId());
+        }
         return signUpResponse;
     }
 
-    public void saveMerchant(MerchantSignUpResponse signUpResponse, MerchantSignUpRequest signUpRequest) {
+    public RegisteredMerchant saveMerchant(MerchantSignUpResponse signUpResponse, MerchantSignUpRequest signUpRequest) {
         RegisteredMerchant registeredMerchant = new RegisteredMerchant();
         registeredMerchant.setAgentId(signUpRequest.getAgentId());
         registeredMerchant.setEmail(signUpResponse.getEmail());
@@ -73,7 +75,7 @@ public class MerchantService {
         registeredMerchant.setBusinessName(signUpRequest.getBusinessName());
         registeredMerchant.setPhoneNumber(signUpResponse.getPhoneNumber());
         registeredMerchant.setMerchantId(signUpResponse.getId());
-        repository.save(registeredMerchant);
+        return repository.save(registeredMerchant);
     }
 
     public MerchantWithActivityResponse getMerchantWithActivity(int page, int size, String fingerPrint) {
@@ -98,6 +100,7 @@ public class MerchantService {
     }
 
     private String encodeValue(String value) throws UnsupportedEncodingException {
+
         return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
     }
 
@@ -119,5 +122,9 @@ public class MerchantService {
 
     public MerchantDetailResponse merchantDetails(String userId, String fingerPrint){
         return api.get(baseUrl + "/api/users/public/" + userId, MerchantDetailResponse.class, getHeaders(fingerPrint));
+    }
+
+    public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, PageRequest pageRequest){
+        return repository.searchMerchants(searchTerm, agentId, pageRequest);
     }
 }

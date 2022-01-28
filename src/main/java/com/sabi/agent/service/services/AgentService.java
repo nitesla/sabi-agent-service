@@ -513,6 +513,49 @@ public class AgentService {
 
     }
 
+    public Page<User> findAgentUser(String name, PageRequest pageRequest ){
+        Page<User> agentUser = userRepository.findByPartName(name, pageRequest);
+        if(agentUser == null){
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
+        }
+        agentUser.getContent().forEach(users -> {
+            Agent agent = agentRepository.findByUserId(users.getId());
+            users.setAgentId(agent.getId());
+            users.setAgentCategoryId(agent.getAgentCategoryId());
+            users.setScope(agent.getScope());
+            users.setReferralCode(agent.getReferralCode());
+            users.setReferrer(agent.getReferrer());
+            users.setAddress(agent.getAddress());
+            users.setBvn(agent.getBvn());
+            users.setAgentType(agent.getAgentType());
+            users.setCreditLimit(agent.getCreditLimit());
+            users.setPayBackDuration(agent.getPayBackDuration());
+            users.setBalance(agent.getBalance());
+            users.setVerificationDate(agent.getVerificationDate());
+            users.setSupervisorId(agent.getSupervisorId());
+            users.setVerificationStatus(agent.getVerificationStatus());
+            users.setComment(agent.getComment());
+            users.setCardToken(agent.getCardToken());
+            users.setStatus(agent.getStatus());
+            users.setWalletId(agent.getWalletId());
+            users.setPicture(agent.getPicture());
+            users.setHasCustomizedTarget(agent.getHasCustomizedTarget());
+            users.setCreditLevelId(agent.getCreditLevelId());
+            users.setIdTypeId(agent.getIdTypeId());
+            users.setIdCard(agent.getIdCard());
+            users.setStateId(agent.getStateId());
+            users.setBankId(agent.getBankId());
+            users.setCountryId(agent.getCountryId());
+            users.setAccountNonLocked(agent.isAccountNonLocked());
+            users.setRegistrationTokenExpiration(agent.getRegistrationTokenExpiration());
+            users.setRegistrationToken(agent.getRegistrationToken());
+            users.setIsEmailVerified(agent.getIsEmailVerified());
+
+        });
+        return agentUser;
+
+    }
+
 
 
 

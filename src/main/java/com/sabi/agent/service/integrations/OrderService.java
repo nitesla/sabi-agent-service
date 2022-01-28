@@ -3,11 +3,13 @@ package com.sabi.agent.service.integrations;
 
 import com.sabi.agent.core.integrations.order.*;
 import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
+import com.sabi.agent.core.integrations.request.CompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.MerchBuyRequest;
 import com.sabi.agent.core.integrations.response.MerchBuyResponse;
 import com.sabi.agent.core.models.AgentOrder;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.OrderRepository;
+import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.service.ExternalTokenService;
@@ -21,6 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -142,9 +147,35 @@ public class OrderService {
         return agentOrder;
     }
 
-    public List<String> multiSearch(String searchTerm){
-        List<String> objects = orderRepository.singleSearch(searchTerm);
-        log.info("No. Of items from search " + objects.size());
+    public Page<Map<String, Object>> multiSearch(String searchTerm, String startDate, String endDate, PageRequest pageRequest){
+        Page<Map<String, Object>> objects;
+
+        if(startDate != null && endDate !=null ) {
+            try {
+                tryParseDate(startDate);
+                tryParseDate(endDate);
+                log.info("logging with date");
+                objects = orderRepository.singleSearch(searchTerm, startDate, endDate, pageRequest);
+            } catch (ParseException e) {
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Expected date format is yyyy-MM-dd HH:mm:ss");
+            }
+        }
+        else
+        objects = orderRepository.singleSearch(searchTerm, pageRequest);
+
+        log.info("No. Of items from search " + objects.stream().count());
         return objects;
+    }
+
+    private void tryParseDate(String date) throws ParseException {
+         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date);
+    }
+
+    public void completeOrder(CompleteOrderRequest request){
+        Map map=new HashMap();
+        map.put("fingerprint",fingerPrint);
+        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        Map post = api.post(orderDetail + "transaction", request, Map.class, map);
+
     }
 }
