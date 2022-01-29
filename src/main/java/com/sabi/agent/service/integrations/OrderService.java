@@ -25,10 +25,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("ALL")
@@ -75,6 +73,7 @@ public class OrderService {
         CreateOrderResponse response = api.post(processOrder ,placeOrder, CreateOrderResponse.class,map);
         saveOrder(request,response);
         return response;
+
     }
 
 
@@ -127,7 +126,7 @@ public class OrderService {
                 .status(response.isStatus())
                 .agentId(request.getAgentId())
                 .merchantId(request.getMerchantId())
-                .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
+                .orderId(response.getData().getOrderDelivery().getOrderId())
                 .totalAmount(String.valueOf(request.getOrderDelivery().getTotal()))
                 .userName(response.getData().getUserName())
                 .build();
