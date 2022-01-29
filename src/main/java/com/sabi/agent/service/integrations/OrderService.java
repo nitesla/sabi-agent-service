@@ -127,7 +127,7 @@ public class OrderService {
                 .status(response.isStatus())
                 .agentId(request.getAgentId())
                 .merchantId(request.getMerchantId())
-                .orderId(response.getData().getOrderDelivery().getOrderId())
+                .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
                 .totalAmount(String.valueOf(request.getOrderDelivery().getTotal()))
                 .userName(response.getData().getUserName())
                 .build();
