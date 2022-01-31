@@ -71,6 +71,7 @@ public class OrderService {
                 .build();
 
         CreateOrderResponse response = api.post(processOrder ,placeOrder, CreateOrderResponse.class,map);
+        log.info(":::::::  SERVICE RESPONSE ::::::::" +response );
         if (response.isStatus())
         saveOrder(request,response);
         return response;
