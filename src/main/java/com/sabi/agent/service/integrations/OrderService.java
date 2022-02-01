@@ -2,6 +2,7 @@ package com.sabi.agent.service.integrations;
 
 
 import com.sabi.agent.core.integrations.order.*;
+import com.sabi.agent.core.integrations.order.orderResponse.CompleteOrderResponse;
 import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
 import com.sabi.agent.core.integrations.request.CompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.MerchBuyRequest;
@@ -172,11 +173,11 @@ public class OrderService {
          new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date);
     }
 
-    public void completeOrder(CompleteOrderRequest request){
-        Map map=new HashMap();
+    public CompleteOrderResponse completeOrder(CompleteOrderRequest request){
+        Map map = new HashMap();
+        CompleteOrderRequest completeOrderRequest = new CompleteOrderRequest();
         map.put("fingerprint",fingerPrint);
         map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
-        Map post = api.post(orderDetail + "transaction", request, Map.class, map);
-
+        return api.post(orderDetail + "transaction", request, CompleteOrderResponse.class, map);
     }
 }
