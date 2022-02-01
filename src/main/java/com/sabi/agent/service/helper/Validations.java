@@ -575,4 +575,16 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "product name cannot be empty");
     }
 
+    public void validateOrderRequest(PlaceOrder request) {
+        if (request.getAgentId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent id cannot be empty");
+        if (request.getMerchantId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Merchant id cannot be empty");
+        Agent agent  = agentRepository.findById(request.getAgentId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Agent id does not exist!" ));
+        merchantRepository.findById(request.getMerchantId()).orElseThrow(()->
+                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Merchant id does not exist"));
+    }
+
 }

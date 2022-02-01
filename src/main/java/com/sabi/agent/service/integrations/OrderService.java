@@ -58,6 +58,7 @@ public class OrderService {
 
 
     public CreateOrderResponse placeOrder (PlaceOrder request) throws IOException {
+        validations.validateOrderRequest(request);
 
         Map map=new HashMap();
         map.put("fingerprint",fingerPrint);
@@ -69,9 +70,7 @@ public class OrderService {
                 .orderDelivery(request.getOrderDelivery())
                 .products(request.getProducts())
                 .build();
-        log.info(":::::::  SERVICE REQUEST ::::::::" +placeOrder );
         CreateOrderResponse response = api.post(processOrder ,placeOrder, CreateOrderResponse.class,map);
-        log.info(":::::::  SERVICE RESPONSE ::::::::" +response );
         if (response.isStatus())
         saveOrder(request,response);
         return response;
