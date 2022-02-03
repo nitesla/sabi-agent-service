@@ -4,6 +4,7 @@ package com.sabi.agent.service.integrations;
 import com.sabi.agent.core.integrations.order.*;
 import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
 import com.sabi.agent.core.integrations.request.CompleteOrderRequest;
+import com.sabi.agent.core.integrations.request.LocalCompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.MerchBuyRequest;
 import com.sabi.agent.core.integrations.response.MerchBuyResponse;
 import com.sabi.agent.core.models.AgentOrder;
@@ -11,8 +12,12 @@ import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.OrderRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
+import com.sabi.framework.exceptions.ProcessingException;
 import com.sabi.framework.helpers.API;
+import com.sabi.framework.integrations.payment_integration.models.response.PaymentStatusResponse;
+import com.sabi.framework.repositories.PaymentDetailRepository;
 import com.sabi.framework.service.ExternalTokenService;
+import com.sabi.framework.service.PaymentService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +30,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("ALL")
@@ -57,6 +60,12 @@ public class OrderService {
 
     @Value("${merchantbuy.url}")
     private String merchBuyUrl;
+
+    private final PaymentService paymentService;
+
+    public OrderService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
 
 
     public CreateOrderResponse placeOrder (PlaceOrder request) throws IOException {
@@ -126,6 +135,8 @@ public class OrderService {
         AgentOrder order = AgentOrder.builder()
                 .createdDate(new Date())
                 .status(response.isStatus())
+                .orderStatus("PROCESSING")
+                .isSentToThirdParty(false)
                 .agentId(request.getAgentId())
                 .merchantId(request.getMerchantId())
                 .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
@@ -170,6 +181,64 @@ public class OrderService {
 
     private void tryParseDate(String date) throws ParseException {
          new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date);
+    }
+
+    public void localCompleteOrder(LocalCompleteOrderRequest completeOrderRequest){
+        AgentOrder agentOrder = orderRepository.findById(completeOrderRequest.getOrderId()).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                "Enter a valid order id"));
+
+        PaymentStatusResponse paymentStatusResponse = paymentService.checkStatus(completeOrderRequest.getPaymentReference());
+        paymentStatusResponse.getPaymentDetails().setOrderId(agentOrder.getOrderId());
+        agentOrder.setOrderStatus("PAID");
+        agentOrder.setOrderDate(new Date());
+        agentOrder.setSentToThirdParty(false);
+        agentOrder.setThirdPartyResponseCode(completeOrderRequest.getCode());
+        agentOrder.setThirdPartyResponseDesc(completeOrderRequest.getMessage());
+
+        String paymentMethod = getPaymentMethod(completeOrderRequest.getPaymentMethod());
+
+        if (paymentMethod.equals("NA")){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Payment method not found");
+        }
+
+        agentOrder.setPaymentMethod(paymentMethod);
+        agentOrder.setSuccessPaymentId(paymentStatusResponse.getPaymentDetails().getId());
+        log.info("Updating agent order {} ", agentOrder);
+        orderRepository.save(agentOrder);
+        log.info("Updating payment {} for order {} ",paymentStatusResponse.getPaymentDetails(), agentOrder);
+        paymentService.updatePaymentStatus(paymentStatusResponse);
+
+    }
+
+    public String getPaymentMethod(int paymentMethod){
+        //PayOnDelivery = 1,
+        //PayOnline = 2,
+        //PayWithWallet = 3,
+        //PostPaid = 4,
+        //PayWithTransfer = 5
+        String paymentMethodString = "";
+        switch (paymentMethod){
+            case 0:
+                throw new ProcessingException("Error processing payment. Payment method invalid");
+            case 1:
+                paymentMethodString = "Pay on Delivery";
+                break;
+            case 2:
+                paymentMethodString = "Pay online";
+                break;
+            case 3:
+                paymentMethodString = "Pay with wallet";
+                break;
+            case 4:
+                paymentMethodString = "Post Paid";
+                break;
+            case 5:
+                paymentMethodString = "Pay with transefer";
+                break;
+            default:
+                paymentMethodString = "NA";
+        }
+        return paymentMethodString;
     }
 
     public void completeOrder(CompleteOrderRequest request){
