@@ -23,8 +23,8 @@ public interface CountryRepository extends JpaRepository<Country, Long>, JpaSpec
 
 
 
-    @Query("SELECT c FROM Country c WHERE ((:name IS NULL) OR (:name IS NOT NULL AND c.name = :name))" +
-            " AND ((:code IS NULL) OR (:code IS NOT NULL AND c.code = :code))")
+    @Query("SELECT c FROM Country c WHERE ((:name IS NULL) OR (:name IS NOT NULL AND c.name LIKE %:name%))" +
+            " AND ((:code IS NULL) OR (:code IS NOT NULL AND c.code LIKE %:code%))")
     Page<Country> findCountries(@Param("name")String name,
                                 @Param("code")String code,
                                 Pageable pageable);

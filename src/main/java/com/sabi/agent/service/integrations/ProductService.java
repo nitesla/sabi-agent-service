@@ -3,6 +3,7 @@ package com.sabi.agent.service.integrations;
 
 import com.sabi.agent.core.integrations.request.AllProductsRequest;
 import com.sabi.agent.core.integrations.request.SingleProductRequest;
+import com.sabi.agent.core.integrations.response.MerchantProductCategory;
 import com.sabi.agent.core.integrations.response.SingleProductResponse;
 import com.sabi.agent.core.integrations.response.product.AllProductResponse;
 import com.sabi.framework.helpers.API;
@@ -30,6 +31,10 @@ public class ProductService {
     private String allProductDetail;
     @Value("${finger.print}")
     private String fingerPrint;
+    @Value("${merchant.product.category}")
+    private String merchantProductCategoryURL;
+    @Value("${product.categoryById}")
+    private String productCategoryByCategoryId;
 
 
 
@@ -58,6 +63,27 @@ public class ProductService {
         map.put("fingerprint",fingerPrint);
         AllProductResponse response = api.get(builder.toUriString(), AllProductResponse.class,map);
         return response;
+    }
+
+    public MerchantProductCategory[] getMerchantProductCategory () throws IOException {
+        Map map = new HashMap();
+        map.put("fingerprint",fingerPrint);
+        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        return api.get(merchantProductCategoryURL, MerchantProductCategory[].class, map);
+    }
+
+    public AllProductResponse getProductById(String categoryId, String direction, int page, int pageSize, String sortBy, String state) throws IOException {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(productCategoryByCategoryId)
+                .path(categoryId)
+                .queryParam("direction", direction)
+                .queryParam("page", page)
+                .queryParam("pageSize", pageSize)
+                .queryParam("sortBy", sortBy)
+                .queryParam("state", state);
+        Map map = new HashMap();
+        map.put("fingerprint",fingerPrint);
+        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        return api.get(builder.toUriString(), AllProductResponse.class, map);
     }
 
 }

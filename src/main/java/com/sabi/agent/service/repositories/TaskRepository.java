@@ -23,9 +23,9 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     Task findByNameAndTaskType(String name, String taskType);
     List<Task> findByIsActive(Boolean isActive);
 
-    @Query("SELECT t FROM Task t WHERE ((:name IS NULL) OR (:name IS NOT NULL AND t.name = :name)) " +
-            "AND ((:taskType IS NULL) OR (:taskType IS NOT NULL AND t.taskType = :taskType))" +
-            " AND ((:priority IS NULL) OR (:priority IS NOT NULL AND t.priority = :priority))")
+    @Query("SELECT t FROM Task t WHERE ((:name IS NULL) OR (:name IS NOT NULL AND t.name LIKE %:name%)) " +
+            "AND ((:taskType IS NULL) OR (:taskType IS NOT NULL AND t.taskType LIKE %:taskType%))" +
+            " AND ((:priority IS NULL) OR (:priority IS NOT NULL AND t.priority LIKE %:priority%))")
     Page<Task> findTask(@Param("name")String name,
                         @Param("taskType")String taskType,
                         @Param("priority")String priority, Pageable pageable);

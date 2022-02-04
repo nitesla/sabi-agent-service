@@ -3,6 +3,7 @@ package com.sabi.agent.service.integrations;
 
 import com.sabi.agent.core.dto.responseDto.OrderSearchResponse;
 import com.sabi.agent.core.integrations.order.*;
+import com.sabi.agent.core.integrations.order.orderResponse.CompleteOrderResponse;
 import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
 import com.sabi.agent.core.integrations.request.CompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.LocalCompleteOrderRequest;
@@ -17,6 +18,7 @@ import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.exceptions.ProcessingException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.integrations.payment_integration.models.response.PaymentStatusResponse;
+import com.sabi.framework.repositories.PaymentDetailRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.PaymentService;
 import com.sabi.framework.utils.CustomResponseCode;
@@ -255,11 +257,11 @@ public class OrderService {
         return paymentMethodString;
     }
 
-    public void completeOrder(CompleteOrderRequest request) {
-        Map map = new HashMap();
-        map.put("fingerprint", fingerPrint);
-        map.put("Authorization", "Bearer" + " " + externalTokenService.getToken());
-        Map post = api.post(orderDetail + "transaction", request, Map.class, map);
 
+    public CompleteOrderResponse completeOrder(CompleteOrderRequest request){
+        Map map = new HashMap();
+        map.put("fingerprint",fingerPrint);
+        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        return api.post(orderDetail + "transaction", request, CompleteOrderResponse.class, map);
     }
 }
