@@ -1,5 +1,6 @@
 package com.sabi.agent.service.repositories;
 
+import com.sabi.agent.core.dto.responseDto.OrderSearchResponse;
 import com.sabi.agent.core.models.AgentOrder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,25 +43,24 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
 //            "UNION " +
 //            "SELECT orderId FROM AgentOrder WHERE orderId LIKE %:searchTerm%", nativeQuery = true)
 
-    @Query(value = "SELECT RegisteredMerchant.firstName, RegisteredMerchant.lastName, RegisteredMerchant.phoneNumber," +
-            " AgentOrder.* FROM RegisteredMerchant,AgentOrder WHERE( CONCAT(RegisteredMerchant.firstName, \" \" ,RegisteredMerchant.lastName)  " +
-            "LIKE %:searchTerm% OR (CONCAT (RegisteredMerchant.lastName, \" \" ,RegisteredMerchant.firstName) LIKE %:searchTerm%) " +
-            "OR phoneNumber LIKE %:searchTerm% OR AgentOrder.orderId LIKE  %:searchTerm%)" +
+    @Query(value = "SELECT DISTINCT RegisteredMerchant.firstName, RegisteredMerchant.lastName, RegisteredMerchant.phoneNumber, " +
+            "AgentOrder.* FROM RegisteredMerchant, AgentOrder WHERE (CONCAT(RegisteredMerchant.firstName,\" \",RegisteredMerchant.lastName) " +
+            "LIKE %:searchTerm%) OR (CONCAT(RegisteredMerchant.lastName,\" \" ,RegisteredMerchant.firstName) LIKE %:searchTerm%) " +
+            "OR phoneNumber LIKE %:searchTerm% OR (AgentOrder.orderId=:searchTerm and AgentOrder.merchantId=RegisteredMerchant.id) " +
             "AND AgentOrder.createdDate BETWEEN :startDate AND :endDate", nativeQuery = true)
-    Page<Map<String, Object>> singleSearch(@Param("searchTerm") String searchTerm,
+    Page<Map> singleSearch(@Param("searchTerm") String searchTerm,
                                            @Param("startDate") String startDate,
                                            @Param("endDate") String endDate,
-                                           Pageable pageable);
+                           Pageable pageable);
 
     //    @Query(value = "SELECT RegisteredMerchant.firstName, RegisteredMerchant.lastName, RegisteredMerchant.phoneNumber," +
 //            " AgentOrder.* FROM RegisteredMerchant,AgentOrder WHERE(firstName LIKE %:searchTerm% OR lastName LIKE %:searchTerm% " +
 //            "OR phoneNumber LIKE %:searchTerm% OR AgentOrder.orderId LIKE  %:searchTerm%)", nativeQuery = true)
     @Query(value = "SELECT RegisteredMerchant.firstName, RegisteredMerchant.lastName, RegisteredMerchant.phoneNumber," +
-            " AgentOrder.* FROM RegisteredMerchant,AgentOrder WHERE( CONCAT(RegisteredMerchant.firstName, \" \" ,RegisteredMerchant.lastName)  " +
+            " AgentOrder.* FROM RegisteredMerchant, AgentOrder WHERE ( CONCAT(RegisteredMerchant.firstName, \" \" ,RegisteredMerchant.lastName)  " +
             "LIKE %:searchTerm% OR (CONCAT (RegisteredMerchant.lastName, \" \" ,RegisteredMerchant.firstName) LIKE %:searchTerm%) " +
-            "OR phoneNumber LIKE %:searchTerm% OR AgentOrder.orderId LIKE  %:searchTerm%)", nativeQuery = true)
-    Page<Map<String, Object>> singleSearch(@Param("searchTerm") String searchTerm,
-                                           Pageable pageable);
+            "OR phoneNumber LIKE %:searchTerm% OR (AgentOrder.orderId LIKE %:searchTerm% and AgentOrder.merchantId=RegisteredMerchant.id))", nativeQuery = true)
+    Page<Map> singleSearch(@Param("searchTerm") String searchTerm, Pageable pageable);
 
 }
 

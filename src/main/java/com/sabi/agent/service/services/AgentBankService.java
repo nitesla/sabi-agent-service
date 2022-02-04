@@ -179,12 +179,12 @@ public class AgentBankService {
             genericSpecification.add(new SearchCriteria("bankId", bankId, SearchOperation.EQUAL));
         }
         if (bankName != null) {
-            genericSpecification.add(new SearchCriteria("bankName", bankName, SearchOperation.EQUAL));
+            genericSpecification.add(new SearchCriteria("bankName", bankName, SearchOperation.MATCH));
         }
 
 
         if (accountNumber != null) {
-            genericSpecification.add(new SearchCriteria("accountNumber", accountNumber, SearchOperation.EQUAL));
+            genericSpecification.add(new SearchCriteria("accountNumber", accountNumber, SearchOperation.MATCH));
         }
 
         log.info("Searching for Data");
