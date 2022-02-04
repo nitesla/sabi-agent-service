@@ -1,12 +1,14 @@
 package com.sabi.agent.service.integrations;
 
 
+import com.sabi.agent.core.dto.responseDto.OrderSearchResponse;
 import com.sabi.agent.core.integrations.order.*;
 import com.sabi.agent.core.integrations.order.orderResponse.CompleteOrderResponse;
 import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
 import com.sabi.agent.core.integrations.request.CompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.LocalCompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.MerchBuyRequest;
+import com.sabi.agent.core.integrations.response.LocalCompleteOrderResponse;
 import com.sabi.agent.core.integrations.response.MerchBuyResponse;
 import com.sabi.agent.core.models.AgentOrder;
 import com.sabi.agent.service.helper.Validations;
@@ -33,6 +35,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("ALL")
@@ -69,12 +72,12 @@ public class OrderService {
     }
 
 
-    public CreateOrderResponse placeOrder (PlaceOrder request) throws IOException {
+    public CreateOrderResponse placeOrder(PlaceOrder request) throws IOException {
         validations.validateOrderRequest(request);
 
-        Map map=new HashMap();
-        map.put("fingerprint",fingerPrint);
-        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        Map map = new HashMap();
+        map.put("fingerprint", fingerPrint);
+        map.put("Authorization", "Bearer" + " " + externalTokenService.getToken());
         PlaceOrder placeOrder = PlaceOrder.builder()
                 .checkoutUserType(request.getCheckoutUserType())
                 .customerComment(request.getCustomerComment())
@@ -82,54 +85,50 @@ public class OrderService {
                 .orderDelivery(request.getOrderDelivery())
                 .products(request.getProducts())
                 .build();
-        CreateOrderResponse response = api.post(processOrder ,placeOrder, CreateOrderResponse.class,map);
+        CreateOrderResponse response = api.post(processOrder, placeOrder, CreateOrderResponse.class, map);
         if (response.isStatus())
-        saveOrder(request,response);
+            saveOrder(request, response);
         return response;
 
     }
 
 
+    public SingleOrderResponse orderDetail(SingleOrderRequest request) throws IOException {
 
-
-    public SingleOrderResponse orderDetail (SingleOrderRequest request) throws IOException {
-
-        Map map=new HashMap();
-        map.put("fingerprint",fingerPrint);
-        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
-        SingleOrderResponse response = api.get(orderDetail + request.getId(), SingleOrderResponse.class,map);
+        Map map = new HashMap();
+        map.put("fingerprint", fingerPrint);
+        map.put("Authorization", "Bearer" + " " + externalTokenService.getToken());
+        SingleOrderResponse response = api.get(orderDetail + request.getId(), SingleOrderResponse.class, map);
         return response;
     }
 
 
-    public OrderHistoryResponse orderHistory (OrderHistoryRequest request) throws IOException {
+    public OrderHistoryResponse orderHistory(OrderHistoryRequest request) throws IOException {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(orderHistory)
                 // Add query parameter
-                .queryParam("PageNumber",request.getPageNumber())
-                .queryParam("PageSize",request.getPageSize());
+                .queryParam("PageNumber", request.getPageNumber())
+                .queryParam("PageSize", request.getPageSize());
 
-        Map map=new HashMap();
-        map.put("fingerprint",fingerPrint);
-        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
-        OrderHistoryResponse response = api.get(builder.toUriString(), OrderHistoryResponse.class,map);
+        Map map = new HashMap();
+        map.put("fingerprint", fingerPrint);
+        map.put("Authorization", "Bearer" + " " + externalTokenService.getToken());
+        OrderHistoryResponse response = api.get(builder.toUriString(), OrderHistoryResponse.class, map);
         return response;
     }
 
-    public MerchBuyResponse merchBuy(MerchBuyRequest request){
-        Map<String, String> map =new HashMap<>();
-        map.put("fingerprint",fingerPrint);
-        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+    public MerchBuyResponse merchBuy(MerchBuyRequest request) {
+        Map<String, String> map = new HashMap<>();
+        map.put("fingerprint", fingerPrint);
+        map.put("Authorization", "Bearer" + " " + externalTokenService.getToken());
         log.info("Merchant buy url " + merchBuyUrl);
-        return  api.post(merchBuyUrl, request,  MerchBuyResponse.class);
+        return api.post(merchBuyUrl, request, MerchBuyResponse.class);
     }
 
-    public AgentOrder findById(long id){
+    public AgentOrder findById(long id) {
         return orderRepository.findById(id).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                 "Requested bank id does not exist!"));
     }
-
-
 
 
     private void saveOrder(PlaceOrder request, CreateOrderResponse response) {
@@ -152,19 +151,18 @@ public class OrderService {
     }
 
 
-
-    public Page<AgentOrder> findAll(Long orderId, Boolean status, Date createdDate,Long agentId, String userName,PageRequest pageRequest) {
-        Page<AgentOrder> agentOrder = orderRepository.findOrders(orderId,status,createdDate,agentId, userName,pageRequest);
+    public Page<AgentOrder> findAll(Long orderId, Boolean status, Date createdDate, Long agentId, String userName, PageRequest pageRequest) {
+        Page<AgentOrder> agentOrder = orderRepository.findOrders(orderId, status, createdDate, agentId, userName, pageRequest);
         if (agentOrder == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
         return agentOrder;
     }
 
-    public Page<Map<String, Object>> multiSearch(String searchTerm, String startDate, String endDate, PageRequest pageRequest){
-        Page<Map<String, Object>> objects;
+    public Page<Map> multiSearch(String searchTerm, String startDate, String endDate, PageRequest pageRequest) {
+        Page<Map> objects;
 
-        if(startDate != null && endDate !=null ) {
+        if (startDate != null && endDate != null) {
             try {
                 tryParseDate(startDate);
                 tryParseDate(endDate);
@@ -173,33 +171,45 @@ public class OrderService {
             } catch (ParseException e) {
                 throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Expected date format is yyyy-MM-dd HH:mm:ss");
             }
+        } else {
+            objects = orderRepository.singleSearch(searchTerm, pageRequest);
         }
-        else
-        objects = orderRepository.singleSearch(searchTerm, pageRequest);
 
         log.info("No. Of items from search " + objects.stream().count());
         return objects;
     }
 
     private void tryParseDate(String date) throws ParseException {
-         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date);
+        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date);
     }
 
-    public void localCompleteOrder(LocalCompleteOrderRequest completeOrderRequest){
+    public LocalCompleteOrderResponse localCompleteOrder(LocalCompleteOrderRequest completeOrderRequest) {
         AgentOrder agentOrder = orderRepository.findById(completeOrderRequest.getOrderId()).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                 "Enter a valid order id"));
+        if(agentOrder.getOrderStatus() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Cannot process order Payment. Order Payment Status not found");
+        if(agentOrder.getOrderStatus().equalsIgnoreCase("PAID"))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Cannot process order Payment. Payment already complete for this order");
 
         PaymentStatusResponse paymentStatusResponse = paymentService.checkStatus(completeOrderRequest.getPaymentReference());
+
+        if(paymentStatusResponse.getStatus() == null ||
+                !paymentStatusResponse.getStatus().equalsIgnoreCase("SUCCESS"))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"Cannot process order Payment. Payment incomplete");
         paymentStatusResponse.getPaymentDetails().setOrderId(agentOrder.getOrderId());
+        paymentStatusResponse.getPaymentDetails().setLinkingReference(completeOrderRequest.getLinkReference());
+        paymentStatusResponse.getPaymentDetails().setResponseCode(completeOrderRequest.getCode());
+        paymentStatusResponse.getPaymentDetails().setResponseDescription(completeOrderRequest.getMessage());
+
         agentOrder.setOrderStatus("PAID");
         agentOrder.setOrderDate(new Date());
         agentOrder.setSentToThirdParty(false);
         agentOrder.setThirdPartyResponseCode(completeOrderRequest.getCode());
         agentOrder.setThirdPartyResponseDesc(completeOrderRequest.getMessage());
 
-        String paymentMethod = getPaymentMethod(completeOrderRequest.getPaymentMethod());
+        String paymentMethod = paymentMethodString(completeOrderRequest.getPaymentMethod());
 
-        if (paymentMethod.equals("NA")){
+        if (paymentMethod.equals("NA")) {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Payment method not found");
         }
 
@@ -207,19 +217,23 @@ public class OrderService {
         agentOrder.setSuccessPaymentId(paymentStatusResponse.getPaymentDetails().getId());
         log.info("Updating agent order {} ", agentOrder);
         orderRepository.save(agentOrder);
-        log.info("Updating payment {} for order {} ",paymentStatusResponse.getPaymentDetails(), agentOrder);
+        log.info("Updating payment {} for order {} ", paymentStatusResponse.getPaymentDetails(), agentOrder);
         paymentService.updatePaymentStatus(paymentStatusResponse);
 
+        return LocalCompleteOrderResponse.builder()
+                .order(agentOrder)
+                .paymentStatus(paymentStatusResponse)
+                .build();
     }
 
-    public String getPaymentMethod(int paymentMethod){
+    public String paymentMethodString(int paymentMethod) {
         //PayOnDelivery = 1,
         //PayOnline = 2,
         //PayWithWallet = 3,
         //PostPaid = 4,
         //PayWithTransfer = 5
         String paymentMethodString = "";
-        switch (paymentMethod){
+        switch (paymentMethod) {
             case 0:
                 throw new ProcessingException("Error processing payment. Payment method invalid");
             case 1:
