@@ -260,7 +260,6 @@ public class OrderService {
 
     public CompleteOrderResponse completeOrder(CompleteOrderRequest request){
         Map map = new HashMap();
-        CompleteOrderRequest completeOrderRequest = new CompleteOrderRequest();
         map.put("fingerprint",fingerPrint);
         map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
         return api.post(orderDetail + "transaction", request, CompleteOrderResponse.class, map);
