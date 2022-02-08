@@ -62,5 +62,6 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
             "OR phoneNumber LIKE %:searchTerm% OR (AgentOrder.orderId LIKE %:searchTerm% and AgentOrder.merchantId=RegisteredMerchant.id))", nativeQuery = true)
     Page<Map> singleSearch(@Param("searchTerm") String searchTerm, Pageable pageable);
 
+    AgentOrder findByOrderId(long orderId);
 }
 
