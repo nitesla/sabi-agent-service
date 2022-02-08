@@ -8,7 +8,6 @@ import com.sabi.agent.core.integrations.response.SingleProductResponse;
 import com.sabi.agent.core.integrations.response.product.AllProductResponse;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.service.ExternalTokenService;
-import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -36,7 +36,6 @@ public class ProductService {
     private String merchantProductCategoryURL;
     @Value("${product.categoryById}")
     private String productCategoryByCategoryId;
-
 
 
     public SingleProductResponse productDetail (SingleProductRequest request) throws IOException {
@@ -66,11 +65,11 @@ public class ProductService {
         return response;
     }
 
-    public MerchantProductCategory[] getMerchantProductCategory () throws IOException {
+    public List<MerchantProductCategory> getMerchantProductCategory () throws IOException {
         Map map = new HashMap();
         map.put("fingerprint",fingerPrint);
         map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
-        return api.get(merchantProductCategoryURL, MerchantProductCategory[].class, map);
+        return (java.util.List<MerchantProductCategory>) api.get(merchantProductCategoryURL, Object.class, map);
     }
 
     public AllProductResponse getProductById(String categoryId, String direction, Integer page, Integer pageSize, String sortBy, String state) throws IOException {
