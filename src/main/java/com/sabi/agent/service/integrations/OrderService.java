@@ -79,6 +79,7 @@ public class OrderService {
         map.put("fingerprint", fingerPrint);
         map.put("Authorization", "Bearer" + " " + externalTokenService.getToken());
         PlaceOrder placeOrder = PlaceOrder.builder()
+
                 .checkoutUserType(request.getCheckoutUserType())
                 .customerComment(request.getCustomerComment())
                 .location(request.getLocation())
