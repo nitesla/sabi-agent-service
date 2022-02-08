@@ -8,6 +8,7 @@ import com.sabi.agent.core.integrations.response.SingleProductResponse;
 import com.sabi.agent.core.integrations.response.product.AllProductResponse;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.service.ExternalTokenService;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -72,7 +73,7 @@ public class ProductService {
         return api.get(merchantProductCategoryURL, MerchantProductCategory[].class, map);
     }
 
-    public AllProductResponse getProductById(String categoryId, String direction, int page, int pageSize, String sortBy, String state) throws IOException {
+    public AllProductResponse getProductById(String categoryId, String direction, Integer page, Integer pageSize, String sortBy, String state) throws IOException {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(productCategoryByCategoryId)
                 .path(categoryId)
                 .queryParam("direction", direction)
