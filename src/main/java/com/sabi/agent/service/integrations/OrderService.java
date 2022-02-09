@@ -184,9 +184,14 @@ public class OrderService {
         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date);
     }
 
+    public AgentOrder findByOrderId(long orderId){
+        AgentOrder byOrderId = orderRepository.findByOrderId(orderId);
+        if(byOrderId == null ) throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Order not found");
+        return byOrderId;
+    }
+
     public LocalCompleteOrderResponse localCompleteOrder(LocalCompleteOrderRequest completeOrderRequest) {
-        AgentOrder agentOrder = orderRepository.findById(completeOrderRequest.getOrderId()).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                "Enter a valid order id"));
+        AgentOrder agentOrder = findByOrderId(completeOrderRequest.getOrderId());
         if(agentOrder.getOrderStatus() == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Cannot process order Payment. Order Payment Status not found");
         if(agentOrder.getOrderStatus().equalsIgnoreCase("PAID"))
@@ -197,6 +202,9 @@ public class OrderService {
         if(paymentStatusResponse.getStatus() == null ||
                 !paymentStatusResponse.getStatus().equalsIgnoreCase("SUCCESS"))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"Cannot process order Payment. Payment incomplete");
+
+        if(paymentStatusResponse.getPaymentDetails().getStatus().equalsIgnoreCase("SUCCESS"))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Payment status conflict");
         paymentStatusResponse.getPaymentDetails().setOrderId(agentOrder.getOrderId());
         paymentStatusResponse.getPaymentDetails().setLinkingReference(completeOrderRequest.getLinkReference());
         paymentStatusResponse.getPaymentDetails().setResponseCode(completeOrderRequest.getCode());
