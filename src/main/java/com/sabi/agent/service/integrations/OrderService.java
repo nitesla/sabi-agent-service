@@ -27,6 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -41,6 +44,7 @@ import java.util.Map;
 @SuppressWarnings("ALL")
 @Service
 @Slf4j
+//@EnableAsync
 public class OrderService {
 
     @Autowired
@@ -160,7 +164,7 @@ public class OrderService {
         return agentOrder;
     }
 
-    public Page<Map> multiSearch(String searchTerm, String startDate, String endDate, PageRequest pageRequest) {
+    public Page<Map> multiSearch(String searchTerm, Long agentId, String startDate, String endDate, PageRequest pageRequest) {
         Page<Map> objects;
 
         if (startDate != null && endDate != null) {
@@ -168,12 +172,12 @@ public class OrderService {
                 tryParseDate(startDate);
                 tryParseDate(endDate);
                 log.info("logging with date");
-                objects = orderRepository.singleSearch(searchTerm, startDate, endDate, pageRequest);
+                objects = orderRepository.singleSearch(searchTerm, agentId,startDate, endDate, pageRequest);
             } catch (ParseException e) {
                 throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Expected date format is yyyy-MM-dd HH:mm:ss");
             }
         } else {
-            objects = orderRepository.singleSearch(searchTerm, pageRequest);
+            objects = orderRepository.singleSearch(searchTerm, agentId,pageRequest);
         }
 
         log.info("No. Of items from search " + objects.stream().count());
@@ -212,6 +216,7 @@ public class OrderService {
 
         agentOrder.setOrderStatus("PAID");
         agentOrder.setOrderDate(new Date());
+        agentOrder.setPaidAmount(paymentStatusResponse.getPaymentDetails().getAmount());
         agentOrder.setSentToThirdParty(false);
         agentOrder.setThirdPartyResponseCode(completeOrderRequest.getCode());
         agentOrder.setThirdPartyResponseDesc(completeOrderRequest.getMessage());
@@ -266,11 +271,17 @@ public class OrderService {
         return paymentMethodString;
     }
 
-
-    public CompleteOrderResponse completeOrder(CompleteOrderRequest request){
-        Map map = new HashMap();
-        map.put("fingerprint",fingerPrint);
-        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
-        return api.post(orderDetail + "transaction", request, CompleteOrderResponse.class, map);
-    }
+//    @Async
+//    @Scheduled(fixedDelay = 30000000)
+//    public void completeOrder(CompleteOrderRequest request){
+//        Map map = new HashMap();
+//        map.put("fingerprint",fingerPrint);
+//        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+//        List<AgentOrder> paid = orderRepository.findByIsSentToThirdPartyAndOrderStatus(false, "PAID");
+//        paid.forEach(agentOrder -> {
+//            request.setOrderId(agentOrder.getOrderId());
+//            api.post(orderDetail + "transaction", request, CompleteOrderResponse.class, map);
+//        });
+//
+//    }
 }
