@@ -52,11 +52,11 @@ public class ProductService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(allProductDetail)
                 // Add query parameter
                 .queryParam("direction", request.getDirection())
-                .queryParam("page",request.getPageNumber())
+                .queryParam("page",request.getPage())
                 .queryParam("pageSize",request.getPageSize())
                 .queryParam("searchString",request.getSearchString())
                 .queryParam("sortBy",request.getSortBy())
-                .queryParam("State",request.getState());
+                .queryParam("state",request.getState());
 
 
         Map map=new HashMap();
