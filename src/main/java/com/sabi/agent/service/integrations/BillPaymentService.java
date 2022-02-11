@@ -4,6 +4,7 @@ package com.sabi.agent.service.integrations;
 import com.sabi.agent.core.dto.requestDto.billPayments.AirtimeRequestDto;
 import com.sabi.agent.core.dto.responseDto.ResponseDto;
 import com.sabi.agent.core.dto.responseDto.billPayments.AirtimeResponseDto;
+import com.sabi.agent.core.dto.responseDto.billPayments.BillPaymentResponseDto;
 import com.sabi.agent.core.models.billPayments.Airtime;
 import com.sabi.agent.service.repositories.billPayments.AirtimeRepository;
 import com.sabi.framework.helpers.API;
@@ -27,20 +28,27 @@ import java.util.Map;
 @Service
 public class BillPaymentService {
 
-    @Value("${space.airtime.url}")
+    @Value("${space.airtime}")
     private String airtime;
+
 
     @Value("${second.url}")
     private String secondUrl;
 
-    @Value("${space.billcategories.url}")
+    @Value("${space.billcategories}")
     private String billCategories;
 
-    @Value("${space.billers.url}")
+    @Value("${space.billers}")
     private String billers;
 
     @Value(("${space.airtime.authkey}"))
     private String authKey;
+
+    @Value("${bill.category.id}")
+    private int billCategoryId;
+
+    @Value("${finger.print}")
+    private String fingerprint;
 
     @Autowired
     ExternalTokenService externalTokenService;
@@ -66,15 +74,15 @@ public class BillPaymentService {
                 .billerId(airtimeRequestDto.getBillerId())
                 .denomination(airtimeRequestDto.getDenomination().trim())
                 .msisdn(airtimeRequestDto.getMsisdn().trim())
-                .userId(airtimeRequestDto.getUserId())
-                .requestApp(airtimeRequestDto.getRequestApp())
+                .requestApp(airtimeRequestDto.getRequestApp().trim())
+                .userId(airtimeRequestDto.getUserId().trim())
                 .build();
 
         String extToken = externalTokenService.getToken().toString();
 
         Map<String, String> map = new HashMap();
-//        map.put("fingerprint", airtimeRequestDto.getFingerprint().trim());
-//        map.put("Authorization", "Bearer " + extToken);
+        map.put("fingerprint", airtimeRequestDto.getFingerprint().trim());
+        map.put("Authorization", "Bearer " + extToken);
         map.put("authKey", authKey);
         AirtimeResponseDto response = api.post(airtime, request, AirtimeResponseDto.class, map);
         Airtime airtime = mapper.map(response, Airtime.class);
@@ -95,37 +103,31 @@ public class BillPaymentService {
         return mapper.map(response, Airtime.class);
     }
 
-
-    public ResponseDto getBillCategories(String direction, String fingerprint, Integer page, Integer size, String sortBy) {
-
+    public BillPaymentResponseDto getBillersPerCategories() {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(billCategories)
+                .queryParam("billCategoryId", billCategoryId);
+
+        Map<String, String> map = new HashMap();
+        map.put("fingerprint", fingerprint);
+        map.put("Authorization", "Bearer " + externalTokenService.getToken().toString());
+        map.put("authKey", authKey);
+        return api.get(billCategories + "/" + billCategoryId , BillPaymentResponseDto.class, map);
+    }
+
+    public ResponseDto getBillers(String direction, Integer page, Integer size, String sortBy) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(billers)
                 .queryParam("direction", direction)
                 .queryParam("page", page)
                 .queryParam("size", size)
                 .queryParam("sortBy", sortBy);
 
-        Map<String, String> map = new HashMap();
-        map.put("fingerprint", fingerprint);
-        map.put("Authorization", "Bearer " + externalTokenService.getToken().toString());
-        ResponseDto items = api.get(builder.toUriString(), ResponseDto.class, map);
-        return items;
-    }
-
-    public ResponseDto getBillCategoryId(int billCategoryId, String fingerprint) {
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(billers)
-                .queryParam("billCategoryId", billCategoryId);
-
         Map map = new HashMap();
-        String url = billers + "/" + billCategoryId;
         String token = externalTokenService.getToken();
-        map.put("fingerprint", fingerprint.trim());
+        map.put("fingerprint", fingerprint);
         map.put("Authorization", "Bearer " + token);
-        log.info("bill payment uri ========" + url + "     " + billCategoryId);
+        map.put("authKey", authKey);
         log.info("TOKEN .......................... " + token + "...." + fingerprint);
-        ResponseDto items = api.get(url, ResponseDto.class, map);
-
-        log.info(items.getData().toString());
-        return items;
+        return api.get(builder.toUriString(), ResponseDto.class, map);
     }
+
 }
