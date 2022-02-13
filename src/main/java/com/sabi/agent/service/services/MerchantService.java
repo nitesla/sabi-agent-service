@@ -35,6 +35,9 @@ public class MerchantService {
     private final ExternalTokenService tokenService;
     private final Validations validations;
 
+    @Value("${merchant.signup}")
+    private String merchantSignUpUrl;
+
     @Autowired
     MerchantRepository repository;
 
@@ -55,7 +58,7 @@ public class MerchantService {
 
     public MerchantSignUpResponse createMerchant(MerchantSignUpRequest signUpRequest, String fingerPrint) {
         validations.validateMerchant(signUpRequest);
-        MerchantSignUpResponse signUpResponse = api.post("https://api-dev.spaceso2o.com/api/v2/completeSignup",
+        MerchantSignUpResponse signUpResponse = api.post(merchantSignUpUrl,
                 signUpRequest, MerchantSignUpResponse.class, getHeaders(fingerPrint));
         if (signUpResponse.getId() != null){
              RegisteredMerchant registeredMerchant = saveMerchant(signUpResponse, signUpRequest);
