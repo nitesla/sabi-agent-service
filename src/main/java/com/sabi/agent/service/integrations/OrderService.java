@@ -1,7 +1,6 @@
 package com.sabi.agent.service.integrations;
 
 
-import com.sabi.agent.core.dto.responseDto.OrderSearchResponse;
 import com.sabi.agent.core.integrations.order.*;
 import com.sabi.agent.core.integrations.order.orderResponse.CompleteOrderResponse;
 import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
@@ -10,14 +9,15 @@ import com.sabi.agent.core.integrations.request.LocalCompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.MerchBuyRequest;
 import com.sabi.agent.core.integrations.response.LocalCompleteOrderResponse;
 import com.sabi.agent.core.integrations.response.MerchBuyResponse;
+import com.sabi.agent.core.integrations.response.Payment;
 import com.sabi.agent.core.models.AgentOrder;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.OrderRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
-import com.sabi.framework.exceptions.ProcessingException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.integrations.payment_integration.models.response.PaymentStatusResponse;
+import com.sabi.framework.models.PaymentDetails;
 import com.sabi.framework.repositories.PaymentDetailRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.PaymentService;
@@ -36,15 +36,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("ALL")
 @Service
 @Slf4j
-//@EnableAsync
+@EnableAsync
 public class OrderService {
 
     @Autowired
@@ -70,14 +67,21 @@ public class OrderService {
     private String merchBuyUrl;
 
     private final PaymentService paymentService;
+    private final PaymentDetailRepository paymentDetailRepository;
 
-    public OrderService(PaymentService paymentService) {
+    public OrderService(PaymentService paymentService, PaymentDetailRepository paymentDetailRepository) {
         this.paymentService = paymentService;
+        this.paymentDetailRepository = paymentDetailRepository;
     }
 
 
     public CreateOrderResponse placeOrder(PlaceOrder request) throws IOException {
         validations.validateOrderRequest(request);
+        String paymentMethod = paymentMethodString(request.getPaymentMethod());
+
+        if (paymentMethod.equals("NA")) {
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Payment method not found");
+        }
 
         Map map = new HashMap();
         map.put("fingerprint", fingerPrint);
@@ -92,7 +96,7 @@ public class OrderService {
                 .build();
         CreateOrderResponse response = api.post(processOrder, placeOrder, CreateOrderResponse.class, map);
         if (response.isStatus())
-            saveOrder(request, response);
+            saveOrder(request, response, paymentMethod);
         return response;
 
     }
@@ -136,13 +140,16 @@ public class OrderService {
     }
 
 
-    private void saveOrder(PlaceOrder request, CreateOrderResponse response) {
+    private void saveOrder(PlaceOrder request, CreateOrderResponse response, String paymentMethod) {
+
+
 
         AgentOrder order = AgentOrder.builder()
                 .createdDate(new Date())
                 .status(response.isStatus())
                 .orderStatus("PROCESSING")
                 .isSentToThirdParty(false)
+                .paymentMethod(paymentMethod)
                 .agentId(request.getAgentId())
                 .merchantId(request.getMerchantId())
                 .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
@@ -221,13 +228,8 @@ public class OrderService {
         agentOrder.setThirdPartyResponseCode(completeOrderRequest.getCode());
         agentOrder.setThirdPartyResponseDesc(completeOrderRequest.getMessage());
 
-        String paymentMethod = paymentMethodString(completeOrderRequest.getPaymentMethod());
 
-        if (paymentMethod.equals("NA")) {
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Payment method not found");
-        }
 
-        agentOrder.setPaymentMethod(paymentMethod);
         agentOrder.setSuccessPaymentId(paymentStatusResponse.getPaymentDetails().getId());
         log.info("Updating agent order {} ", agentOrder);
         orderRepository.save(agentOrder);
@@ -249,7 +251,7 @@ public class OrderService {
         String paymentMethodString = "";
         switch (paymentMethod) {
             case 0:
-                throw new ProcessingException("Error processing payment. Payment method invalid");
+                throw new BadRequestException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Error processing payment. Payment method invalid");
             case 1:
                 paymentMethodString = "Pay on Delivery";
                 break;
@@ -272,16 +274,27 @@ public class OrderService {
     }
 
 //    @Async
-//    @Scheduled(fixedDelay = 30000000)
-//    public void completeOrder(CompleteOrderRequest request){
+//    @Scheduled(fixedDelay = 1000)
+//    public void completeOrder(){
+//        log.info("Order Scheduler running");
 //        Map map = new HashMap();
 //        map.put("fingerprint",fingerPrint);
 //        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
 //        List<AgentOrder> paid = orderRepository.findByIsSentToThirdPartyAndOrderStatus(false, "PAID");
+//        log.info("Number of orders to be sent to third party {} ", paid.size());
 //        paid.forEach(agentOrder -> {
+//            Optional<PaymentDetails> paymentDetail = paymentDetailRepository.findById(agentOrder.getSuccessPaymentId());
+//            log.info("Sending order to third party {} ", agentOrder);
+//            Payment payment = new Payment();
+//            CompleteOrderRequest request = new CompleteOrderRequest();
 //            request.setOrderId(agentOrder.getOrderId());
-//            api.post(orderDetail + "transaction", request, CompleteOrderResponse.class, map);
+//            payment.setReference(paymentDetail.get().getPaymentReference());
+//            payment.setMessage(agentOrder.getThirdPartyResponseDesc());
+//            payment.setTotal(paymentDetail.get().getApprovedAmount());
+//            payment.setTransactionId(paymentDetail.get().getLinkingReference());
+//            CompleteOrderResponse post = api.post(orderDetail + "transaction", request, CompleteOrderResponse.class, map);
+//            log.info("Response from complete transaction {}", post);
 //        });
-//
+
 //    }
 }
