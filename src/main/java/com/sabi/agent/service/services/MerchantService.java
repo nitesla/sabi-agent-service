@@ -57,7 +57,7 @@ public class MerchantService {
     }
 
     public MerchantSignUpResponse createMerchant(MerchantSignUpRequest signUpRequest, String fingerPrint) {
-        validations.validateMerchant(signUpRequest);
+        validations.validateCreateMerchant(signUpRequest);
         MerchantSignUpResponse signUpResponse = api.post(merchantSignUpUrl,
                 signUpRequest, MerchantSignUpResponse.class, getHeaders(fingerPrint));
         if (signUpResponse.getId() != null){

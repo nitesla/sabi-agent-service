@@ -556,6 +556,68 @@ public class Validations {
                         "Agent Signing up merchant  does not exist"));
     }
 
+    public void validateCreateMerchant(MerchantSignUpRequest request) {
+        //firstname
+        checkIsNullOrEmpty(request.getFirstName(), "firstname");
+        checkStringLength(3, 24, request.getFirstName(), "firstName");
+        startsWithString(request.getFirstName(), "First Name");
+
+        //lastname
+        checkIsNullOrEmpty(request.getLastName(), "lastname");
+        checkStringLength(3, 24, request.getLastName(), "lastName");
+        startsWithString(request.getLastName(), "Last Name");
+
+        //username
+        checkIsNullOrEmpty(request.getUsername(), "Username");
+
+        //phoneNumber
+        checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
+        checkStringLength(11, null, request.getPhoneNumber(), "Phone Number");
+
+        //businessName
+        checkIsNullOrEmpty(request.getBusinessName(), "Business Name");
+
+        //streetAddress
+        checkIsNullOrEmpty(request.getStreetAddress(), "Street Address");
+
+        //businessPhoneNumber
+        checkIsNullOrEmpty(request.getBusinessPhoneNumber(), "Business Phone Number");
+        checkStringLength(11, null, request.getBusinessPhoneNumber(), "Business Phone Number");
+
+        //state
+        checkIsNullOrEmpty(request.getState(), "state");
+
+        //lga
+        checkIsNullOrEmpty(request.getLga(), "lga");
+
+        //msisdn
+        checkIsNullOrEmpty(request.getMsisdn(), "msisdn");
+        checkStringLength(11, null, request.getPhoneNumber(), "msisdn");
+
+        //password
+        checkIsNullOrEmpty(request.getPassword(), "password");
+    }
+
+    private void checkStringLength(Integer minLength, Integer maxLength, String string, String field) {
+        if( minLength != null && string.length() < minLength)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field +" must be at least " + minLength + " characters");
+        if( maxLength != null && string.length() > maxLength)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field +" must not be greater than " + maxLength + " characters");
+    }
+
+    private void startsWithString(String string, String field) {
+        char c = string.charAt(0);
+        if (c < 'A' || c > 'z')
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field + " must start with a letter");
+    }
+
+    private void checkIsNullOrEmpty(String string, String field) {
+        if(string == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field + " can not be null");
+        if(string.isEmpty() )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field + " can not be empty");
+    }
+
     public void validateAgentCategoryTaskEnable(EnableDisEnableDto enableRequest) {
         if (!("true".equals(enableRequest.getIsActive())) || (!("false".equals(enableRequest.getIsActive())))) {
 //            return "true".equals(value) || "false".equals(value);
