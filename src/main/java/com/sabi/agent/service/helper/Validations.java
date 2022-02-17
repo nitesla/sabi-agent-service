@@ -557,45 +557,30 @@ public class Validations {
     }
 
     public void validateCreateMerchant(MerchantSignUpRequest request) {
-        //firstname
-        checkIsNullOrEmpty(request.getFirstName(), "firstname");
-        checkStringLength(3, 24, request.getFirstName(), "firstName");
-        startsWithString(request.getFirstName(), "First Name");
-
-        //lastname
-        checkIsNullOrEmpty(request.getLastName(), "lastname");
-        checkStringLength(3, 24, request.getLastName(), "lastName");
-        startsWithString(request.getLastName(), "Last Name");
-
-        //username
-        checkIsNullOrEmpty(request.getUsername(), "Username");
-
-        //phoneNumber
-        checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
-        checkStringLength(11, null, request.getPhoneNumber(), "Phone Number");
-
         //businessName
         checkIsNullOrEmpty(request.getBusinessName(), "Business Name");
 
-        //streetAddress
-        checkIsNullOrEmpty(request.getStreetAddress(), "Street Address");
+        //countryCode
+        checkIsNullOrEmpty(request.getCountryCode(), "Country Code");
 
-        //businessPhoneNumber
-        checkIsNullOrEmpty(request.getBusinessPhoneNumber(), "Business Phone Number");
-        checkStringLength(11, null, request.getBusinessPhoneNumber(), "Business Phone Number");
-
-        //state
-        checkIsNullOrEmpty(request.getState(), "state");
+        //firstname
+        checkIsNullOrEmpty(request.getFirstName(), "firstname");
+        checkStringLength(2, 24, request.getFirstName(), "firstName");
+        startsWithString(request.getFirstName(), "First Name");
 
         //lga
         checkIsNullOrEmpty(request.getLga(), "lga");
 
-        //msisdn
-        checkIsNullOrEmpty(request.getMsisdn(), "msisdn");
-        checkStringLength(11, null, request.getPhoneNumber(), "msisdn");
+        //phoneNumber
+        checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
+        checkStringLength(10, null, request.getPhoneNumber(), "Phone Number");
+
+        //state
+        checkIsNullOrEmpty(request.getState(), "state");
 
         //password
         checkIsNullOrEmpty(request.getPassword(), "password");
+        checkPassword(request.getPassword());
     }
 
     private void checkStringLength(Integer minLength, Integer maxLength, String string, String field) {
@@ -609,6 +594,12 @@ public class Validations {
         char c = string.charAt(0);
         if (c < 'A' || c > 'z')
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field + " must start with a letter");
+    }
+
+    private void checkPassword(String string) {
+        if(!string.matches("[0-9]{6}")){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "password must match [0-9]{6}");
+        }
     }
 
     private void checkIsNullOrEmpty(String string, String field) {
