@@ -2,14 +2,11 @@ package com.sabi.agent.service.integrations;
 
 
 import com.sabi.agent.core.integrations.order.*;
-import com.sabi.agent.core.integrations.order.orderResponse.CompleteOrderResponse;
 import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
-import com.sabi.agent.core.integrations.request.CompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.LocalCompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.MerchBuyRequest;
 import com.sabi.agent.core.integrations.response.LocalCompleteOrderResponse;
 import com.sabi.agent.core.integrations.response.MerchBuyResponse;
-import com.sabi.agent.core.integrations.response.Payment;
 import com.sabi.agent.core.models.AgentOrder;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.OrderRepository;
@@ -17,7 +14,6 @@ import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.integrations.payment_integration.models.response.PaymentStatusResponse;
-import com.sabi.framework.models.PaymentDetails;
 import com.sabi.framework.repositories.PaymentDetailRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.PaymentService;
@@ -27,16 +23,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @SuppressWarnings("ALL")
 @Service
@@ -206,13 +202,9 @@ public class OrderService {
     }
 
     public LocalCompleteOrderResponse localCompleteOrder(LocalCompleteOrderRequest completeOrderRequest) {
-        AgentOrder agentOrder = findByOrderId(completeOrderRequest.getOrderId());
-        if(agentOrder.getOrderStatus() == null)
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Cannot process order Payment. Order Payment Status not found");
-        if(agentOrder.getOrderStatus().equalsIgnoreCase("PAID"))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Cannot process order Payment. Payment already complete for this order");
 
         PaymentStatusResponse paymentStatusResponse = paymentService.checkStatus(completeOrderRequest.getPaymentReference());
+
 
         if(paymentStatusResponse.getStatus() == null ||
                 !paymentStatusResponse.getStatus().equalsIgnoreCase("SUCCESS"))
@@ -220,7 +212,15 @@ public class OrderService {
 
         if(paymentStatusResponse.getPaymentDetails().getStatus().equalsIgnoreCase("SUCCESS"))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Payment status conflict");
-        paymentStatusResponse.getPaymentDetails().setOrderId(agentOrder.getOrderId());
+
+        log.info("Order id for payment is {}",  paymentStatusResponse.getPaymentDetails().getOrderId());
+        AgentOrder agentOrder = findByOrderId(paymentStatusResponse.getPaymentDetails().getOrderId());
+        if(agentOrder.getOrderStatus() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Cannot process order Payment. Order Payment Status not found");
+        if(agentOrder.getOrderStatus().equalsIgnoreCase("PAID"))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Cannot process order Payment. Payment already complete for this order");
+
+
         paymentStatusResponse.getPaymentDetails().setLinkingReference(completeOrderRequest.getLinkReference());
         paymentStatusResponse.getPaymentDetails().setResponseCode(completeOrderRequest.getCode());
         paymentStatusResponse.getPaymentDetails().setResponseDescription(completeOrderRequest.getMessage());

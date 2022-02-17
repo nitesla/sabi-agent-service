@@ -3,7 +3,6 @@ package com.sabi.agent.service.integrations;
 
 import com.sabi.agent.core.integrations.request.AllProductsRequest;
 import com.sabi.agent.core.integrations.request.SingleProductRequest;
-import com.sabi.agent.core.integrations.response.MerchantProductCategory;
 import com.sabi.agent.core.integrations.response.SingleProductResponse;
 import com.sabi.agent.core.integrations.response.product.AllProductResponse;
 import com.sabi.framework.helpers.API;
@@ -65,11 +64,10 @@ public class ProductService {
         return response;
     }
 
-    public List<MerchantProductCategory> getMerchantProductCategory () throws IOException {
-        Map map = new HashMap();
-        map.put("fingerprint",fingerPrint);
-        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
-        return (java.util.List<MerchantProductCategory>) api.get(merchantProductCategoryURL, Object.class, map);
+    public List getMerchantProductCategory () throws IOException {
+//        ResponseEntity<String> responseEntity = restTemplate.exchange(merchantProductCategoryURL, HttpMethod.GET, String.class);
+
+        return  api.get(merchantProductCategoryURL , List.class, new HashMap<>());
     }
 
     public AllProductResponse getProductById(String categoryId, String direction, Integer page, Integer pageSize, String sortBy, String state) throws IOException {

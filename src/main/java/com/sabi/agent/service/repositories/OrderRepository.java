@@ -47,8 +47,8 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
             " AgentOrder.* FROM RegisteredMerchant, AgentOrder WHERE ((:agentId IS NULL) OR (:agentId IS NOT NULL AND AgentOrder.agentId = :agentId)) " +
             " AND (( CONCAT(RegisteredMerchant.firstName, \" \" ,RegisteredMerchant.lastName)  " +
             "LIKE %:searchTerm% OR (CONCAT (RegisteredMerchant.lastName, \" \" ,RegisteredMerchant.firstName) LIKE %:searchTerm%) " +
-            "OR phoneNumber LIKE %:searchTerm% OR (AgentOrder.orderId LIKE %:searchTerm% and AgentOrder.merchantId=RegisteredMerchant.id)) " +
-            "AND AgentOrder.createdDate BETWEEN :startDate AND :endDate)", nativeQuery = true)
+            "OR phoneNumber LIKE %:searchTerm% OR (AgentOrder.orderId LIKE %:searchTerm% ))and AgentOrder.merchantId=RegisteredMerchant.id)"+
+            "AND AgentOrder.createdDate BETWEEN :startDate AND :endDate", nativeQuery = true)
     Page<Map> singleSearch(@Param("searchTerm") String searchTerm,
                            @Param("agentId") Long agentId,
                            @Param("startDate") String startDate,
@@ -62,7 +62,7 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
             " AgentOrder.* FROM RegisteredMerchant, AgentOrder WHERE ((:agentId IS NULL) OR (:agentId IS NOT NULL AND AgentOrder.agentId = :agentId)) " +
             " AND (( CONCAT(RegisteredMerchant.firstName, \" \" ,RegisteredMerchant.lastName)  " +
             "LIKE %:searchTerm% OR (CONCAT (RegisteredMerchant.lastName, \" \" ,RegisteredMerchant.firstName) LIKE %:searchTerm%) " +
-            "OR phoneNumber LIKE %:searchTerm% OR (AgentOrder.orderId LIKE %:searchTerm% and AgentOrder.merchantId=RegisteredMerchant.id)))", nativeQuery = true)
+            "OR phoneNumber LIKE %:searchTerm% OR (AgentOrder.orderId LIKE %:searchTerm% ))and AgentOrder.merchantId=RegisteredMerchant.id)", nativeQuery = true)
     Page<Map> singleSearch(@Param("searchTerm") String searchTerm,
                            @Param("agentId") Long agentId,
                            Pageable pageable);
