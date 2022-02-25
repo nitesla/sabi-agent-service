@@ -36,6 +36,9 @@ public class ProductService {
     @Value("${product.categoryById}")
     private String productCategoryByCategoryId;
 
+    @Value("${product.default.state}")
+    private String productState;
+
 
     public SingleProductResponse productDetail (SingleProductRequest request) throws IOException {
 
@@ -47,7 +50,9 @@ public class ProductService {
 
 
     public AllProductResponse allProductDetail (AllProductsRequest request) throws IOException {
-
+         if(request.getState()== null || request.getState().isEmpty()){
+             request.setState(productState);
+         }
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(allProductDetail)
                 // Add query parameter
                 .queryParam("direction", request.getDirection())
