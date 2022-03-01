@@ -9,7 +9,9 @@ import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MerchantRepository;
 import com.sabi.framework.helpers.API;
+import com.sabi.framework.models.User;
 import com.sabi.framework.service.ExternalTokenService;
+import com.sabi.framework.service.TokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,11 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,6 +65,10 @@ public class MerchantService {
 
     public MerchantSignUpResponse createMerchant(MerchantSignUpRequest signUpRequest, String fingerPrint) {
         validations.validateCreateMerchant(signUpRequest);
+        signUpRequest.setCreatedDate(String.valueOf(LocalDateTime.now()));
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        String createdBy = userCurrent.getFirstName() + " " + userCurrent.getLastName();
+        signUpRequest.setCreatedBy(createdBy);
         MerchantSignUpResponse signUpResponse = api.post(merchantSignUpUrl,
                 signUpRequest, MerchantSignUpResponse.class, getHeaders(fingerPrint));
         if (signUpResponse.getId() != null){

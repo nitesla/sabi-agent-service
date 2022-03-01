@@ -566,34 +566,39 @@ public class Validations {
         //firstname
         checkIsNullOrEmpty(request.getFirstName(), "firstname");
         checkStringLength(2, 24, request.getFirstName(), "firstName");
-        startsWithString(request.getFirstName(), "First Name");
+        if (!Utility.validateName(request.getFirstName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for first name ");
+
+        //lastname
+        if (!Utility.validateName(request.getLastName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for last name ");
 
         //lga
         checkIsNullOrEmpty(request.getLga(), "lga");
+        if (!Utility.validateName(request.getLga()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for lga ");
 
         //phoneNumber
         checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
-        checkStringLength(10, null, request.getPhoneNumber(), "Phone Number");
+        checkStringLength(8, 14, request.getPhoneNumber(), "Phone Number");
+        if (!Utility.isNumeric(request.getPhoneNumber()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
 
         //state
         checkIsNullOrEmpty(request.getState(), "state");
+        if (!Utility.validateName(request.getState()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for state ");
 
         //password
         checkIsNullOrEmpty(request.getPassword(), "password");
         checkPassword(request.getPassword());
     }
 
-    private void checkStringLength(Integer minLength, Integer maxLength, String string, String field) {
-        if( minLength != null && string.length() < minLength)
+    private void checkStringLength(int minLength, int maxLength, String string, String field) {
+        if( string.length() < minLength)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field +" must be at least " + minLength + " characters");
-        if( maxLength != null && string.length() > maxLength)
+        if( string.length() > maxLength)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field +" must not be greater than " + maxLength + " characters");
-    }
-
-    private void startsWithString(String string, String field) {
-        char c = string.charAt(0);
-        if (c < 'A' || c > 'z')
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field + " must start with a letter");
     }
 
     private void checkPassword(String string) {
