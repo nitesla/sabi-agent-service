@@ -102,11 +102,11 @@ public class OrderService {
     }
 
 
-    public SingleOrderResponse orderDetail(SingleOrderRequest request) throws IOException {
+    public SingleOrderResponse orderDetail(Long id) throws IOException {
         Map map = new HashMap();
         map.put("fingerprint", fingerPrint);
         map.put("Authorization", "Bearer" + " " + externalTokenService.getToken());
-        SingleOrderResponse response = api.get(orderDetail + request.getId(), SingleOrderResponse.class, map);
+        SingleOrderResponse response = api.get(orderDetail + id, SingleOrderResponse.class, map);
         if(response.getData() != null) {
             AgentOrder agentOrder = findByOrderId(response.getData().getOrderId());
             response.getData().setOrderStatus(agentOrder.getOrderStatus());

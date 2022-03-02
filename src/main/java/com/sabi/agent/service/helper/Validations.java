@@ -557,58 +557,54 @@ public class Validations {
     }
 
     public void validateCreateMerchant(MerchantSignUpRequest request) {
-        //firstname
-        checkIsNullOrEmpty(request.getFirstName(), "firstname");
-        checkStringLength(3, 24, request.getFirstName(), "firstName");
-        startsWithString(request.getFirstName(), "First Name");
-
-        //lastname
-        checkIsNullOrEmpty(request.getLastName(), "lastname");
-        checkStringLength(3, 24, request.getLastName(), "lastName");
-        startsWithString(request.getLastName(), "Last Name");
-
-        //username
-        checkIsNullOrEmpty(request.getUsername(), "Username");
-
-        //phoneNumber
-        checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
-        checkStringLength(11, null, request.getPhoneNumber(), "Phone Number");
-
         //businessName
         checkIsNullOrEmpty(request.getBusinessName(), "Business Name");
 
-        //streetAddress
-        checkIsNullOrEmpty(request.getStreetAddress(), "Street Address");
+        //countryCode
+        checkIsNullOrEmpty(request.getCountryCode(), "Country Code");
 
-        //businessPhoneNumber
-        checkIsNullOrEmpty(request.getBusinessPhoneNumber(), "Business Phone Number");
-        checkStringLength(11, null, request.getBusinessPhoneNumber(), "Business Phone Number");
+        //firstname
+        checkIsNullOrEmpty(request.getFirstName(), "firstname");
+        checkStringLength(2, 24, request.getFirstName(), "firstName");
+        if (!Utility.validateName(request.getFirstName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for first name ");
 
-        //state
-        checkIsNullOrEmpty(request.getState(), "state");
+        //lastname
+        if (!Utility.validateName(request.getLastName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for last name ");
 
         //lga
         checkIsNullOrEmpty(request.getLga(), "lga");
+        if (!Utility.validateName(request.getLga()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for lga ");
 
-        //msisdn
-        checkIsNullOrEmpty(request.getMsisdn(), "msisdn");
-        checkStringLength(11, null, request.getPhoneNumber(), "msisdn");
+        //phoneNumber
+        checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
+        checkStringLength(8, 14, request.getPhoneNumber(), "Phone Number");
+        if (!Utility.isNumeric(request.getPhoneNumber()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
+
+        //state
+        checkIsNullOrEmpty(request.getState(), "state");
+        if (!Utility.validateName(request.getState()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for state ");
 
         //password
         checkIsNullOrEmpty(request.getPassword(), "password");
+        checkPassword(request.getPassword());
     }
 
-    private void checkStringLength(Integer minLength, Integer maxLength, String string, String field) {
-        if( minLength != null && string.length() < minLength)
+    private void checkStringLength(int minLength, int maxLength, String string, String field) {
+        if( string.length() < minLength)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field +" must be at least " + minLength + " characters");
-        if( maxLength != null && string.length() > maxLength)
+        if( string.length() > maxLength)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field +" must not be greater than " + maxLength + " characters");
     }
 
-    private void startsWithString(String string, String field) {
-        char c = string.charAt(0);
-        if (c < 'A' || c > 'z')
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field + " must start with a letter");
+    private void checkPassword(String string) {
+        if(!string.matches("[0-9]{6}")){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "password must match [0-9]{6}");
+        }
     }
 
     private void checkIsNullOrEmpty(String string, String field) {
