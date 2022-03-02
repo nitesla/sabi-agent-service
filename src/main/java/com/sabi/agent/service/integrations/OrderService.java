@@ -2,11 +2,14 @@ package com.sabi.agent.service.integrations;
 
 
 import com.sabi.agent.core.integrations.order.*;
+import com.sabi.agent.core.integrations.order.orderResponse.CompleteOrderResponse;
 import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
+import com.sabi.agent.core.integrations.request.CompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.LocalCompleteOrderRequest;
 import com.sabi.agent.core.integrations.request.MerchBuyRequest;
 import com.sabi.agent.core.integrations.response.LocalCompleteOrderResponse;
 import com.sabi.agent.core.integrations.response.MerchBuyResponse;
+import com.sabi.agent.core.integrations.response.Payment;
 import com.sabi.agent.core.models.AgentOrder;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.OrderRepository;
@@ -14,6 +17,7 @@ import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.integrations.payment_integration.models.response.PaymentStatusResponse;
+import com.sabi.framework.models.PaymentDetails;
 import com.sabi.framework.repositories.PaymentDetailRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.PaymentService;
@@ -23,16 +27,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("ALL")
 @Service
@@ -277,28 +281,68 @@ public class OrderService {
         return paymentMethodString;
     }
 
-//    @Async
-//    @Scheduled(fixedDelay = 1000)
-//    public void completeOrder(){
-//        log.info("Order Scheduler running");
-//        Map map = new HashMap();
-//        map.put("fingerprint",fingerPrint);
-//        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
-//        List<AgentOrder> paid = orderRepository.findByIsSentToThirdPartyAndOrderStatus(false, "PAID");
-//        log.info("Number of orders to be sent to third party {} ", paid.size());
-//        paid.forEach(agentOrder -> {
-//            Optional<PaymentDetails> paymentDetail = paymentDetailRepository.findById(agentOrder.getSuccessPaymentId());
-//            log.info("Sending order to third party {} ", agentOrder);
-//            Payment payment = new Payment();
-//            CompleteOrderRequest request = new CompleteOrderRequest();
-//            request.setOrderId(agentOrder.getOrderId());
-//            payment.setReference(paymentDetail.get().getPaymentReference());
-//            payment.setMessage(agentOrder.getThirdPartyResponseDesc());
-//            payment.setTotal(paymentDetail.get().getApprovedAmount());
-//            payment.setTransactionId(paymentDetail.get().getLinkingReference());
-//            CompleteOrderResponse post = api.post(orderDetail + "transaction", request, CompleteOrderResponse.class, map);
-//            log.info("Response from complete transaction {}", post);
-//        });
+    public int paymentMethodInt(String paymentMethod) {
+        //PayOnDelivery = 1,
+        //PayOnline = 2,
+        //PayWithWallet = 3,
+        //PostPaid = 4,
+        //PayWithTransfer = 5
+        int paymentMethodString ;
+        switch (paymentMethod) {
 
-//    }
+            case "Pay on Delivery":
+                paymentMethodString = 1;
+                break;
+            case "Pay online":
+                paymentMethodString = 2;
+                break;
+            case "Pay with wallet":
+                paymentMethodString = 3;
+                break;
+            case "Post Paid":
+                paymentMethodString = 4;
+                break;
+            case "Pay with transefer":
+                paymentMethodString = 5;
+                break;
+            default:
+                paymentMethodString = 0;
+        }
+        return paymentMethodString;
+    }
+
+    @Async
+//    @Scheduled(initialDelay=1, fixedDelayString = "${order.service.timer}")
+    public void completeOrder(){
+        log.info("Order Scheduler running");
+        Map map = new HashMap();
+        map.put("fingerprint",fingerPrint);
+        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        List<AgentOrder> paid = orderRepository.findByIsSentToThirdPartyAndOrderStatus(false, "PAID");
+        log.info("Number of orders to be sent to third party {} ", paid.size());
+        paid.forEach(agentOrder -> {
+            Optional<PaymentDetails> paymentDetail = paymentDetailRepository.findById(agentOrder.getSuccessPaymentId());
+            log.info("Sending order to third party {} ", agentOrder);
+            Payment payment = new Payment();
+            CompleteOrderRequest request = new CompleteOrderRequest();
+            request.setOrderId(agentOrder.getOrderId());
+            payment.setTransactionReference(paymentDetail.get().getPaymentReference());
+            payment.setMessage(agentOrder.getThirdPartyResponseDesc());
+            payment.setTotal(paymentDetail.get().getApprovedAmount());
+            payment.setTransactionId(paymentDetail.get().getLinkingReference());
+            payment.setPaymentMethod(paymentMethodInt(agentOrder.getPaymentMethod()));
+            payment.setEmail(paymentDetail.get().getEmail());
+            request.setPayment(payment);
+            CompleteOrderResponse post = api.post(orderDetail + "transaction", request, CompleteOrderResponse.class, map);
+            log.info("Response from complete transaction {}", post);
+            if (post.isStatus())
+                updateOrder(agentOrder);
+        });
+
+    }
+
+    private void updateOrder(AgentOrder agentOrder){
+        agentOrder.setSentToThirdParty(true);
+        orderRepository.save(agentOrder);
+    }
 }
