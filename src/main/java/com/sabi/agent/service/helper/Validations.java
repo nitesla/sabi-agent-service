@@ -575,8 +575,6 @@ public class Validations {
 
         //lga
         checkIsNullOrEmpty(request.getLga(), "lga");
-        if (!Utility.validateName(request.getLga()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for lga ");
 
         //phoneNumber
         checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
@@ -586,8 +584,6 @@ public class Validations {
 
         //state
         checkIsNullOrEmpty(request.getState(), "state");
-        if (!Utility.validateName(request.getState()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for state ");
 
         //password
         checkIsNullOrEmpty(request.getPassword(), "password");
