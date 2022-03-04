@@ -35,7 +35,7 @@ public class Exists {
     private TargetTypeRepository targetTypeRepository;
     private TaskRepository taskRepository;
     private UserRepository userRepository;
-    private WardRepository wardRepository;
+
     private AgentRepository agentRepository;
     private SupervisorRepository supervisorRepository;
     @Autowired
@@ -48,14 +48,13 @@ public class Exists {
     private CreditLevelRepository creditLevelRepository;
 
 
-    public Exists(StateRepository stateRepository, LGARepository lgaRepository, AgentCategoryTargetRepository agentCategoryTargetRepository, TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
+    public Exists(StateRepository stateRepository, LGARepository lgaRepository, AgentCategoryTargetRepository agentCategoryTargetRepository, TargetTypeRepository targetTypeRepository, TaskRepository taskRepository, UserRepository userRepository, AgentRepository agentRepository, SupervisorRepository supervisorRepository) {
         this.stateRepository = stateRepository;
         this.lgaRepository = lgaRepository;
         this.agentCategoryTargetRepository = agentCategoryTargetRepository;
         this.targetTypeRepository = targetTypeRepository;
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
-        this.wardRepository = wardRepository;
         this.agentRepository = agentRepository;
         this.supervisorRepository = supervisorRepository;
     }
