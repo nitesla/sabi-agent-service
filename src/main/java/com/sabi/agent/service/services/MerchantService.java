@@ -89,6 +89,8 @@ public class MerchantService {
         registeredMerchant.setBusinessName(signUpRequest.getBusinessName());
         registeredMerchant.setPhoneNumber(signUpResponse.getPhoneNumber());
         registeredMerchant.setMerchantId(signUpResponse.getId());
+        registeredMerchant.setLga(signUpRequest.getLga());
+        registeredMerchant.setState(signUpRequest.getState());
         return repository.save(registeredMerchant);
     }
 
