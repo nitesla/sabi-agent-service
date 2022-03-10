@@ -187,7 +187,6 @@ public class AgentService {
         UserRole userRole = UserRole.builder()
                 .userId(user.getId())
                 .roleId(user.getRoleId())
-                .createdDate(LocalDateTime.now())
                 .build();
         userRoleRepository.save(userRole);
 

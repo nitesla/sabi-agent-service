@@ -37,7 +37,6 @@ public class Validations {
     private TargetTypeRepository targetTypeRepository;
     private TaskRepository taskRepository;
     private UserRepository userRepository;
-    private WardRepository wardRepository;
     private AgentRepository agentRepository;
     private SupervisorRepository supervisorRepository;
     private MarketRepository marketRepository;
@@ -52,7 +51,7 @@ public class Validations {
     public Validations(StateRepository stateRepository, MarketRepository marketRepository,
                        LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository,
                        TargetTypeRepository targetTypeRepository, TaskRepository taskRepository,
-                       UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository,
+                       UserRepository userRepository, AgentRepository agentRepository,
                        SupervisorRepository supervisorRepository, AgentVerificationRepository agentVerificationRepository,
                        CountryRepository countryRepository, MerchantRepository merchantRepository) {
         this.stateRepository = stateRepository;
@@ -61,7 +60,6 @@ public class Validations {
         this.targetTypeRepository = targetTypeRepository;
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
-        this.wardRepository = wardRepository;
         this.agentRepository = agentRepository;
         this.marketRepository = marketRepository;
         this.supervisorRepository = supervisorRepository;
@@ -201,29 +199,27 @@ public class Validations {
         }
         if(marketDto.getWardId() == null || marketDto.getWardId() < 0 )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Ward Id cannot be empty");
-        Ward ward = wardRepository.findById(marketDto.getWardId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid ward id!"));
+
 
     }
 
-    public void validateWard (WardDto wardDto){
-        if (wardDto.getName() == null || wardDto.getName().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        String valName = wardDto.getName();
-        char valCharName = valName.charAt(0);
-        if (Character.isDigit(valCharName)){
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
-        }
+//    public void validateWard (WardDto wardDto){
+//        if (wardDto.getName() == null || wardDto.getName().isEmpty())
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+//        String valName = wardDto.getName();
+//        char valCharName = valName.charAt(0);
+//        if (Character.isDigit(valCharName)){
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+//        }
 
 //        if (!Utility.validateName(wardDto.getName()))
 //            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
 
-
-        LGA lga = lgaRepository.findById(wardDto.getLgaId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid LGA id!"));
-    }
+//
+//        LGA lga = lgaRepository.findById(wardDto.getLgaId())
+//                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                        " Enter a valid LGA id!"));
+//    }
 
     public void validateSupervisor (SupervisorDto supervisorDto){
         User user = userRepository.findById(supervisorDto.getUserId())
@@ -473,10 +469,10 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Location name  cannot be empty");
 
         switch (request.getLocationType()){
-            case "Ward":
-                wardRepository.findById(request.getLocationId()).orElseThrow(()->
-                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Ward Id"));
-                 break;
+//            case "Ward":
+//                wardRepository.findById(request.getLocationId()).orElseThrow(()->
+//                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Ward Id"));
+//                 break;
             case "Market":
                 marketRepository.findById(request.getLocationId()).orElseThrow(()->
                         new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Market Id"));
