@@ -74,6 +74,10 @@ public class MerchantService {
         if (signUpResponse.getId() != null){
              RegisteredMerchant registeredMerchant = saveMerchant(signUpResponse, signUpRequest);
             signUpResponse.setLocalId(registeredMerchant.getId());
+            signUpResponse.setCountry(signUpRequest.getCountryCode());
+            signUpResponse.setBusinessName(signUpRequest.getBusinessName());
+            signUpResponse.setState(signUpRequest.getState());
+            signUpResponse.setLga(signUpRequest.getLga());
         }
         return signUpResponse;
     }
@@ -91,6 +95,7 @@ public class MerchantService {
         registeredMerchant.setMerchantId(signUpResponse.getId());
         registeredMerchant.setLga(signUpRequest.getLga());
         registeredMerchant.setState(signUpRequest.getState());
+        registeredMerchant.setCountry(signUpRequest.getCountryCode());
         return repository.save(registeredMerchant);
     }
 
