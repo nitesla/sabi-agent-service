@@ -15,14 +15,16 @@ import java.util.List;
 public interface CountryRepository extends JpaRepository<Country, Long>, JpaSpecificationExecutor<Country> {
 
     Country findByName(String name);
-    List<Country> findByIsActive(Boolean isActive);
+
+    @Query("SELECT c FROM Country c WHERE ((:isActive IS NULL) OR (:isActive IS NOT NULL AND c.isActive = :isActive))")
+    List<Country> findByIsActive(@Param("isActive")Boolean isActive);
 
     Country findByCode(String code);
 
 
 
-    @Query("SELECT c FROM Country c WHERE ((:name IS NULL) OR (:name IS NOT NULL AND c.name = :name))" +
-            " AND ((:code IS NULL) OR (:code IS NOT NULL AND c.code = :code))")
+    @Query("SELECT c FROM Country c WHERE ((:name IS NULL) OR (:name IS NOT NULL AND c.name LIKE %:name%))" +
+            " AND ((:code IS NULL) OR (:code IS NOT NULL AND c.code LIKE %:code%))")
     Page<Country> findCountries(@Param("name")String name,
                                 @Param("code")String code,
                                 Pageable pageable);

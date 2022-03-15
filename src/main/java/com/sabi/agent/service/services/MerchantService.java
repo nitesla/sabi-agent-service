@@ -9,7 +9,9 @@ import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MerchantRepository;
 import com.sabi.framework.helpers.API;
+import com.sabi.framework.models.User;
 import com.sabi.framework.service.ExternalTokenService;
+import com.sabi.framework.service.TokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,11 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +41,9 @@ public class MerchantService {
     private final API api;
     private final ExternalTokenService tokenService;
     private final Validations validations;
+
+    @Value("${merchant.signup}")
+    private String merchantSignUpUrl;
 
     @Autowired
     MerchantRepository repository;
@@ -54,15 +64,25 @@ public class MerchantService {
     }
 
     public MerchantSignUpResponse createMerchant(MerchantSignUpRequest signUpRequest, String fingerPrint) {
-        validations.validateMerchant(signUpRequest);
-        MerchantSignUpResponse signUpResponse = api.post("https://api-dev.spaceso2o.com/api/v4/completeSignup",
+        validations.validateCreateMerchant(signUpRequest);
+        signUpRequest.setCreatedDate(String.valueOf(LocalDateTime.now()));
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        String createdBy = userCurrent.getFirstName() + " " + userCurrent.getLastName();
+        signUpRequest.setCreatedBy(createdBy);
+        MerchantSignUpResponse signUpResponse = api.post(merchantSignUpUrl,
                 signUpRequest, MerchantSignUpResponse.class, getHeaders(fingerPrint));
-        if (signUpResponse.getId() != null)
-            saveMerchant(signUpResponse, signUpRequest);
+        if (signUpResponse.getId() != null){
+             RegisteredMerchant registeredMerchant = saveMerchant(signUpResponse, signUpRequest);
+            signUpResponse.setLocalId(registeredMerchant.getId());
+            signUpResponse.setCountry(signUpRequest.getCountryCode());
+            signUpResponse.setBusinessName(signUpRequest.getBusinessName());
+            signUpResponse.setState(signUpRequest.getState());
+            signUpResponse.setLga(signUpRequest.getLga());
+        }
         return signUpResponse;
     }
 
-    public void saveMerchant(MerchantSignUpResponse signUpResponse, MerchantSignUpRequest signUpRequest) {
+    public RegisteredMerchant saveMerchant(MerchantSignUpResponse signUpResponse, MerchantSignUpRequest signUpRequest) {
         RegisteredMerchant registeredMerchant = new RegisteredMerchant();
         registeredMerchant.setAgentId(signUpRequest.getAgentId());
         registeredMerchant.setEmail(signUpResponse.getEmail());
@@ -73,7 +93,10 @@ public class MerchantService {
         registeredMerchant.setBusinessName(signUpRequest.getBusinessName());
         registeredMerchant.setPhoneNumber(signUpResponse.getPhoneNumber());
         registeredMerchant.setMerchantId(signUpResponse.getId());
-        repository.save(registeredMerchant);
+        registeredMerchant.setLga(signUpRequest.getLga());
+        registeredMerchant.setState(signUpRequest.getState());
+        registeredMerchant.setCountry(signUpRequest.getCountryCode());
+        return repository.save(registeredMerchant);
     }
 
     public MerchantWithActivityResponse getMerchantWithActivity(int page, int size, String fingerPrint) {
@@ -98,10 +121,11 @@ public class MerchantService {
     }
 
     private String encodeValue(String value) throws UnsupportedEncodingException {
+
         return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
     }
 
-    public Page<RegisteredMerchant> findMerchant(String agentId, String merchantId, PageRequest pageRequest) {
+    public Page<RegisteredMerchant> findMerchant(String agentId, String merchantId, String firstName, String lastName,PageRequest pageRequest) {
         GenericSpecification<RegisteredMerchant> genericSpecification = new GenericSpecification<RegisteredMerchant>();
 
         if (agentId != null && !agentId.isEmpty()) {
@@ -110,10 +134,18 @@ public class MerchantService {
         if (merchantId != null && !merchantId.isEmpty()) {
             genericSpecification.add(new SearchCriteria("merchantId", merchantId, SearchOperation.EQUAL));
         }
+        if(firstName != null && !firstName.isEmpty())
+            genericSpecification.add(new SearchCriteria("firstName", firstName, SearchOperation.MATCH));
+        if(lastName !=null && !lastName.isEmpty())
+            genericSpecification.add(new SearchCriteria("lastName", lastName, SearchOperation.MATCH));
         return repository.findAll(genericSpecification, pageRequest);
     }
 
     public MerchantDetailResponse merchantDetails(String userId, String fingerPrint){
         return api.get(baseUrl + "/api/users/public/" + userId, MerchantDetailResponse.class, getHeaders(fingerPrint));
+    }
+
+    public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, PageRequest pageRequest){
+        return repository.searchMerchants(searchTerm, agentId, pageRequest);
     }
 }

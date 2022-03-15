@@ -14,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -30,7 +31,13 @@ public class ProductService {
     private String allProductDetail;
     @Value("${finger.print}")
     private String fingerPrint;
+    @Value("${merchant.product.category}")
+    private String merchantProductCategoryURL;
+    @Value("${product.categoryById}")
+    private String productCategoryByCategoryId;
 
+    @Value("${product.default.state}")
+    private String productState;
 
 
     public SingleProductResponse productDetail (SingleProductRequest request) throws IOException {
@@ -43,21 +50,43 @@ public class ProductService {
 
 
     public AllProductResponse allProductDetail (AllProductsRequest request) throws IOException {
-
+         if(request.getState()== null || request.getState().isEmpty()){
+             request.setState(productState);
+         }
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(allProductDetail)
                 // Add query parameter
                 .queryParam("direction", request.getDirection())
-                .queryParam("page",request.getPageNumber())
+                .queryParam("page",request.getPage())
                 .queryParam("pageSize",request.getPageSize())
                 .queryParam("searchString",request.getSearchString())
                 .queryParam("sortBy",request.getSortBy())
-                .queryParam("State",request.getState());
+                .queryParam("state",request.getState());
 
 
         Map map=new HashMap();
         map.put("fingerprint",fingerPrint);
         AllProductResponse response = api.get(builder.toUriString(), AllProductResponse.class,map);
         return response;
+    }
+
+    public List getMerchantProductCategory () throws IOException {
+//        ResponseEntity<String> responseEntity = restTemplate.exchange(merchantProductCategoryURL, HttpMethod.GET, String.class);
+
+        return  api.get(merchantProductCategoryURL , List.class, new HashMap<>());
+    }
+
+    public AllProductResponse getProductById(String categoryId, String direction, Integer page, Integer pageSize, String sortBy, String state) throws IOException {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(productCategoryByCategoryId)
+                .path(categoryId)
+                .queryParam("direction", direction)
+                .queryParam("page", page)
+                .queryParam("pageSize", pageSize)
+                .queryParam("sortBy", sortBy)
+                .queryParam("state", state);
+        Map map = new HashMap();
+        map.put("fingerprint",fingerPrint);
+        map.put("Authorization","Bearer"+ " " +externalTokenService.getToken());
+        return api.get(builder.toUriString(), AllProductResponse.class, map);
     }
 
 }

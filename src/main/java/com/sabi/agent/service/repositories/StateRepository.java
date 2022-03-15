@@ -22,9 +22,12 @@ public interface StateRepository extends JpaRepository<State, Long>, JpaSpecific
 
     State findByName(String name);
 
-    List<State> findByIsActive(Boolean isActive);
+    @Query("SELECT s FROM State s WHERE ((:isActive IS NULL) OR (:isActive IS NOT NULL AND s.isActive = :isActive))" +
+            " AND ((:countryId IS NULL) OR (:countryId IS NOT NULL AND s.countryId = :countryId))")
+    List<State> findByStateWithCountryId(@Param("isActive")Boolean isActive,
+                                           @Param("countryId")Long countryId);
 
-    @Query("SELECT s FROM State s WHERE ((:name IS NULL) OR (:name IS NOT NULL AND s.name = :name))")
+    @Query("SELECT s FROM State s WHERE ((:name IS NULL) OR (:name IS NOT NULL AND s.name LIKE %:name%))")
     Page<State> findStates(@Param("name")String name, Pageable pageable);
 
 }

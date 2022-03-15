@@ -14,6 +14,7 @@ import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentVerificationRepository;
 import com.sabi.framework.exceptions.BadRequestException;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
@@ -36,12 +37,12 @@ public class Validations {
     private TargetTypeRepository targetTypeRepository;
     private TaskRepository taskRepository;
     private UserRepository userRepository;
-    private WardRepository wardRepository;
     private AgentRepository agentRepository;
     private SupervisorRepository supervisorRepository;
     private MarketRepository marketRepository;
     private AgentVerificationRepository agentVerificationRepository;
     private CountryRepository countryRepository;
+    private final MerchantRepository merchantRepository;
 
     @Autowired
     private BankRepository bankRepository;
@@ -50,21 +51,21 @@ public class Validations {
     public Validations(StateRepository stateRepository, MarketRepository marketRepository,
                        LGARepository lgaRepository, AgentCategoryRepository agentCategoryRepository,
                        TargetTypeRepository targetTypeRepository, TaskRepository taskRepository,
-                       UserRepository userRepository, WardRepository wardRepository, AgentRepository agentRepository,
+                       UserRepository userRepository, AgentRepository agentRepository,
                        SupervisorRepository supervisorRepository, AgentVerificationRepository agentVerificationRepository,
-                       CountryRepository countryRepository) {
+                       CountryRepository countryRepository, MerchantRepository merchantRepository) {
         this.stateRepository = stateRepository;
         this.lgaRepository = lgaRepository;
         this.agentCategoryRepository = agentCategoryRepository;
         this.targetTypeRepository = targetTypeRepository;
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
-        this.wardRepository = wardRepository;
         this.agentRepository = agentRepository;
         this.marketRepository = marketRepository;
         this.supervisorRepository = supervisorRepository;
         this.agentVerificationRepository = agentVerificationRepository;
         this.countryRepository = countryRepository;
+        this.merchantRepository = merchantRepository;
     }
 
     public void validateState(StateDto stateDto) {
@@ -72,14 +73,24 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
         if (stateDto.getName() == null || stateDto.getName().trim().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(stateDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(stateDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = stateDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
     }
 
     public void validateTask(TaskDto taskDto) {
         if (taskDto.getName() == null || taskDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        String valName = taskDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
         if(taskDto.getTaskType() == null || taskDto.getTaskType().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Task type cannot be empty");
         if(taskDto.getPriority() == null || taskDto.getPriority().isEmpty())
@@ -92,8 +103,14 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
         if (lgaDto.getName() == null || lgaDto.getName().trim().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(lgaDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(lgaDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = lgaDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
+
 
         State state = stateRepository.findById(lgaDto.getStateId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -120,8 +137,13 @@ public class Validations {
     public void validateIdType(IdTypeDto idTypeDto) {
         if (idTypeDto.getName() == null || idTypeDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(idTypeDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(idTypeDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = idTypeDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
     }
 
@@ -170,26 +192,34 @@ public class Validations {
     public void validateMarket(MarketDto marketDto){
         if(marketDto.getName() == null || marketDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+        String valName = marketDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
         if(marketDto.getWardId() == null || marketDto.getWardId() < 0 )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Ward Id cannot be empty");
-        Ward ward = wardRepository.findById(marketDto.getWardId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid ward id!"));
+
 
     }
 
-    public void validateWard (WardDto wardDto){
-        if (wardDto.getName() == null || wardDto.getName().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+//    public void validateWard (WardDto wardDto){
+//        if (wardDto.getName() == null || wardDto.getName().isEmpty())
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
+//        String valName = wardDto.getName();
+//        char valCharName = valName.charAt(0);
+//        if (Character.isDigit(valCharName)){
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+//        }
 
-        if (!Utility.validateName(wardDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(wardDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
 
-
-        LGA lga = lgaRepository.findById(wardDto.getLgaId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Enter a valid LGA id!"));
-    }
+//
+//        LGA lga = lgaRepository.findById(wardDto.getLgaId())
+//                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                        " Enter a valid LGA id!"));
+//    }
 
     public void validateSupervisor (SupervisorDto supervisorDto){
         User user = userRepository.findById(supervisorDto.getUserId())
@@ -200,16 +230,26 @@ public class Validations {
     public void validateTargetType (TargetTypeDto targetTypeDto){
         if (targetTypeDto.getName() == null || targetTypeDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(targetTypeDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(targetTypeDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = targetTypeDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
     }
 
     public void validateAgentCategoryTarget (AgentCategoryTargetDto agentCategoryTargetDto){
         if (agentCategoryTargetDto.getName() == null || agentCategoryTargetDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(agentCategoryTargetDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(agentCategoryTargetDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = agentCategoryTargetDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
         AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTargetDto.getAgentCategoryId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -274,8 +314,13 @@ public class Validations {
     public void validateAgentCategoryTask (AgentCategoryTaskDto agentCategoryTaskDto){
         if (agentCategoryTaskDto.getName() == null || agentCategoryTaskDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
-        if (!Utility.validateName(agentCategoryTaskDto.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+//        if (!Utility.validateName(agentCategoryTaskDto.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Name ");
+        String valName = agentCategoryTaskDto.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
 
         AgentCategory agentCategory =  agentCategoryRepository.findById(agentCategoryTaskDto.getAgentCategoryId())
@@ -308,8 +353,13 @@ public class Validations {
     public void validateAgentTarget(AgentTargetDto request) {
         if(request.getName() == null || request.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, " Agent Target name can not be empty");
-        if (!Utility.validateName(request.getName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Agent Target Name ");
+//        if (!Utility.validateName(request.getName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for Agent Target Name ");
+        String valName = request.getName();
+        char valCharName = valName.charAt(0);
+        if (Character.isDigit(valCharName)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name can not start with a number");
+        }
 
         if (request.getTargetId() == null )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Target Type cannot be empty");
@@ -419,10 +469,10 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Location name  cannot be empty");
 
         switch (request.getLocationType()){
-            case "Ward":
-                wardRepository.findById(request.getLocationId()).orElseThrow(()->
-                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Ward Id"));
-                 break;
+//            case "Ward":
+//                wardRepository.findById(request.getLocationId()).orElseThrow(()->
+//                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Ward Id"));
+//                 break;
             case "Market":
                 marketRepository.findById(request.getLocationId()).orElseThrow(()->
                         new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Market Id"));
@@ -442,30 +492,54 @@ public class Validations {
 
 
     public void validateVerification (Verification request){
-        if (request.getStatus() != CustomResponseCode.ENABLE_VERIFICATION_STATUS || request.getStatus() != CustomResponseCode.FAILED_VERIFICATION_STATUS)
+        if (request.getStatus() != CustomResponseCode.ENABLE_VERIFICATION_STATUS && request.getStatus() != CustomResponseCode.FAILED_VERIFICATION_STATUS)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid status");
     }
 
 
+//    public void validateComponentVerification(AgentVerification request){
+//
+//        AgentVerification agentVerification = agentVerificationRepository.findByAgentIdAndComponent(request.getAgentId(),request.getComponent());
+//        if(agentVerification !=null){
+//            AgentVerification saveVerification = agentVerificationRepository.getOne(agentVerification.getId());
+//            saveVerification.setComponent(request.getComponent());
+//            saveVerification.setAgentId(request.getAgentId());
+//
+//            agentVerificationRepository.save(agentVerification);
+//
+//        }
+//    }
+
     public void validateComponentVerification(AgentVerification request){
-
         AgentVerification agentVerification = agentVerificationRepository.findByAgentIdAndComponent(request.getAgentId(),request.getComponent());
-        if(agentVerification !=null){
-            AgentVerification saveVerification = agentVerificationRepository.getOne(agentVerification.getId());
-            saveVerification.setComponent(request.getComponent());
-            saveVerification.setAgentId(request.getAgentId());
+        if(agentVerification !=null)
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Component already exist");
+    }
 
-            agentVerificationRepository.save(agentVerification);
+    public void validateAddressValidation(AgentVerificationDto request){
+        if (request.getAddress() == null || request.getAddress().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Address cannot be empty");
+        if(request.getId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id cannot be empty");
+    }
 
-        }
+
+    public void validateIdCardValidation(AgentVerificationDto request){
+        if (request.getIdCard() == null || request.getIdCard().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id card cannot be empty");
+        if(request.getId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id cannot be empty");
     }
 
 
 
     public void validateOrder(PlaceOrder request){
+
         Agent agent  = agentRepository.findById(request.getAgentId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Agent id does not exist!"));
+        merchantRepository.findById(request.getMerchantId()).orElseThrow(()->
+                new NotFoundException(CustomResponseCode.BAD_REQUEST, "Merchant id does not exist"));
     }
 
     public void validateMerchant(MerchantSignUpRequest signUpRequest){
@@ -476,6 +550,60 @@ public class Validations {
         agentRepository.findById(Long.parseLong(signUpRequest.getAgentId())).orElseThrow(()->
                 new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Agent Signing up merchant  does not exist"));
+    }
+
+    public void validateCreateMerchant(MerchantSignUpRequest request) {
+        //businessName
+        checkIsNullOrEmpty(request.getBusinessName(), "Business Name");
+
+        //countryCode
+        checkIsNullOrEmpty(request.getCountryCode(), "Country Code");
+
+        //firstname
+        checkIsNullOrEmpty(request.getFirstName(), "firstname");
+        checkStringLength(2, 24, request.getFirstName(), "firstName");
+        if (!Utility.validateName(request.getFirstName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for first name ");
+
+        //lastname
+        if (!Utility.validateName(request.getLastName()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for last name ");
+
+        //lga
+        checkIsNullOrEmpty(request.getLga(), "lga");
+
+        //phoneNumber
+        checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
+        checkStringLength(8, 14, request.getPhoneNumber(), "Phone Number");
+        if (!Utility.isNumeric(request.getPhoneNumber()))
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
+
+        //state
+        checkIsNullOrEmpty(request.getState(), "state");
+
+        //password
+        checkIsNullOrEmpty(request.getPassword(), "password");
+        checkPassword(request.getPassword());
+    }
+
+    private void checkStringLength(int minLength, int maxLength, String string, String field) {
+        if( string.length() < minLength)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field +" must be at least " + minLength + " characters");
+        if( string.length() > maxLength)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field +" must not be greater than " + maxLength + " characters");
+    }
+
+    private void checkPassword(String string) {
+        if(!string.matches("[0-9]{6}")){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "password must match [0-9]{6}");
+        }
+    }
+
+    private void checkIsNullOrEmpty(String string, String field) {
+        if(string == null )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field + " can not be null");
+        if(string.isEmpty() )
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, field + " can not be empty");
     }
 
     public void validateAgentCategoryTaskEnable(EnableDisEnableDto enableRequest) {
@@ -495,6 +623,18 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Picture cannot be empty");
         if (request.getProductName() == null || request.getProductName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "product name cannot be empty");
+    }
+
+    public void validateOrderRequest(PlaceOrder request) {
+        if (request.getAgentId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent id cannot be empty");
+        if (request.getMerchantId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Merchant id cannot be empty");
+        Agent agent  = agentRepository.findById(request.getAgentId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Agent id does not exist!" ));
+        merchantRepository.findById(request.getMerchantId()).orElseThrow(()->
+                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Merchant id does not exist"));
     }
 
 }

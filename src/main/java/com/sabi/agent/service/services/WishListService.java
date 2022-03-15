@@ -45,7 +45,7 @@ public class WishListService {
         validations.validateWishList(request);
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         WishList wishList = mapper.map(request,WishList.class);
-        WishList wishListExist = wishListRepository.findWishListByProductName(request.getProductName());
+        WishList wishListExist = wishListRepository.findWishListByProductNameAndAgentId(request.getProductName(),request.getAgentId());
         if(wishListExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Wish lIst already exist");
         }

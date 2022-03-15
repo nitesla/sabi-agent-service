@@ -132,6 +132,11 @@ public class LGAService {
         if (lga == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
+        lga.getContent().forEach(lgas -> {
+            State state = stateRepository.getOne(lgas.getStateId());
+
+            lgas.setStateName(state.getName());
+        });
         return lga;
 
     }
@@ -155,8 +160,13 @@ public class LGAService {
     }
 
 
-    public List<LGA> getAll(Boolean isActive, Long stateId){
-        List<LGA> lga = lgaRepository.findByIsActiveAndStateId(isActive, stateId);
+    public List<LGA> getAll(Boolean isActive,Long stateId){
+        List<LGA> lga = lgaRepository.findLgaWithStateId(isActive,stateId);
+        for (LGA tran : lga
+                ) {
+            State state = stateRepository.getOne(tran.getStateId());
+            tran.setStateName(state.getName());
+        }
         return lga;
 
     }
