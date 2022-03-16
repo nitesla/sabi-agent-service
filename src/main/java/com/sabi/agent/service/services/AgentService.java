@@ -167,7 +167,7 @@ public class AgentService {
                     .phoneNumber(emailRecipient.getPhone())
                     .build();
             whatsAppService.whatsAppNotification(whatsAppRequest);
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " A new OTP sent to your email");
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " A new OTP has been sent to your email , phone number and whatsapp");
 
         }else if(exist !=null && exist.getPasswordChangedOn() !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");

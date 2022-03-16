@@ -429,6 +429,10 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid phone number  length");
         if (!Utility.isNumeric(agent.getPhone()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
+//        User user = userRepository.findByEmail(agent.getEmail());
+//        if(user !=null){
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"Email already exist");
+//        }
 
         Country country = countryRepository.findByCode(agent.getCountryCode());
         if(country == null){
