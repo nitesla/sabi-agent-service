@@ -3,13 +3,16 @@ package com.sabi.agent.service.services;
 import com.sabi.agent.core.merchant_integration.request.MerchantSignUpRequest;
 import com.sabi.agent.core.merchant_integration.response.*;
 import com.sabi.agent.core.models.RegisteredMerchant;
+import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.service.helper.GenericSpecification;
 import com.sabi.agent.service.helper.SearchCriteria;
 import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MerchantRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.User;
+import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.TokenService;
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +26,7 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,13 +44,19 @@ public class MerchantService {
     @Value("${merchant.signup}")
     private String merchantSignUpUrl;
 
+    private final AgentRepository agentRepository;
+
+    private final UserRepository userRepository;
+
     @Autowired
     MerchantRepository repository;
 
-    public MerchantService(API api, ExternalTokenService tokenService, ModelMapper mapper, Validations validations) {
+    public MerchantService(API api, ExternalTokenService tokenService, ModelMapper mapper, Validations validations, AgentRepository agentRepository, UserRepository userRepository) {
         this.api = api;
         this.tokenService = tokenService;
         this.validations = validations;
+        this.agentRepository = agentRepository;
+        this.userRepository = userRepository;
     }
 
     private Map<String, String> getHeaders(String fingerPrint) {
@@ -138,14 +143,32 @@ public class MerchantService {
             genericSpecification.add(new SearchCriteria("firstName", firstName, SearchOperation.MATCH));
         if(lastName !=null && !lastName.isEmpty())
             genericSpecification.add(new SearchCriteria("lastName", lastName, SearchOperation.MATCH));
-        return repository.findAll(genericSpecification, pageRequest);
+       Page<RegisteredMerchant> registeredMerchants= repository.findAll(genericSpecification, pageRequest);
+        return getRegisteredMerchantsAndSetAgentName(registeredMerchants);
+
+    }
+
+    private Page<RegisteredMerchant> getRegisteredMerchantsAndSetAgentName(Page<RegisteredMerchant> registeredMerchants) {
+        for (RegisteredMerchant registeredMerchant:registeredMerchants.getContent()){
+             Agent agent =agentRepository.findById(Long.parseLong(registeredMerchant.getAgentId())).orElse(null);
+             if(agent!=null){
+                 User user =userRepository.findById(agent.getUserId()).get();
+                 log.info("The Agent UserInfo =={}",user);
+                 registeredMerchant.setAgentName((registeredMerchant.getAgentId()!=null?(user!=null?user.getFirstName()+" "+user.getLastName():null):null));
+
+             }
+        }
+        return registeredMerchants;
     }
 
     public MerchantDetailResponse merchantDetails(String userId, String fingerPrint){
         return api.get(baseUrl + "/api/users/public/" + userId, MerchantDetailResponse.class, getHeaders(fingerPrint));
     }
 
-    public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, PageRequest pageRequest){
-        return repository.searchMerchants(searchTerm, agentId, pageRequest);
+    public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, LocalDateTime fromDate, LocalDateTime toDate, PageRequest pageRequest){
+        Page<RegisteredMerchant> registeredMerchants= repository.searchMerchants(searchTerm, agentId, fromDate, toDate, pageRequest);
+        return getRegisteredMerchantsAndSetAgentName(registeredMerchants);
+
     }
+
 }
