@@ -5,11 +5,13 @@ import com.google.gson.Gson;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentTargetDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.AgentTargetResponseDto;
+import com.sabi.agent.core.models.TargetType;
 import com.sabi.agent.core.models.agentModel.AgentTarget;
 import com.sabi.agent.service.helper.GenericSpecification;
 import com.sabi.agent.service.helper.SearchCriteria;
 import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
+import com.sabi.agent.service.repositories.TargetTypeRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentTargetRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
@@ -34,12 +36,14 @@ public class AgentTargetService {
     private final ModelMapper mapper;
     private final ObjectMapper objectMapper;
     private final Validations validations;
+    private final TargetTypeRepository targetTypeRepository;
 
-    public AgentTargetService(AgentTargetRepository agentTargetRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations) {
+    public AgentTargetService(AgentTargetRepository agentTargetRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations, TargetTypeRepository targetTypeRepository) {
         this.agentTargetRepository = agentTargetRepository;
         this.mapper = mapper;
         this.objectMapper = objectMapper;
         this.validations = validations;
+        this.targetTypeRepository = targetTypeRepository;
     }
 
 
@@ -100,6 +104,8 @@ public class AgentTargetService {
         AgentTarget agentTarget  = agentTargetRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent target id does not exist!"));
+        Optional<TargetType> targetType = targetTypeRepository.findById(agentTarget.getTargetId());
+        agentTarget.setTargetTypeName(targetType.isPresent()?targetType.get().getName():null);
         return mapper.map(agentTarget, AgentTargetResponseDto.class);
     }
 
@@ -129,6 +135,8 @@ public class AgentTargetService {
             genericSpecification.add(new SearchCriteria("superMax", superMax, SearchOperation.EQUAL));
         }
         Page<AgentTarget> agentTargets = agentTargetRepository.findAll(genericSpecification, pageRequest);
+        agentTargets.getContent().stream().forEach(agentTarget -> agentTarget.setTargetTypeName(
+                targetTypeRepository.findById(agentTarget.getTargetId()).isPresent()?targetTypeRepository.findById(agentTarget.getTargetId()).get().getName():null));
         return agentTargets;
 
     }
@@ -155,8 +163,10 @@ public class AgentTargetService {
 
 
     public List<AgentTarget> getAll(Boolean isActive){
-        List<AgentTarget> creditLevel = agentTargetRepository.findByIsActive(isActive);
-        return creditLevel;
+        List<AgentTarget> agentTargets = agentTargetRepository.findByIsActive(isActive);
+        agentTargets.stream().forEach(agentTarget -> agentTarget.setTargetTypeName(
+                targetTypeRepository.findById(agentTarget.getTargetId()).isPresent()?targetTypeRepository.findById(agentTarget.getTargetId()).get().getName():null));
+        return agentTargets;
 
     }
 }

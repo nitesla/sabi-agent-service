@@ -106,6 +106,8 @@ public class MarketService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Market id does not exist!"));
         MarketResponseDto marketResponseDto = mapper.map(market, MarketResponseDto.class);
+        Market marketWithLgaInfo = marketRepository.findMarketAndLocationInfo(market.getId(),market.getWardId());
+        log.info("marketWithLgaInfo=={}",marketWithLgaInfo);
         return setAndGetWardsLocationDetails(marketResponseDto);
 
     }

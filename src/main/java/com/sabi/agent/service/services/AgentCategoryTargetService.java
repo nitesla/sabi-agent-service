@@ -153,6 +153,8 @@ public class AgentCategoryTargetService {
         TargetType targetType = targetTypeRepository.findById(agentCategoryTarget.getTargetTypeId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid Target Type!"));
+        agentCategoryTarget.setAgentCategoryName(agentCategory.getName());
+        agentCategoryTarget.setTargetTypeName(targetType.getName());
         return mapper.map(agentCategoryTarget,AgentCategoryTargetResponseDto.class);
     }
 
@@ -194,7 +196,8 @@ public class AgentCategoryTargetService {
         if (agentCategoryTargets == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
-
+        agentCategoryTargets.getContent().stream().forEach(agentCategoryTarget -> agentCategoryTarget.setAgentCategoryName(agentCategoryRepository.findById(agentCategoryTarget.getAgentCategoryId()).get().getName()));
+        agentCategoryTargets.getContent().stream().forEach(agentCategoryTargetResponseDto -> agentCategoryTargetResponseDto.setTargetTypeName(targetTypeRepository.findById(agentCategoryTargetResponseDto.getTargetTypeId()).get().getName()));
         return agentCategoryTargets;
 
     }
@@ -221,16 +224,17 @@ public class AgentCategoryTargetService {
 
     public List<AgentCategoryTarget> getAll(Boolean isActive) {
         List<AgentCategoryTarget> agentCategoryTargetList = agentCategoryTargetRepository.findByIsActive(isActive);
+        agentCategoryTargetList.stream().forEach(agentCategoryTarget -> agentCategoryTarget.setAgentCategoryName(agentCategoryRepository.findById(agentCategoryTarget.getAgentCategoryId()).get().getName()));
+        agentCategoryTargetList.stream().forEach(agentCategoryTargetResponseDto -> agentCategoryTargetResponseDto.setTargetTypeName(targetTypeRepository.findById(agentCategoryTargetResponseDto.getTargetTypeId()).get().getName()));
         return agentCategoryTargetList;
-
     }
 
-    public List<AgentCategoryTargetResponseDto> getByAgentCatID(long catId) {
+    public List<AgentCategoryTarget> getByAgentCatID(long catId) {
         agentCategoryRepository.findById(catId).orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                 " Agent Category does not exist!"));
         List<AgentCategoryTarget> targets = agentCategoryTargetRepository.findByAgentCategoryId(catId);
-        return targets.stream()
-                .map(agentCategoryTarget -> mapper.map(agentCategoryTarget, AgentCategoryTargetResponseDto.class))
-                .collect(Collectors.toList());
+        targets.stream().forEach(agentCategoryTarget -> agentCategoryTarget.setAgentCategoryName(agentCategoryRepository.findById(agentCategoryTarget.getAgentCategoryId()).get().getName()));
+        targets.stream().forEach(agentCategoryTargetResponseDto -> agentCategoryTargetResponseDto.setTargetTypeName(targetTypeRepository.findById(agentCategoryTargetResponseDto.getTargetTypeId()).get().getName()));
+        return targets;
     }
 }
