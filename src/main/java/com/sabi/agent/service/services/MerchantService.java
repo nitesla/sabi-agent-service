@@ -24,11 +24,7 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,13 +42,19 @@ public class MerchantService {
     @Value("${merchant.signup}")
     private String merchantSignUpUrl;
 
+    private final AgentRepository agentRepository;
+
+    private final UserRepository userRepository;
+
     @Autowired
     MerchantRepository repository;
 
-    public MerchantService(API api, ExternalTokenService tokenService, ModelMapper mapper, Validations validations) {
+    public MerchantService(API api, ExternalTokenService tokenService, ModelMapper mapper, Validations validations, AgentRepository agentRepository, UserRepository userRepository) {
         this.api = api;
         this.tokenService = tokenService;
         this.validations = validations;
+        this.agentRepository = agentRepository;
+        this.userRepository = userRepository;
     }
 
     private Map<String, String> getHeaders(String fingerPrint) {
@@ -139,7 +141,22 @@ public class MerchantService {
             genericSpecification.add(new SearchCriteria("firstName", firstName, SearchOperation.MATCH));
         if(lastName !=null && !lastName.isEmpty())
             genericSpecification.add(new SearchCriteria("lastName", lastName, SearchOperation.MATCH));
-        return repository.findAll(genericSpecification, pageRequest);
+       Page<RegisteredMerchant> registeredMerchants= repository.findAll(genericSpecification, pageRequest);
+        return getRegisteredMerchantsAndSetAgentName(registeredMerchants);
+
+    }
+
+    private Page<RegisteredMerchant> getRegisteredMerchantsAndSetAgentName(Page<RegisteredMerchant> registeredMerchants) {
+        for (RegisteredMerchant registeredMerchant:registeredMerchants.getContent()){
+             Agent agent =agentRepository.findById(Long.parseLong(registeredMerchant.getAgentId())).orElse(null);
+             if(agent!=null){
+                 User user =userRepository.findById(agent.getUserId()).get();
+                 log.info("The Agent UserInfo =={}",user);
+                 registeredMerchant.setAgentName((registeredMerchant.getAgentId()!=null?(user!=null?user.getFirstName()+" "+user.getLastName():null):null));
+
+             }
+        }
+        return registeredMerchants;
     }
 
     public MerchantDetailResponse merchantDetails(String userId, String fingerPrint){
