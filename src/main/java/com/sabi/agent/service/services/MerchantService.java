@@ -10,11 +10,13 @@ import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MerchantRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
+import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.TokenService;
+import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,26 +145,32 @@ public class MerchantService {
             genericSpecification.add(new SearchCriteria("firstName", firstName, SearchOperation.MATCH));
         if(lastName !=null && !lastName.isEmpty())
             genericSpecification.add(new SearchCriteria("lastName", lastName, SearchOperation.MATCH));
-       Page<RegisteredMerchant> registeredMerchants= repository.findAll(genericSpecification, pageRequest);
+        Page<RegisteredMerchant> registeredMerchants= repository.findAll(genericSpecification, pageRequest);
         return getRegisteredMerchantsAndSetAgentName(registeredMerchants);
 
     }
 
     private Page<RegisteredMerchant> getRegisteredMerchantsAndSetAgentName(Page<RegisteredMerchant> registeredMerchants) {
-        for (RegisteredMerchant registeredMerchant:registeredMerchants.getContent()){
-             Agent agent =agentRepository.findById(Long.parseLong(registeredMerchant.getAgentId())).orElse(null);
-             if(agent!=null){
-                 User user =userRepository.findById(agent.getUserId()).get();
-                 log.info("The Agent UserInfo =={}",user);
-                 registeredMerchant.setAgentName((registeredMerchant.getAgentId()!=null?(user!=null?user.getFirstName()+" "+user.getLastName():null):null));
-
-             }
-        }
+        registeredMerchants.getContent().stream().forEach(this::getAndSetMerchantAgentName);
         return registeredMerchants;
     }
 
     public MerchantDetailResponse merchantDetails(String userId, String fingerPrint){
         return api.get(baseUrl + "/api/users/public/" + userId, MerchantDetailResponse.class, getHeaders(fingerPrint));
+    }
+    public RegisteredMerchant merchantDetails(Long id) {
+        RegisteredMerchant registeredMerchant = repository.findById(id).
+                orElseThrow(()->new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested merchant with this merchantId does not exist"));
+        return getAndSetMerchantAgentName(registeredMerchant);
+    }
+
+    private RegisteredMerchant getAndSetMerchantAgentName(RegisteredMerchant registeredMerchant) {
+        Agent agent =agentRepository.findById(Long.parseLong(registeredMerchant.getAgentId())).orElse(null);
+        if(agent!=null){
+            User user =userRepository.findById(agent.getUserId()).get();
+            registeredMerchant.setAgentName((registeredMerchant.getAgentId()!=null?(user!=null?user.getFirstName()+" "+user.getLastName():null):null));
+        }
+        return registeredMerchant;
     }
 
     public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, LocalDateTime fromDate, LocalDateTime toDate, PageRequest pageRequest){
