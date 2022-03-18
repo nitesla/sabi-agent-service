@@ -12,7 +12,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MerchantRepository extends JpaRepository<RegisteredMerchant, Long>, JpaSpecificationExecutor<RegisteredMerchant> {
 
+    @Query(value = "SELECT  * from RegisteredMerchant where ((CONCAT(firstName, \" \" ,lastName)  " +
+            "LIKE %:searchTerm% OR CONCAT(lastName, \" \" ,firstName) LIKE %:searchTerm%) " +
+            "OR phoneNumber LIKE %:phoneNumber% )" +
+            "AND agentId = :agentId", nativeQuery = true)
+    Page<RegisteredMerchant> searchMerchants(@Param("searchTerm") String searchTerm, @Param("agentId") Long agentId, @Param("phoneNumber") String phoneNumber, Pageable pageable);
+
     @Query(value = "SELECT  * from RegisteredMerchant where (CONCAT(firstName, \" \" ,lastName)  " +
-            "LIKE %:searchTerm% OR CONCAT(lastName, \" \" ,firstName) LIKE %:searchTerm%) AND agentId = :agentId", nativeQuery = true)
-    Page<RegisteredMerchant> searchMerchants(@Param("searchTerm") String searchTerm, @Param("agentId") Long agentId, Pageable pageable);
+            "LIKE %:searchTerm% OR CONCAT(lastName, \" \" ,firstName) LIKE %:searchTerm%)"+
+            "OR phoneNumber LIKE %:phoneNumber% ", nativeQuery = true)
+    Page<RegisteredMerchant> searchMerchantsWithoutAgentId(@Param("searchTerm") String searchTerm, @Param("phoneNumber") String phoneNumber, Pageable pageable);
 }

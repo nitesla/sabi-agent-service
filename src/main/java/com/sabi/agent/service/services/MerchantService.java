@@ -12,6 +12,7 @@ import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.User;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.TokenService;
+import com.sabi.framework.utils.Utility;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,6 +147,16 @@ public class MerchantService {
     }
 
     public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, PageRequest pageRequest){
-        return repository.searchMerchants(searchTerm, agentId, pageRequest);
+        String phoneNumber = null;
+        if (!validateName(searchTerm)) phoneNumber = searchTerm;
+
+        if(agentId != null) return repository.searchMerchants(searchTerm, agentId, phoneNumber, pageRequest);
+
+        return repository.searchMerchantsWithoutAgentId(searchTerm, phoneNumber, pageRequest);
+    }
+
+    private boolean validateName(String name) {
+        String pattern = "^[a-zA-Z-'][ ]*$";
+        return name.matches(pattern);
     }
 }
