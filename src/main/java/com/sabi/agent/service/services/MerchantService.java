@@ -145,7 +145,7 @@ public class MerchantService {
             genericSpecification.add(new SearchCriteria("firstName", firstName, SearchOperation.MATCH));
         if(lastName !=null && !lastName.isEmpty())
             genericSpecification.add(new SearchCriteria("lastName", lastName, SearchOperation.MATCH));
-        Page<RegisteredMerchant> registeredMerchants= repository.findAll(genericSpecification, pageRequest);
+       Page<RegisteredMerchant> registeredMerchants= repository.findAll(genericSpecification, pageRequest);
         return getRegisteredMerchantsAndSetAgentName(registeredMerchants);
 
     }
@@ -179,4 +179,8 @@ public class MerchantService {
 
     }
 
+    private boolean validateName(String name) {
+        String pattern = "^[a-zA-Z-'][ ]*$";
+        return name.matches(pattern);
+    }
 }
