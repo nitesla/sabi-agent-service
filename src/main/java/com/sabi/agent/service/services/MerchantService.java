@@ -176,7 +176,15 @@ public class MerchantService {
     public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, LocalDateTime fromDate, LocalDateTime toDate, PageRequest pageRequest){
         Page<RegisteredMerchant> registeredMerchants= repository.searchMerchants(searchTerm, agentId, fromDate, toDate, pageRequest);
         return getRegisteredMerchantsAndSetAgentName(registeredMerchants);
+    }
 
+    public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, PageRequest pageRequest){
+        String phoneNumber = null;
+        if (!validateName(searchTerm)) phoneNumber = searchTerm;
+
+        if(agentId != null) return repository.searchMerchants(searchTerm, agentId, phoneNumber, pageRequest);
+
+        return repository.searchMerchantsWithoutAgentId(searchTerm, phoneNumber, pageRequest);
     }
 
     private boolean validateName(String name) {
