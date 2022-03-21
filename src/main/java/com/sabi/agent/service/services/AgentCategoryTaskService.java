@@ -5,9 +5,12 @@ import com.google.gson.Gson;
 import com.sabi.agent.core.dto.agentDto.requestDto.AgentCategoryTaskDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.AgentCategoryTaskResponseDto;
+import com.sabi.agent.core.models.TargetType;
 import com.sabi.agent.core.models.Task;
+import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentCategory;
 import com.sabi.agent.core.models.agentModel.AgentCategoryTask;
+import com.sabi.agent.core.models.agentModel.AgentTarget;
 import com.sabi.agent.service.helper.*;
 import com.sabi.agent.service.repositories.TaskRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
@@ -24,6 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @SuppressWarnings("ALL")
@@ -124,6 +128,8 @@ public class AgentCategoryTaskService {
                 .updatedBy(agentCategoryTask.getUpdatedBy())
                 .updatedDate(agentCategoryTask.getUpdatedDate())
                 .isActive(agentCategoryTask.getIsActive())
+                .agentCategoryName(agentCategory.getName())
+                .taskName(task.getName())
                 .build();
 
         return response;
@@ -160,6 +166,7 @@ public class AgentCategoryTaskService {
         if (agentCategoryTasks == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
+        agentCategoryTasks.stream().forEach(agentCategoryTask -> getAndSetAgentCategoryTaskParameters(agentCategoryTask));
         return agentCategoryTasks;
 
     }
@@ -186,7 +193,16 @@ public class AgentCategoryTaskService {
 
     public List<AgentCategoryTask> getAll(Boolean isActive){
         List<AgentCategoryTask> agentCategoryTaskList = agentCategoryTaskRepository.findByIsActive(isActive);
+        agentCategoryTaskList.stream().forEach(agentCategoryTask -> getAndSetAgentCategoryTaskParameters(agentCategoryTask));
         return agentCategoryTaskList;
 
+    }
+
+    public AgentCategoryTask getAndSetAgentCategoryTaskParameters(AgentCategoryTask agentCategoryTask) {
+        AgentCategory agentCategory = agentCategoryRepository.findById(agentCategoryTask.getAgentCategoryId()).orElse(null);
+        Task task =  taskRepository.findById(agentCategoryTask.getTaskId()).orElse(null);
+        agentCategoryTask.setAgentCategoryName(agentCategory != null? agentCategory.getName():null);
+        agentCategoryTask.setTaskName(task != null? task.getName():null);
+        return agentCategoryTask;
     }
 }

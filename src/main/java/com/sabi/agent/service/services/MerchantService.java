@@ -17,18 +17,22 @@ import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
+import javafx.print.Collation;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -132,7 +136,7 @@ public class MerchantService {
         return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
     }
 
-    public Page<RegisteredMerchant> findMerchant(String agentId, String merchantId, String firstName, String lastName,PageRequest pageRequest) {
+    public Page<RegisteredMerchant> findMerchant(String agentId, String merchantId, String firstName, String lastName,Boolean isActive,LocalDateTime fromDate, LocalDateTime toDate,PageRequest pageRequest) {
         GenericSpecification<RegisteredMerchant> genericSpecification = new GenericSpecification<RegisteredMerchant>();
 
         if (agentId != null && !agentId.isEmpty()) {
@@ -145,6 +149,13 @@ public class MerchantService {
             genericSpecification.add(new SearchCriteria("firstName", firstName, SearchOperation.MATCH));
         if(lastName !=null && !lastName.isEmpty())
             genericSpecification.add(new SearchCriteria("lastName", lastName, SearchOperation.MATCH));
+        if (isActive!=null)
+            genericSpecification.add(new SearchCriteria("isActive", isActive, SearchOperation.EQUAL));
+        if (fromDate!=null)
+            genericSpecification.add(new SearchCriteria("createdDate", fromDate,SearchOperation.GREATER_THAN_EQUAL));
+        if (toDate!=null)
+            genericSpecification.add(new SearchCriteria("createdDate", toDate,SearchOperation.LESS_THAN_EQUAL));
+
        Page<RegisteredMerchant> registeredMerchants= repository.findAll(genericSpecification, pageRequest);
         return getRegisteredMerchantsAndSetAgentName(registeredMerchants);
 
@@ -171,11 +182,6 @@ public class MerchantService {
             registeredMerchant.setAgentName((registeredMerchant.getAgentId()!=null?(user!=null?user.getFirstName()+" "+user.getLastName():null):null));
         }
         return registeredMerchant;
-    }
-
-    public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, LocalDateTime fromDate, LocalDateTime toDate, PageRequest pageRequest){
-        Page<RegisteredMerchant> registeredMerchants= repository.searchMerchants(searchTerm, agentId, fromDate, toDate, pageRequest);
-        return getRegisteredMerchantsAndSetAgentName(registeredMerchants);
     }
 
     public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, PageRequest pageRequest){

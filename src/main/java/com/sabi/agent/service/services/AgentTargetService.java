@@ -6,16 +6,19 @@ import com.sabi.agent.core.dto.agentDto.requestDto.AgentTargetDto;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.responseDto.AgentTargetResponseDto;
 import com.sabi.agent.core.models.TargetType;
+import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentTarget;
 import com.sabi.agent.service.helper.GenericSpecification;
 import com.sabi.agent.service.helper.SearchCriteria;
 import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.TargetTypeRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentTargetRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
+import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
@@ -37,13 +40,17 @@ public class AgentTargetService {
     private final ObjectMapper objectMapper;
     private final Validations validations;
     private final TargetTypeRepository targetTypeRepository;
+    private final AgentRepository agentRepository;
+    private final UserRepository userRepository;
 
-    public AgentTargetService(AgentTargetRepository agentTargetRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations, TargetTypeRepository targetTypeRepository) {
+    public AgentTargetService(AgentTargetRepository agentTargetRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations, TargetTypeRepository targetTypeRepository, AgentRepository agentRepository, UserRepository userRepository) {
         this.agentTargetRepository = agentTargetRepository;
         this.mapper = mapper;
         this.objectMapper = objectMapper;
         this.validations = validations;
         this.targetTypeRepository = targetTypeRepository;
+        this.agentRepository = agentRepository;
+        this.userRepository = userRepository;
     }
 
 
@@ -105,7 +112,7 @@ public class AgentTargetService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested agent target id does not exist!"));
         Optional<TargetType> targetType = targetTypeRepository.findById(agentTarget.getTargetId());
-        agentTarget.setTargetTypeName(targetType.isPresent()?targetType.get().getName():null);
+        getAndSetAgentTargetParameters(agentTarget);
         return mapper.map(agentTarget, AgentTargetResponseDto.class);
     }
 
@@ -135,8 +142,7 @@ public class AgentTargetService {
             genericSpecification.add(new SearchCriteria("superMax", superMax, SearchOperation.EQUAL));
         }
         Page<AgentTarget> agentTargets = agentTargetRepository.findAll(genericSpecification, pageRequest);
-        agentTargets.getContent().stream().forEach(agentTarget -> agentTarget.setTargetTypeName(
-                targetTypeRepository.findById(agentTarget.getTargetId()).isPresent()?targetTypeRepository.findById(agentTarget.getTargetId()).get().getName():null));
+        agentTargets.getContent().stream().forEach(agentTarget -> getAndSetAgentTargetParameters(agentTarget));
         return agentTargets;
 
     }
@@ -164,9 +170,16 @@ public class AgentTargetService {
 
     public List<AgentTarget> getAll(Boolean isActive){
         List<AgentTarget> agentTargets = agentTargetRepository.findByIsActive(isActive);
-        agentTargets.stream().forEach(agentTarget -> agentTarget.setTargetTypeName(
-                targetTypeRepository.findById(agentTarget.getTargetId()).isPresent()?targetTypeRepository.findById(agentTarget.getTargetId()).get().getName():null));
+        agentTargets.stream().forEach(agentTarget -> getAndSetAgentTargetParameters(agentTarget));
         return agentTargets;
 
+    }
+    public AgentTarget getAndSetAgentTargetParameters(AgentTarget agentTarget) {
+        TargetType targetType = targetTypeRepository.findById(agentTarget.getTargetId()).orElse(null);
+        Optional<Agent> agent = agentRepository.findById(agentTarget.getAgentId());
+        User user =  userRepository.findById(agent.get().getUserId()).orElse(null);
+        agentTarget.setAgentName(user != null? user.getFirstName()+" "+user.getLastName():null);
+        agentTarget.setTargetTypeName(targetType != null? targetType.getName():null);
+        return agentTarget;
     }
 }
