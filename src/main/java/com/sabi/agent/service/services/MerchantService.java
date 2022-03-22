@@ -10,6 +10,8 @@ import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MerchantRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
+import com.sabi.framework.exceptions.BadRequestException;
+import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.User;
@@ -151,10 +153,16 @@ public class MerchantService {
             genericSpecification.add(new SearchCriteria("lastName", lastName, SearchOperation.MATCH));
         if (isActive!=null)
             genericSpecification.add(new SearchCriteria("isActive", isActive, SearchOperation.EQUAL));
-        if (fromDate!=null)
+        if (fromDate!=null){
+            if (toDate!=null && fromDate.isAfter(toDate))
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"fromDate can't be greater than toDate");
             genericSpecification.add(new SearchCriteria("createdDate", fromDate,SearchOperation.GREATER_THAN_EQUAL));
-        if (toDate!=null)
+        }
+        if (toDate!=null){
+            if (fromDate == null)
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"'fromDate' must be included along with 'toDate' in the request");
             genericSpecification.add(new SearchCriteria("createdDate", toDate,SearchOperation.LESS_THAN_EQUAL));
+        }
 
        Page<RegisteredMerchant> registeredMerchants= repository.findAll(genericSpecification, pageRequest);
         return getRegisteredMerchantsAndSetAgentName(registeredMerchants);
