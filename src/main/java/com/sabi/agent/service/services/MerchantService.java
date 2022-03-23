@@ -1,5 +1,6 @@
 package com.sabi.agent.service.services;
 
+import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.merchant_integration.request.MerchantSignUpRequest;
 import com.sabi.agent.core.merchant_integration.response.*;
 import com.sabi.agent.core.models.RegisteredMerchant;
@@ -17,22 +18,18 @@ import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.TokenService;
 import com.sabi.framework.utils.CustomResponseCode;
-import javafx.print.Collation;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -196,5 +193,16 @@ public class MerchantService {
     private boolean validateName(String name) {
         String pattern = "^[a-zA-Z-'][ ]*$";
         return name.matches(pattern);
+    }
+
+    public void enableDisEnableState(EnableDisEnableDto request) {
+        validations.validateStatus(request.getIsActive());
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        RegisteredMerchant merchant = repository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested Merchant id does not exist!"));
+        merchant.setIsActive(request.getIsActive());
+        merchant.setUpdatedBy(userCurrent.getId());
+        repository.save(merchant);
     }
 }
