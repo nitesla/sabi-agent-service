@@ -193,7 +193,7 @@ public class MerchantService {
         String phoneNumber = null;
         if (!validateName(searchTerm)) phoneNumber = searchTerm;
 
-        if(agentId != null) return repository.searchMerchants(searchTerm, agentId, phoneNumber, pageRequest);
+        if(agentId != null) return repository.searchMerchantsWithAgentId(searchTerm, agentId, phoneNumber, pageRequest);
 
         return repository.searchMerchantsWithoutAgentId(searchTerm, phoneNumber, pageRequest);
     }
