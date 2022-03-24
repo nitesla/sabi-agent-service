@@ -161,12 +161,15 @@ public class MerchantService {
         }
 
        Page<RegisteredMerchant> registeredMerchants= repository.findAll(genericSpecification, pageRequest);
+        log.info("Returning results here {}",registeredMerchants.getContent());
         return getRegisteredMerchantsAndSetAgentName(registeredMerchants);
 
     }
 
     private Page<RegisteredMerchant> getRegisteredMerchantsAndSetAgentName(Page<RegisteredMerchant> registeredMerchants) {
+        log.info("Returning results here 1 {}",registeredMerchants);
         registeredMerchants.getContent().stream().forEach(this::getAndSetMerchantAgentName);
+        log.info("Returning results here 2 {}",registeredMerchants);
         return registeredMerchants;
     }
 
@@ -180,10 +183,12 @@ public class MerchantService {
     }
 
     private RegisteredMerchant getAndSetMerchantAgentName(RegisteredMerchant registeredMerchant) {
-        Agent agent =agentRepository.findById(Long.parseLong(registeredMerchant.getAgentId())).orElse(null);
-        if(agent!=null){
-            User user =userRepository.findById(agent.getUserId()).get();
-            registeredMerchant.setAgentName((registeredMerchant.getAgentId()!=null?(user!=null?user.getFirstName()+" "+user.getLastName():null):null));
+        if (registeredMerchant.getAgentId()!=null){
+            Agent agent =agentRepository.findById(registeredMerchant.getAgentId()).orElse(null);
+            if(agent!=null){
+                User user =userRepository.findById(agent.getUserId()).get();
+                registeredMerchant.setAgentName((user!=null?user.getFirstName()+" "+user.getLastName():null));
+            }
         }
         return registeredMerchant;
     }

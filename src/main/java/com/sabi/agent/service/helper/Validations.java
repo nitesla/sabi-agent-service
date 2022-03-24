@@ -548,12 +548,10 @@ public class Validations {
 
     public void validateMerchant(MerchantSignUpRequest signUpRequest){
         if(signUpRequest.getAgentId() == null)
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id can not be null");
-        if (signUpRequest.getAgentId().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id can not be empty");
-        agentRepository.findById(Long.parseLong(signUpRequest.getAgentId())).orElseThrow(()->
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id can not be null/empty");
+        agentRepository.findById(signUpRequest.getAgentId()).orElseThrow(()->
                 new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Agent Signing up merchant  does not exist"));
+                        "AgentId for Signing up merchant  does not exist"));
     }
 
     public void validateCreateMerchant(MerchantSignUpRequest request) {
