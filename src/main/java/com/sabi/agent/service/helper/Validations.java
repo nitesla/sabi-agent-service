@@ -561,7 +561,7 @@ public class Validations {
         checkIsNullOrEmpty(request.getBusinessName(), "Business Name");
 
         //countryCode
-        checkIsNullOrEmpty(request.getCountryCode(), "Country Code");
+        checkIsNullOrEmpty(request.getCountry(), "country");
 
         //firstname
         checkIsNullOrEmpty(request.getFirstName(), "firstname");
@@ -575,7 +575,11 @@ public class Validations {
 
         //lga
         checkIsNullOrEmpty(request.getLga(), "lga");
-
+        LGA lga = lgaRepository.findByName(request.getLga());
+        if ( lga==null)
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested lga is not found");
+        State state = stateRepository.findById(lga.getStateId())
+                .orElseThrow(() ->new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The state of this "+lga.getName()+" lga can't be found"));
         //phoneNumber
         checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
         checkStringLength(8, 14, request.getPhoneNumber(), "Phone Number");
@@ -584,7 +588,12 @@ public class Validations {
 
         //state
         checkIsNullOrEmpty(request.getState(), "state");
-
+        if (!request.getState().equalsIgnoreCase(state.getName()))
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested state can't be found.");
+        //country
+        checkIsNullOrEmpty(request.getCountry(),"country");
+        if (countryRepository.findByName(request.getCountry()) == null)
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested country can't be found");
         //password
         checkIsNullOrEmpty(request.getPassword(), "password");
         checkPassword(request.getPassword());

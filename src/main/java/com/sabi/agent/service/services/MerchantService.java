@@ -76,15 +76,12 @@ public class MerchantService {
     public MerchantSignUpResponse createMerchant(MerchantSignUpRequest signUpRequest, String fingerPrint) {
         validations.validateCreateMerchant(signUpRequest);
         signUpRequest.setCreatedDate(String.valueOf(LocalDateTime.now()));
-        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
-        String createdBy = userCurrent.getFirstName() + " " + userCurrent.getLastName();
-        signUpRequest.setCreatedBy(createdBy);
         MerchantSignUpResponse signUpResponse = api.post(merchantSignUpUrl,
                 signUpRequest, MerchantSignUpResponse.class, getHeaders(fingerPrint));
         if (signUpResponse.getId() != null){
              RegisteredMerchant registeredMerchant = saveMerchant(signUpResponse, signUpRequest);
             signUpResponse.setLocalId(registeredMerchant.getId());
-            signUpResponse.setCountry(signUpRequest.getCountryCode());
+            signUpResponse.setCountry(signUpRequest.getCountry());
             signUpResponse.setBusinessName(signUpRequest.getBusinessName());
             signUpResponse.setState(signUpRequest.getState());
             signUpResponse.setLga(signUpRequest.getLga());
@@ -105,7 +102,9 @@ public class MerchantService {
         registeredMerchant.setMerchantId(signUpResponse.getId());
         registeredMerchant.setLga(signUpRequest.getLga());
         registeredMerchant.setState(signUpRequest.getState());
-        registeredMerchant.setCountry(signUpRequest.getCountryCode());
+        registeredMerchant.setCountry(signUpRequest.getCountry());
+        Long createdby = TokenService.getCurrentUserFromSecurityContext().getId();
+        registeredMerchant.setCreatedBy(createdby !=null ? createdby:null);
         return repository.save(registeredMerchant);
     }
 
