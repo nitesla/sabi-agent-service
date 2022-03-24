@@ -18,5 +18,7 @@ public interface AgentCategoryTaskRepository extends JpaRepository<AgentCategory
 
     AgentCategoryTask findByAgentCategoryIdAndTaskId (Long  agentCategoryId, Long TaskId);
 
+    List<AgentCategoryTask> findByAgentCategoryId(Long agentCategoryId);
+
     List<AgentCategoryTask> findByIsActive(Boolean isActive);
 }

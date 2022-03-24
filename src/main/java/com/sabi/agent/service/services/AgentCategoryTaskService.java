@@ -205,4 +205,10 @@ public class AgentCategoryTaskService {
         agentCategoryTask.setTaskName(task != null? task.getName():null);
         return agentCategoryTask;
     }
+
+    public List<AgentCategoryTask> getByAgentCategoryId(Long agentCategoryId) {
+        List<AgentCategoryTask> agentCategoryTaskList = agentCategoryTaskRepository.findByAgentCategoryId(agentCategoryId);
+        agentCategoryTaskList.stream().forEach(agentCategoryTask -> getAndSetAgentCategoryTaskParameters(agentCategoryTask));
+        return agentCategoryTaskList;
+    }
 }
