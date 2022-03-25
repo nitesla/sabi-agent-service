@@ -5,10 +5,7 @@ import com.google.gson.Gson;
 import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.MarketDto;
 import com.sabi.agent.core.dto.responseDto.MarketResponseDto;
-import com.sabi.agent.core.models.Country;
-import com.sabi.agent.core.models.LGA;
-import com.sabi.agent.core.models.Market;
-import com.sabi.agent.core.models.State;
+import com.sabi.agent.core.models.*;
 import com.sabi.agent.service.helper.GenericSpecification;
 import com.sabi.agent.service.helper.SearchCriteria;
 import com.sabi.agent.service.helper.SearchOperation;
@@ -113,12 +110,23 @@ public class MarketService {
     }
 
     private MarketResponseDto setAndGetWardsLocationDetails(MarketResponseDto marketResponseDto) {
-        Optional<LGA> lga = lgaRepository.findById(wardRepository.findById(marketResponseDto.getWardId()).get().getLgaId());
-        marketResponseDto.setLga((lga.isPresent() ? lga.get().getName() : null));
+        Optional<Ward> ward = wardRepository.findById(marketResponseDto.getWardId());
+        marketResponseDto.setWard(ward.isPresent()?ward.get().getName():null);
+        Optional<LGA> lga = lgaRepository.findById(ward.get().getLgaId());
+        if (lga.isPresent()){
+            marketResponseDto.setLgaId(lga.get().getId());
+            marketResponseDto.setLga(lga.get().getName());
+        }
         Optional<State> state = stateRepository.findById(lga.get().getStateId());
-        marketResponseDto.setState((state.isPresent() ? state.get().getName() : null));
+        if (state.isPresent()){
+            marketResponseDto.setStateId(state.get().getId());
+            marketResponseDto.setState(state.get().getName());
+        }
         Optional<Country> country = countryRepository.findById(state.get().getCountryId());
-        marketResponseDto.setCountry((country.isPresent() ? country.get().getName() : null));
+        if (country.isPresent()){
+            marketResponseDto.setCountryId(country.get().getId());
+            marketResponseDto.setCountry(country.get().getName());
+        }
         return marketResponseDto;
     }
 
