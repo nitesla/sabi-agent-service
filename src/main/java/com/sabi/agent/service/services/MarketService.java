@@ -61,17 +61,26 @@ public class MarketService {
      */
 
     public MarketResponseDto createMarket(MarketDto request) {
-        validations.validateMarket(request);
+        List<Long> locationIds = validations.validateMarket(request);
+        Market market = null;
+        if (locationIds.size() == 4)
+        {
+            market = mapper.map(request, Market.class);
+            market.setWardId(locationIds.get(0));
+            market.setWard(wardRepository.findById(locationIds.get(0)).get().getName());
+            market.setLgaId(locationIds.get(1));
+            market.setStateId(locationIds.get(2));
+            market.setCountryId(locationIds.get(3));
+        }
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
-        Market market = mapper.map(request, Market.class);
         Market marketExist = marketRepository.findByName(request.getName());
         if (marketExist != null) {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Market already exist");
         }
         market.setCreatedBy(userCurrent.getId());
-        market.setIsActive(false);
+        market.setIsActive(true);
         market = marketRepository.save(market);
-        log.debug("Create new Market - {}" + new Gson().toJson(market));
+        log.debug("Create new Market - {}",market);
         return mapper.map(market, MarketResponseDto.class);
     }
 
@@ -105,7 +114,8 @@ public class MarketService {
         MarketResponseDto marketResponseDto = mapper.map(market, MarketResponseDto.class);
         Market marketWithLgaInfo = marketRepository.findMarketAndLocationInfo(market.getId(),market.getWardId());
         log.info("marketWithLgaInfo=={}",marketWithLgaInfo);
-        return setAndGetWardsLocationDetails(marketResponseDto);
+        //setAndGetWardsLocationDetails(marketResponseDto);
+        return marketResponseDto;
 
     }
 
@@ -136,8 +146,9 @@ public class MarketService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<Market> findAll(String name, Boolean isActive, PageRequest pageRequest) {
+    public Page<Market> findAll(String name,String wardName, String lgaName, String stateName,String countryName, Boolean isActive, PageRequest pageRequest) {
         GenericSpecification<Market> genericSpecification = new GenericSpecification<Market>();
+        Ward ward = null;
 
         if (name != null && !name.isEmpty()) {
             genericSpecification.add(new SearchCriteria("name", name, SearchOperation.MATCH));
@@ -145,16 +156,17 @@ public class MarketService {
         if (isActive != null) {
             genericSpecification.add(new SearchCriteria("isActive", isActive, SearchOperation.EQUAL));
         }
-        Page<Market> market = marketRepository.findAll(genericSpecification, pageRequest);
-        market.getContent().forEach(marketResponseDto -> {
-            Optional<LGA> lga = lgaRepository.findById(wardRepository.findById(marketResponseDto.getWardId()).get().getLgaId());
-            marketResponseDto.setLga((lga.isPresent() ? lga.get().getName() : null));
-            Optional<State> state = stateRepository.findById(lga.get().getStateId());
-            marketResponseDto.setState((state.map(State::getName).orElse(null)));
-            Optional<Country> country = countryRepository.findById(state.get().getCountryId());
-            marketResponseDto.setCountry((country.map(Country::getName).orElse(null)));
+        if (wardName!=null && !wardName.isEmpty()){
+            genericSpecification.add(new SearchCriteria("ward",wardName,SearchOperation.EQUAL));
+        }
+        if (lgaName!=null && !lgaName.isEmpty())
+            genericSpecification.add(new SearchCriteria("lga", lgaName,SearchOperation.EQUAL));
+        if (stateName!=null && !stateName.isEmpty())
+            genericSpecification.add(new SearchCriteria("state",stateName,SearchOperation.EQUAL));
+        if (countryName!=null && !countryName.isEmpty())
+            genericSpecification.add(new SearchCriteria("country",countryName,SearchOperation.EQUAL));
 
-        });
+        Page<Market> market = marketRepository.findAll(genericSpecification, pageRequest);
         return market;
     }
 
@@ -189,7 +201,7 @@ public class MarketService {
                 .map(user -> mapper.map(user, MarketResponseDto.class))
                 .collect(Collectors.toList());
 
-        marketResponseDtos.forEach(this::setAndGetWardsLocationDetails);
+        //marketResponseDtos.forEach(this::setAndGetWardsLocationDetails);
         return marketResponseDtos;
     }
 }

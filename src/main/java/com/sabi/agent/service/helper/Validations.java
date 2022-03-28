@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 
 @SuppressWarnings("All")
 @Slf4j
@@ -43,6 +45,7 @@ public class Validations {
     private AgentVerificationRepository agentVerificationRepository;
     private CountryRepository countryRepository;
     private final MerchantRepository merchantRepository;
+    private  final WardRepository wardRepository;
 
     @Autowired
     private BankRepository bankRepository;
@@ -53,7 +56,7 @@ public class Validations {
                        TargetTypeRepository targetTypeRepository, TaskRepository taskRepository,
                        UserRepository userRepository, AgentRepository agentRepository,
                        SupervisorRepository supervisorRepository, AgentVerificationRepository agentVerificationRepository,
-                       CountryRepository countryRepository, MerchantRepository merchantRepository) {
+                       CountryRepository countryRepository, MerchantRepository merchantRepository, WardRepository wardRepository) {
         this.stateRepository = stateRepository;
         this.lgaRepository = lgaRepository;
         this.agentCategoryRepository = agentCategoryRepository;
@@ -66,6 +69,7 @@ public class Validations {
         this.agentVerificationRepository = agentVerificationRepository;
         this.countryRepository = countryRepository;
         this.merchantRepository = merchantRepository;
+        this.wardRepository = wardRepository;
     }
 
     public void validateState(StateDto stateDto) {
@@ -189,7 +193,7 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
     }
 
-    public void validateMarket(MarketDto marketDto){
+    public List validateMarket(MarketDto marketDto){
         if(marketDto.getName() == null || marketDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
         String valName = marketDto.getName();
@@ -199,8 +203,27 @@ public class Validations {
         }
         if(marketDto.getWardId() == null || marketDto.getWardId() < 0 )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Ward Id cannot be empty");
+        Ward ward = wardRepository.findById(marketDto.getWardId())
+                    .orElseThrow(()-> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Please enter a valid ward"));
 
+        if (marketDto.getLga() == null || marketDto.getLga().isEmpty())
+            throw new  BadRequestException(CustomResponseCode.BAD_REQUEST,"Lga cannot be empty");
 
+        LGA lga = lgaRepository.findByName(marketDto.getLga());
+        if (lga == null)
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Please enter a valid lga");
+        if (marketDto.getState() == null || marketDto.getState().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"state cannot be empty");
+        State state = stateRepository.findByName(marketDto.getState());
+        if (state == null)
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Please enter a valid state");
+        if (marketDto.getCountry() == null || marketDto.getCountry().isEmpty())
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"country cannot be empty");
+        Country country = countryRepository.findByName(marketDto.getCountry());
+        if (country == null)
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Please ente a valid country");
+
+        return Arrays.asList(ward.getId(),lga.getId(),state.getId(),country.getId());
     }
 
 //    public void validateWard (WardDto wardDto){
