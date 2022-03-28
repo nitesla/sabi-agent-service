@@ -23,11 +23,7 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -141,6 +137,27 @@ public class MerchantService {
         return repository.findAll(genericSpecification, pageRequest);
     }
 
+//    public Page<RegisteredMerchant> findMerchant(String agentId, String merchantId, String firstName, String lastName,
+//                                                 Date startDate, Date endDate, PageRequest pageRequest) {
+//        GenericSpecification<RegisteredMerchant> genericSpecification = new GenericSpecification<RegisteredMerchant>();
+//
+//        if (agentId != null && !agentId.isEmpty()) {
+//            genericSpecification.add(new SearchCriteria("agentId", agentId, SearchOperation.MATCH));
+//        }
+//        if (merchantId != null && !merchantId.isEmpty()) {
+//            genericSpecification.add(new SearchCriteria("merchantId", merchantId, SearchOperation.EQUAL));
+//        }
+//        if(firstName != null && !firstName.isEmpty())
+//            genericSpecification.add(new SearchCriteria("firstName", firstName, SearchOperation.MATCH));
+//        if(lastName !=null && !lastName.isEmpty())
+//            genericSpecification.add(new SearchCriteria("lastName", lastName, SearchOperation.MATCH));
+//        if(startDate != null)
+//            genericSpecification.add(new SearchCriteria("createdDate", startDate, SearchOperation.GREATER_THAN_EQUAL));
+//        if(endDate != null)
+//            genericSpecification.add(new SearchCriteria("createdDate", endDate, SearchOperation.LESS_THAN_EQUAL));
+//        return repository.findAll(genericSpecification, pageRequest);
+//    }
+
     public MerchantDetailResponse merchantDetails(String userId, String fingerPrint){
         return api.get(baseUrl + "/api/users/public/" + userId, MerchantDetailResponse.class, getHeaders(fingerPrint));
     }
@@ -148,4 +165,20 @@ public class MerchantService {
     public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, PageRequest pageRequest){
         return repository.searchMerchants(searchTerm, agentId, pageRequest);
     }
+
+//    public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, Date startDate, Date endDate,PageRequest pageRequest){
+//        return repository.searchMerchants(searchTerm, agentId, startDate, endDate, pageRequest);
+//    }
+
+//    public void enableDisableMerchant(EnableDisEnableDto request){
+//        validations.validateStatus(request.getIsActive());
+//        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+//        RegisteredMerchant task = repository.findById(request.getId())
+//                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                        "Requested Merchant does not exist!"));
+//        task.setIsActive(request.getIsActive());
+//        task.setUpdatedBy(userCurrent.getId());
+//        repository.save(task);
+//
+//    }
 }

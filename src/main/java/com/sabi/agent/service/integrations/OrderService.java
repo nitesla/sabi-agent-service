@@ -29,7 +29,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -151,6 +150,7 @@ public class OrderService {
         AgentOrder order = AgentOrder.builder()
                 .createdDate(new Date())
                 .status(response.isStatus())
+                .quantity((long) response.getData().getNoOfItems())
                 .orderStatus("PROCESSING")
                 .isSentToThirdParty(false)
                 .paymentMethod(paymentMethod)
@@ -204,6 +204,8 @@ public class OrderService {
         if(byOrderId == null ) throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Order not found");
         return byOrderId;
     }
+
+
 
     public LocalCompleteOrderResponse localCompleteOrder(LocalCompleteOrderRequest completeOrderRequest) {
 
@@ -345,4 +347,10 @@ public class OrderService {
         agentOrder.setSentToThirdParty(true);
         orderRepository.save(agentOrder);
     }
+//
+//    public List<Map> adminOrder(String agentName, String orderStatus,
+//                                String totalAmount, String merchName, int page, int pageSize){
+//        log.info("IN orders admin search");
+//        return orderRepository.adminSearch(agentName, orderStatus, totalAmount, merchName );
+//    }
 }
