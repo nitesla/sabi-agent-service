@@ -70,5 +70,24 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
     AgentOrder findByOrderId(long orderId);
 
     List<AgentOrder> findByIsSentToThirdPartyAndOrderStatus(Boolean sent, String orderStatus);
+
+    @Query(value = "SELECT RegisteredMerchant.firstName, RegisteredMerchant.lastName, AgentOrder.* " +
+            "FROM RegisteredMerchant, AgentOrder WHERE " +
+            "((:agentId IS NULL) OR (:agentId IS NOT NULL AND AgentOrder.agentId = :agentId)) " +
+            "AND AgentOrder.merchantId=RegisteredMerchant.id " +
+            "AND ((:status IS NULL) OR (:status IS NOT NULL AND AgentOrder.status = :status)) " +
+            "AND ((:merchantName IS NULL) OR (CONCAT(RegisteredMerchant.firstName, \" \" ,RegisteredMerchant.lastName) LIKE %:merchantName%) " +
+            "OR (CONCAT(RegisteredMerchant.lastName, \" \" ,RegisteredMerchant.firstName) LIKE %:merchantName%))" +
+            "AND ((:agentName IS NULL) OR (:agentName IS NOT NULL AND AgentOrder.userName LIKE %:agentName%)) " +
+            "AND ((:startDate IS NULL) AND (:endDate IS NULL) OR (AgentOrder.createdDate BETWEEN :startDate AND :endDate))", nativeQuery = true)
+    Page<Map> findForAdmin(@Param("status") String status,
+                           @Param("agentId") Long agentId,
+                           @Param("merchantName") String merchantName,
+                           @Param("agentName") String agentName,
+                           @Param("startDate") String startDate,
+                           @Param("endDate") String endDate,
+                           Pageable pageable);
+
+
 }
 
