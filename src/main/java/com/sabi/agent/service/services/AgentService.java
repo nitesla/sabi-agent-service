@@ -167,12 +167,21 @@ public class AgentService {
                     .phoneNumber(emailRecipient.getPhone())
                     .build();
             whatsAppService.whatsAppNotification(whatsAppRequest);
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " A new OTP sent to your email");
+
+            CreateAgentResponseDto responseDto = CreateAgentResponseDto.builder()
+                    .id(exist.getId())
+                    .email(exist.getEmail())
+                    .firstName(exist.getFirstName())
+                    .lastName(exist.getLastName())
+                    .phone(exist.getPhone())
+                    .responseMessage(" A new OTP has been sent to your email , phone number and whatsapp")
+                    .build();
+             return responseDto;
+//            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " A new OTP has been sent to your email , phone number and whatsapp");
 
         }else if(exist !=null && exist.getPasswordChangedOn() !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
         }
-
 
         String password = Utility.getSaltString();
         user.setPassword(passwordEncoder.encode(password));

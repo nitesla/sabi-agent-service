@@ -1,17 +1,25 @@
 package com.sabi.agent.service.services;
 
+import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.merchant_integration.request.MerchantSignUpRequest;
 import com.sabi.agent.core.merchant_integration.response.*;
 import com.sabi.agent.core.models.RegisteredMerchant;
+import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.service.helper.GenericSpecification;
 import com.sabi.agent.service.helper.SearchCriteria;
 import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.MerchantRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
+import com.sabi.framework.exceptions.BadRequestException;
+import com.sabi.framework.exceptions.ConflictException;
+import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.User;
+import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.TokenService;
+import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,13 +49,19 @@ public class MerchantService {
     @Value("${merchant.signup}")
     private String merchantSignUpUrl;
 
+    private final AgentRepository agentRepository;
+
+    private final UserRepository userRepository;
+
     @Autowired
     MerchantRepository repository;
 
-    public MerchantService(API api, ExternalTokenService tokenService, ModelMapper mapper, Validations validations) {
+    public MerchantService(API api, ExternalTokenService tokenService, ModelMapper mapper, Validations validations, AgentRepository agentRepository, UserRepository userRepository) {
         this.api = api;
         this.tokenService = tokenService;
         this.validations = validations;
+        this.agentRepository = agentRepository;
+        this.userRepository = userRepository;
     }
 
     private Map<String, String> getHeaders(String fingerPrint) {
@@ -62,15 +76,12 @@ public class MerchantService {
     public MerchantSignUpResponse createMerchant(MerchantSignUpRequest signUpRequest, String fingerPrint) {
         validations.validateCreateMerchant(signUpRequest);
         signUpRequest.setCreatedDate(String.valueOf(LocalDateTime.now()));
-        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
-        String createdBy = userCurrent.getFirstName() + " " + userCurrent.getLastName();
-        signUpRequest.setCreatedBy(createdBy);
         MerchantSignUpResponse signUpResponse = api.post(merchantSignUpUrl,
                 signUpRequest, MerchantSignUpResponse.class, getHeaders(fingerPrint));
         if (signUpResponse.getId() != null){
              RegisteredMerchant registeredMerchant = saveMerchant(signUpResponse, signUpRequest);
             signUpResponse.setLocalId(registeredMerchant.getId());
-            signUpResponse.setCountry(signUpRequest.getCountryCode());
+            signUpResponse.setCountry(signUpRequest.getCountry());
             signUpResponse.setBusinessName(signUpRequest.getBusinessName());
             signUpResponse.setState(signUpRequest.getState());
             signUpResponse.setLga(signUpRequest.getLga());
@@ -91,7 +102,9 @@ public class MerchantService {
         registeredMerchant.setMerchantId(signUpResponse.getId());
         registeredMerchant.setLga(signUpRequest.getLga());
         registeredMerchant.setState(signUpRequest.getState());
-        registeredMerchant.setCountry(signUpRequest.getCountryCode());
+        registeredMerchant.setCountry(signUpRequest.getCountry());
+        Long createdby = TokenService.getCurrentUserFromSecurityContext().getId();
+        registeredMerchant.setCreatedBy(createdby !=null ? createdby:null);
         return repository.save(registeredMerchant);
     }
 
@@ -121,7 +134,7 @@ public class MerchantService {
         return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
     }
 
-    public Page<RegisteredMerchant> findMerchant(String agentId, String merchantId, String firstName, String lastName,PageRequest pageRequest) {
+    public Page<RegisteredMerchant> findMerchant(String agentId, String merchantId, String firstName, String lastName,Boolean isActive,LocalDateTime fromDate, LocalDateTime toDate,PageRequest pageRequest) {
         GenericSpecification<RegisteredMerchant> genericSpecification = new GenericSpecification<RegisteredMerchant>();
 
         if (agentId != null && !agentId.isEmpty()) {
@@ -134,7 +147,30 @@ public class MerchantService {
             genericSpecification.add(new SearchCriteria("firstName", firstName, SearchOperation.MATCH));
         if(lastName !=null && !lastName.isEmpty())
             genericSpecification.add(new SearchCriteria("lastName", lastName, SearchOperation.MATCH));
-        return repository.findAll(genericSpecification, pageRequest);
+        if (isActive!=null)
+            genericSpecification.add(new SearchCriteria("isActive", isActive, SearchOperation.EQUAL));
+        if (fromDate!=null){
+            if (toDate!=null && fromDate.isAfter(toDate))
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"fromDate can't be greater than toDate");
+            genericSpecification.add(new SearchCriteria("createdDate", fromDate,SearchOperation.GREATER_THAN_EQUAL));
+        }
+        if (toDate!=null){
+            if (fromDate == null)
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"'fromDate' must be included along with 'toDate' in the request");
+            genericSpecification.add(new SearchCriteria("createdDate", toDate,SearchOperation.LESS_THAN_EQUAL));
+        }
+
+       Page<RegisteredMerchant> registeredMerchants= repository.findAll(genericSpecification, pageRequest);
+        log.info("Returning results here {}",registeredMerchants.getContent());
+        return getRegisteredMerchantsAndSetAgentName(registeredMerchants);
+
+    }
+
+    private Page<RegisteredMerchant> getRegisteredMerchantsAndSetAgentName(Page<RegisteredMerchant> registeredMerchants) {
+        log.info("Returning results here 1 {}",registeredMerchants);
+        registeredMerchants.getContent().stream().forEach(this::getAndSetMerchantAgentName);
+        log.info("Returning results here 2 {}",registeredMerchants);
+        return registeredMerchants;
     }
 
 //    public Page<RegisteredMerchant> findMerchant(String agentId, String merchantId, String firstName, String lastName,
@@ -161,9 +197,46 @@ public class MerchantService {
     public MerchantDetailResponse merchantDetails(String userId, String fingerPrint){
         return api.get(baseUrl + "/api/users/public/" + userId, MerchantDetailResponse.class, getHeaders(fingerPrint));
     }
+    public RegisteredMerchant merchantDetails(Long id) {
+        RegisteredMerchant registeredMerchant = repository.findById(id).
+                orElseThrow(()->new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested merchant with this merchantId does not exist"));
+        return getAndSetMerchantAgentName(registeredMerchant);
+    }
+
+    private RegisteredMerchant getAndSetMerchantAgentName(RegisteredMerchant registeredMerchant) {
+        if (registeredMerchant.getAgentId()!=null){
+            Agent agent =agentRepository.findById(registeredMerchant.getAgentId()).orElse(null);
+            if(agent!=null){
+                User user =userRepository.findById(agent.getUserId()).get();
+                registeredMerchant.setAgentName((user!=null?user.getFirstName()+" "+user.getLastName():null));
+            }
+        }
+        return registeredMerchant;
+    }
 
     public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, PageRequest pageRequest){
-        return repository.searchMerchants(searchTerm, agentId, pageRequest);
+        String phoneNumber = null;
+        if (!validateName(searchTerm)) phoneNumber = searchTerm;
+
+        if(agentId != null) return repository.searchMerchantsWithAgentId(searchTerm, agentId, phoneNumber, pageRequest);
+
+        return repository.searchMerchantsWithoutAgentId(searchTerm, phoneNumber, pageRequest);
+    }
+
+    private boolean validateName(String name) {
+        String pattern = "^[a-zA-Z-'][ ]*$";
+        return name.matches(pattern);
+    }
+
+    public void enableDisEnableState(EnableDisEnableDto request) {
+        validations.validateStatus(request.getIsActive());
+        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+        RegisteredMerchant merchant = repository.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested Merchant id does not exist!"));
+        merchant.setIsActive(request.getIsActive());
+        merchant.setUpdatedBy(userCurrent.getId());
+        repository.save(merchant);
     }
 
 //    public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, Date startDate, Date endDate,PageRequest pageRequest){

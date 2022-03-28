@@ -429,6 +429,10 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid phone number  length");
         if (!Utility.isNumeric(agent.getPhone()))
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
+//        User user = userRepository.findByEmail(agent.getEmail());
+//        if(user !=null){
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"Email already exist");
+//        }
 
         Country country = countryRepository.findByCode(agent.getCountryCode());
         if(country == null){
@@ -544,12 +548,10 @@ public class Validations {
 
     public void validateMerchant(MerchantSignUpRequest signUpRequest){
         if(signUpRequest.getAgentId() == null)
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id can not be null");
-        if (signUpRequest.getAgentId().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id can not be empty");
-        agentRepository.findById(Long.parseLong(signUpRequest.getAgentId())).orElseThrow(()->
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id can not be null/empty");
+        agentRepository.findById(signUpRequest.getAgentId()).orElseThrow(()->
                 new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Agent Signing up merchant  does not exist"));
+                        "AgentId for Signing up merchant  does not exist"));
     }
 
     public void validateCreateMerchant(MerchantSignUpRequest request) {
@@ -557,7 +559,7 @@ public class Validations {
         checkIsNullOrEmpty(request.getBusinessName(), "Business Name");
 
         //countryCode
-        checkIsNullOrEmpty(request.getCountryCode(), "Country Code");
+        checkIsNullOrEmpty(request.getCountry(), "country");
 
         //firstname
         checkIsNullOrEmpty(request.getFirstName(), "firstname");
@@ -571,7 +573,11 @@ public class Validations {
 
         //lga
         checkIsNullOrEmpty(request.getLga(), "lga");
-
+        LGA lga = lgaRepository.findByName(request.getLga());
+        if ( lga==null)
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested lga is not found");
+        State state = stateRepository.findById(lga.getStateId())
+                .orElseThrow(() ->new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The state of this "+lga.getName()+" lga can't be found"));
         //phoneNumber
         checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
         checkStringLength(8, 14, request.getPhoneNumber(), "Phone Number");
@@ -580,7 +586,12 @@ public class Validations {
 
         //state
         checkIsNullOrEmpty(request.getState(), "state");
-
+        if (!request.getState().equalsIgnoreCase(state.getName()))
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested state can't be found.");
+        //country
+        checkIsNullOrEmpty(request.getCountry(),"country");
+        if (countryRepository.findByName(request.getCountry()) == null)
+            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested country can't be found");
         //password
         checkIsNullOrEmpty(request.getPassword(), "password");
         checkPassword(request.getPassword());
