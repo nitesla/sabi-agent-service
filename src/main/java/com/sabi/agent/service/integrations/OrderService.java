@@ -154,7 +154,7 @@ public class OrderService {
         AgentOrder order = AgentOrder.builder()
                 .createdDate(new Date())
                 .status(response.isStatus())
-                .quantity((long) response.getData().getNoOfItems())
+//                .quantity((long) response.getData().getNoOfItems())
                 .orderStatus("PROCESSING")
                 .isSentToThirdParty(false)
                 .paymentMethod(paymentMethod)
