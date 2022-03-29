@@ -11,7 +11,9 @@ import com.sabi.agent.core.integrations.response.LocalCompleteOrderResponse;
 import com.sabi.agent.core.integrations.response.MerchBuyResponse;
 import com.sabi.agent.core.integrations.response.Payment;
 import com.sabi.agent.core.models.AgentOrder;
+import com.sabi.agent.core.models.RegisteredMerchant;
 import com.sabi.agent.service.helper.Validations;
+import com.sabi.agent.service.repositories.MerchantRepository;
 import com.sabi.agent.service.repositories.OrderRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
@@ -29,7 +31,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -68,10 +69,12 @@ public class OrderService {
 
     private final PaymentService paymentService;
     private final PaymentDetailRepository paymentDetailRepository;
+    private final MerchantRepository merchantRepository;
 
-    public OrderService(PaymentService paymentService, PaymentDetailRepository paymentDetailRepository) {
+    public OrderService(PaymentService paymentService, PaymentDetailRepository paymentDetailRepository, MerchantRepository merchantRepository) {
         this.paymentService = paymentService;
         this.paymentDetailRepository = paymentDetailRepository;
+        this.merchantRepository = merchantRepository;
     }
 
 
@@ -169,6 +172,18 @@ public class OrderService {
         if (agentOrder == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
+        agentOrder.getContent().forEach((myAgentOrder -> {
+            if (myAgentOrder.getMerchantId()!=null)
+            {
+                RegisteredMerchant merchant = merchantRepository.getOne(myAgentOrder.getMerchantId());
+                if (merchant!=null)
+                {
+                    myAgentOrder.setMerchantName(merchant.getFirstName()+" "+merchant.getLastName());
+                }
+
+            }
+
+        }));
         return agentOrder;
     }
 
