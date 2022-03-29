@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -64,6 +65,9 @@ public class OrderService {
 
     @Value("${merchantbuy.url}")
     private String merchBuyUrl;
+
+    @Value("${merch.comm.order.base.url}")
+    private String merchCommOrderBaseUrl;
 
     private final PaymentService paymentService;
     private final PaymentDetailRepository paymentDetailRepository;
@@ -314,7 +318,7 @@ public class OrderService {
     }
 
     @Async
-//    @Scheduled(initialDelay=1, fixedDelayString = "${order.service.timer}")
+    @Scheduled(initialDelay=1, fixedDelayString = "${order.service.timer}")
     public void completeOrder(){
         log.info("Order Scheduler running");
         Map map = new HashMap();
@@ -335,7 +339,7 @@ public class OrderService {
             payment.setPaymentMethod(paymentMethodInt(agentOrder.getPaymentMethod()));
             payment.setEmail(paymentDetail.get().getEmail());
             request.setPayment(payment);
-            CompleteOrderResponse post = api.post(orderDetail + "transaction", request, CompleteOrderResponse.class, map);
+            CompleteOrderResponse post = api.post(merchCommOrderBaseUrl + "ordertransaction", request, CompleteOrderResponse.class, map);
             log.info("Response from complete transaction {}", post);
             if (post.isStatus())
                 updateOrder(agentOrder);
