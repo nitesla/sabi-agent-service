@@ -145,9 +145,6 @@ public class OrderService {
 
 
     private void saveOrder(PlaceOrder request, CreateOrderResponse response, String paymentMethod) {
-
-
-
         AgentOrder order = AgentOrder.builder()
                 .createdDate(new Date())
                 .status(response.isStatus())
