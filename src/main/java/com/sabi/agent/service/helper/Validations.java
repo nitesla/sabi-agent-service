@@ -193,7 +193,7 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
     }
 
-    public List validateMarket(MarketDto marketDto){
+    public void validateMarket(MarketDto marketDto){
         if(marketDto.getName() == null || marketDto.getName().isEmpty())
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Name cannot be empty");
         String valName = marketDto.getName();
@@ -206,24 +206,6 @@ public class Validations {
         Ward ward = wardRepository.findById(marketDto.getWardId())
                     .orElseThrow(()-> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Please enter a valid ward"));
 
-        if (marketDto.getLga() == null || marketDto.getLga().isEmpty())
-            throw new  BadRequestException(CustomResponseCode.BAD_REQUEST,"Lga cannot be empty");
-
-        LGA lga = lgaRepository.findByName(marketDto.getLga());
-        if (lga == null)
-            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Please enter a valid lga");
-        if (marketDto.getState() == null || marketDto.getState().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"state cannot be empty");
-        State state = stateRepository.findByName(marketDto.getState());
-        if (state == null)
-            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Please enter a valid state");
-        if (marketDto.getCountry() == null || marketDto.getCountry().isEmpty())
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"country cannot be empty");
-        Country country = countryRepository.findByName(marketDto.getCountry());
-        if (country == null)
-            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Please ente a valid country");
-
-        return Arrays.asList(ward.getId(),lga.getId(),state.getId(),country.getId());
     }
 
 //    public void validateWard (WardDto wardDto){
