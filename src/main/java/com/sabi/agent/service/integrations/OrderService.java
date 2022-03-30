@@ -17,7 +17,9 @@ import com.sabi.agent.core.integrations.response.MerchBuyResponse;
 import com.sabi.agent.core.integrations.response.Payment;
 import com.sabi.agent.core.models.AgentOrder;
 import com.sabi.agent.core.models.agentModel.Agent;
+import com.sabi.agent.core.models.RegisteredMerchant;
 import com.sabi.agent.service.helper.Validations;
+import com.sabi.agent.service.repositories.MerchantRepository;
 import com.sabi.agent.service.repositories.OrderRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
@@ -84,10 +86,12 @@ public class OrderService {
     private final AgentRepository agentRepository;
     private final UserRepository userRepository;
     private final ModelMapper mapper;
+    private final MerchantRepository merchantRepository;
 
-    public OrderService(PaymentService paymentService, PaymentDetailRepository paymentDetailRepository, AgentRepository agentRepository, UserRepository userRepository, ModelMapper mapper) {
+    public OrderService(PaymentService paymentService, PaymentDetailRepository paymentDetailRepository, MerchantRepository merchantRepository, AgentRepository agentRepository, UserRepository userRepository, ModelMapper mapper) {
         this.paymentService = paymentService;
         this.paymentDetailRepository = paymentDetailRepository;
+        this.merchantRepository = merchantRepository;
         this.agentRepository = agentRepository;
         this.userRepository = userRepository;
         this.mapper = mapper;
@@ -210,9 +214,6 @@ public class OrderService {
 
 
     private void saveOrder(PlaceOrder request, CreateOrderResponse response, String paymentMethod) {
-
-
-
         AgentOrder order = AgentOrder.builder()
                 .createdDate(new Date())
                 .status(response.isStatus())
@@ -257,6 +258,18 @@ public class OrderService {
         if (agentOrder == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
+        agentOrder.getContent().forEach((myAgentOrder -> {
+            if (myAgentOrder.getMerchantId()!=null)
+            {
+                RegisteredMerchant merchant = merchantRepository.getOne(myAgentOrder.getMerchantId());
+                if (merchant!=null)
+                {
+                    myAgentOrder.setMerchantName(merchant.getFirstName()+" "+merchant.getLastName());
+                }
+
+            }
+
+        }));
         return agentOrder;
     }
 
