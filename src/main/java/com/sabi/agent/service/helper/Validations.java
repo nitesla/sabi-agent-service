@@ -4,6 +4,7 @@ package com.sabi.agent.service.helper;
 import com.sabi.agent.core.dto.agentDto.requestDto.*;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.integrations.order.PlaceOrder;
+import com.sabi.agent.core.integrations.order.merch.request.MerchPlaceOrderDto;
 import com.sabi.agent.core.merchant_integration.request.MerchantSignUpRequest;
 import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.Agent;
@@ -654,6 +655,14 @@ public class Validations {
                         "Agent id does not exist!" ));
         merchantRepository.findById(request.getMerchantId()).orElseThrow(()->
                 new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Merchant id does not exist"));
+    }
+
+    public void newValidateOrderRequest(MerchPlaceOrderDto request) {
+        if (request.getAgentId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent id cannot be empty");
+        Agent agent  = agentRepository.findById(request.getAgentId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Agent id does not exist!" ));
     }
 
 }
