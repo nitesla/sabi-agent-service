@@ -224,6 +224,7 @@ public class OrderService {
                 .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
                 .totalAmount(String.valueOf(request.getOrderDelivery().getTotal()))
                 .userName(response.getData().getUserName())
+                .orderNumber(response.getData().getOrderNumber())
                 .build();
         log.info("validating order " + request);
         validations.validateOrder(request);
@@ -240,6 +241,7 @@ public class OrderService {
                 .isSentToThirdParty(false)
                 .agentId(request.getAgentId())
                 .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
+                .orderNumber(response.getData().getOrderNumber())
                 .totalAmount(String.valueOf(request.getOrderDelivery().getTotal()))
                 .userName(response.getData().getUserName())
                 .build();
