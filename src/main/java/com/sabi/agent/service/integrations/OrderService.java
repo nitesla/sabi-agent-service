@@ -264,7 +264,7 @@ public class OrderService {
                 RegisteredMerchant merchant = merchantRepository.getOne(myAgentOrder.getMerchantId());
                 if (merchant!=null)
                 {
-                    myAgentOrder.setMerchantName(merchant.getFirstName()+" "+merchant.getLastName());
+//                    myAgentOrder.setMerchantName(merchant.getFirstName()+" "+merchant.getLastName());
                 }
 
             }
