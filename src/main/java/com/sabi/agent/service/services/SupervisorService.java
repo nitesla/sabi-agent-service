@@ -6,8 +6,10 @@ import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.SupervisorDto;
 import com.sabi.agent.core.dto.responseDto.SupervisorResponseDto;
 import com.sabi.agent.core.models.Supervisor;
+import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.SupervisorRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
@@ -20,6 +22,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @SuppressWarnings("ALL")
@@ -28,13 +32,15 @@ import java.util.List;
 public class SupervisorService {
     private SupervisorRepository supervisorRepository;
     private UserRepository userRepository;
+    private final AgentRepository agentRepository;
     private final ModelMapper mapper;
     private final ObjectMapper objectMapper;
     private final Validations validations;
 
-    public SupervisorService(SupervisorRepository supervisorRepository, UserRepository userRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations) {
+    public SupervisorService(SupervisorRepository supervisorRepository, UserRepository userRepository, AgentRepository agentRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations) {
         this.supervisorRepository = supervisorRepository;
         this.userRepository = userRepository;
+        this.agentRepository = agentRepository;
         this.mapper = mapper;
         this.objectMapper = objectMapper;
         this.validations = validations;
@@ -51,14 +57,14 @@ public class SupervisorService {
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         Supervisor supervisor = mapper.map(request,Supervisor.class);
-        Supervisor userExist = supervisorRepository.findByUserId(request.getUserId());
+        Supervisor userExist = supervisorRepository.findByUserIdAndAgentId(request.getUserId(),request.getAgentId());
         if(userExist !=null){
-            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " User Task already exist");
+            throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " This Supervisor already exist");
         }
         supervisor.setCreatedBy(userCurrent.getId());
         supervisor.setIsActive(true);
         supervisor = supervisorRepository.save(supervisor);
-        log.debug("Create new supervisor - {}"+ new Gson().toJson(supervisor));
+        log.debug("Create new supervisor - {}",supervisor);
         return mapper.map(supervisor, SupervisorResponseDto.class);
     }
 
@@ -94,11 +100,17 @@ public class SupervisorService {
                         "Requested Supervisor Id does not exist!"));
         User user = userRepository.findById(supervisor.getUserId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Supervisor Id does not exist!"));
+                        " Supervisor UserId does not exist!"));
+        Agent agent = agentRepository.findById(supervisor.getAgentId())
+                .orElseThrow(()->new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Supervisor agentId does not exist!"));
+       User agentUser = userRepository.findById(supervisor.getUserId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Supervisor UserId does not exist!"));
         SupervisorResponseDto response = SupervisorResponseDto.builder()
                 .id(supervisor.getId())
                 .userId(supervisor.getUserId())
-                .user((user.getFirstName())+ " " + (user.getLastName()))
+                .supervisorName((user.getFirstName())+ " " + (user.getLastName()))
+                .agentName((agentUser.getFirstName())+ " " + (agentUser.getLastName()))
                 .createdDate(supervisor.getCreatedDate())
                 .createdBy(supervisor.getCreatedBy())
                 .updatedBy(supervisor.getUpdatedBy())
@@ -110,13 +122,21 @@ public class SupervisorService {
     /** <summary>
      * Find all Supervisor
      * </summary>
-     * <remarks>this method is responsible for getting all records in pagination</remarks>
+     * <remarks>this method is responsible for searching all records and getting a pagination</remarks>
      */
-    public Page<Supervisor> findAll(Pageable pageable ) {
-        Page<Supervisor> supervisors = supervisorRepository.findAll(pageable);
+    public Page<Supervisor> findAll(String supervisorName, String agentName,LocalDate createdDate,Boolean isActive, Pageable pageable ) {
+        LocalDateTime lowerDateTime = null, upperDateTime = null;
+        if (createdDate!=null){
+            lowerDateTime = LocalDateTime.of(createdDate.getYear(),createdDate.getMonthValue(),createdDate.getDayOfMonth(),00,00,00);
+            upperDateTime = lowerDateTime.plusDays(1l);
+            log.info("my lowerDate =={}",lowerDateTime);
+            log.info("my upperDate=={}",upperDateTime);
+        }
+        Page<Supervisor> supervisors = supervisorRepository.searchSupervisors(supervisorName,agentName,isActive,lowerDateTime,upperDateTime,pageable);
         if (supervisors == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
+        supervisors.getContent().stream().forEach(this::setSupervisorDetails);
         return supervisors;
 
     }
@@ -140,8 +160,23 @@ public class SupervisorService {
     }
     public List<Supervisor> getAll(Boolean isActive){
         List<Supervisor> supervisorList = supervisorRepository.findByIsActive(isActive);
+        supervisorList.stream().forEach(this::setSupervisorDetails);
         return supervisorList;
 
     }
 
+    private void setSupervisorDetails(Supervisor supervisor) {
+        User user = userRepository.findById(supervisor.getUserId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Supervisor UserId does not exist!"));
+        Agent agent = agentRepository.findById(supervisor.getAgentId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Supervisor agentId does not exist!"));
+        User agentUser = userRepository.findById(agent.getUserId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        " Supervisor UserId does not exist!"));
+        String fullName = (user.getFirstName()) + " " + (user.getLastName());
+        supervisor.setSupervisorName(fullName);
+        fullName = (agentUser.getFirstName()) + " " + (agentUser.getLastName());
+        supervisor.setAgentName(fullName);
+    }
 }

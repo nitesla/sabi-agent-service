@@ -230,6 +230,9 @@ public class Validations {
         User user = userRepository.findById(supervisorDto.getUserId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid User ID!"));
+        Agent agent = agentRepository.findById(supervisorDto.getAgentId())
+                .orElseThrow(() ->new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Enter a valid agentId"));
     }
 
     public void validateTargetType (TargetTypeDto targetTypeDto){
