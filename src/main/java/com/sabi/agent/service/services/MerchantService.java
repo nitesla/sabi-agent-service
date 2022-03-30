@@ -104,7 +104,7 @@ public class MerchantService {
         registeredMerchant.setState(signUpRequest.getState());
         registeredMerchant.setCountry(signUpRequest.getCountry());
         Long createdby = TokenService.getCurrentUserFromSecurityContext().getId();
-        registeredMerchant.setCreatedBy(createdby !=null ? createdby:null);
+        registeredMerchant.setCreatedBy(createdby);
         return repository.save(registeredMerchant);
     }
 

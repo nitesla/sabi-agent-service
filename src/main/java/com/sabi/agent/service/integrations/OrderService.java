@@ -104,12 +104,22 @@ public class OrderService {
 
     }
 
-
+    @Deprecated
     public SingleOrderResponse orderDetail(Long id) throws IOException {
         Map map = new HashMap();
         map.put("fingerprint", fingerPrint);
         map.put("Authorization", "Bearer" + " " + externalTokenService.getToken());
         SingleOrderResponse response = api.get(orderDetail + id, SingleOrderResponse.class, map);
+        if(response.getData() != null) {
+            AgentOrder agentOrder = findByOrderId(response.getData().getOrderId());
+            response.getData().setOrderStatus(agentOrder.getOrderStatus());
+            response.getData().setLocalOrderId(agentOrder.getId());
+        }
+        return response;
+    }
+
+    public SingleOrderResponse OrderDetail(Long id){
+        SingleOrderResponse response = api.get(merchCommOrderBaseUrl + id, SingleOrderResponse.class, new HashMap<>());
         if(response.getData() != null) {
             AgentOrder agentOrder = findByOrderId(response.getData().getOrderId());
             response.getData().setOrderStatus(agentOrder.getOrderStatus());
@@ -318,7 +328,7 @@ public class OrderService {
     }
 
     @Async
-    @Scheduled(initialDelay=1, fixedDelayString = "${order.service.timer}")
+//    @Scheduled( fixedDelayString = "${order.service.timer}")
     public void completeOrder(){
         log.info("Order Scheduler running");
         Map map = new HashMap();
@@ -339,6 +349,7 @@ public class OrderService {
             payment.setPaymentMethod(paymentMethodInt(agentOrder.getPaymentMethod()));
             payment.setEmail(paymentDetail.get().getEmail());
             request.setPayment(payment);
+            log.info(merchCommOrderBaseUrl);
             CompleteOrderResponse post = api.post(merchCommOrderBaseUrl + "ordertransaction", request, CompleteOrderResponse.class, map);
             log.info("Response from complete transaction {}", post);
             if (post.isStatus())
