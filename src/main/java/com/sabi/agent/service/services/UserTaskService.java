@@ -129,7 +129,7 @@ public class UserTaskService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<UserTask> findAll(Date endDate, Date dateAssigned, String status, PageRequest pageRequest ) {
+    public Page<UserTask> findAll(Date endDate, Date dateAssigned, String status, Integer agentId, PageRequest pageRequest ) {
         GenericSpecification<UserTask> genericSpecification = new GenericSpecification<UserTask>();
 
         if (endDate != null && endDate.after(dateAssigned))
@@ -145,6 +145,9 @@ public class UserTaskService {
         if (status != null && !status.isEmpty())
         {
             genericSpecification.add(new SearchCriteria("status", status, SearchOperation.EQUAL));
+        }
+        if (agentId != null) {
+            genericSpecification.add(new SearchCriteria("agentId", agentId, SearchOperation.EQUAL));
         }
 
 
