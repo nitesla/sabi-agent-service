@@ -123,7 +123,7 @@ public class AgentTargetService {
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
     public Page<AgentTarget> findAll(String name, Boolean isActive,
-                                     Integer min, Integer max, Integer superMax, PageRequest pageRequest ){
+                                     Integer min, Integer max, Integer superMax, Integer agentId, PageRequest pageRequest ){
         GenericSpecification<AgentTarget> genericSpecification = new GenericSpecification<AgentTarget>();
 
         if (name != null && !name.isEmpty()) {
@@ -140,6 +140,9 @@ public class AgentTargetService {
         }
         if (superMax != null) {
             genericSpecification.add(new SearchCriteria("superMax", superMax, SearchOperation.EQUAL));
+        }
+        if (agentId != null) {
+            genericSpecification.add(new SearchCriteria("agentId", agentId, SearchOperation.EQUAL));
         }
         Page<AgentTarget> agentTargets = agentTargetRepository.findAll(genericSpecification, pageRequest);
         agentTargets.getContent().stream().forEach(agentTarget -> getAndSetAgentTargetParameters(agentTarget));
