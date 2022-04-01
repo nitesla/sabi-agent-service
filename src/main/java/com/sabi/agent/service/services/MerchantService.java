@@ -74,7 +74,7 @@ public class MerchantService {
     }
 
     public MerchantSignUpResponse createMerchant(MerchantSignUpRequest signUpRequest, String fingerPrint) {
-        validations.validateCreateMerchant(signUpRequest);
+//        validations.validateCreateMerchant(signUpRequest);
         signUpRequest.setCreatedDate(String.valueOf(LocalDateTime.now()));
         MerchantSignUpResponse signUpResponse = api.post(merchantSignUpUrl,
                 signUpRequest, MerchantSignUpResponse.class, getHeaders(fingerPrint));
@@ -173,26 +173,7 @@ public class MerchantService {
         return registeredMerchants;
     }
 
-//    public Page<RegisteredMerchant> findMerchant(String agentId, String merchantId, String firstName, String lastName,
-//                                                 Date startDate, Date endDate, PageRequest pageRequest) {
-//        GenericSpecification<RegisteredMerchant> genericSpecification = new GenericSpecification<RegisteredMerchant>();
-//
-//        if (agentId != null && !agentId.isEmpty()) {
-//            genericSpecification.add(new SearchCriteria("agentId", agentId, SearchOperation.MATCH));
-//        }
-//        if (merchantId != null && !merchantId.isEmpty()) {
-//            genericSpecification.add(new SearchCriteria("merchantId", merchantId, SearchOperation.EQUAL));
-//        }
-//        if(firstName != null && !firstName.isEmpty())
-//            genericSpecification.add(new SearchCriteria("firstName", firstName, SearchOperation.MATCH));
-//        if(lastName !=null && !lastName.isEmpty())
-//            genericSpecification.add(new SearchCriteria("lastName", lastName, SearchOperation.MATCH));
-//        if(startDate != null)
-//            genericSpecification.add(new SearchCriteria("createdDate", startDate, SearchOperation.GREATER_THAN_EQUAL));
-//        if(endDate != null)
-//            genericSpecification.add(new SearchCriteria("createdDate", endDate, SearchOperation.LESS_THAN_EQUAL));
-//        return repository.findAll(genericSpecification, pageRequest);
-//    }
+
 
     public MerchantDetailResponse merchantDetails(String userId, String fingerPrint){
         return api.get(baseUrl + "/api/users/public/" + userId, MerchantDetailResponse.class, getHeaders(fingerPrint));
@@ -208,7 +189,7 @@ public class MerchantService {
             Agent agent =agentRepository.findById(registeredMerchant.getAgentId()).orElse(null);
             if(agent!=null){
                 User user =userRepository.findById(agent.getUserId()).get();
-                registeredMerchant.setAgentName((user!=null?user.getFirstName()+" "+user.getLastName():null));
+                registeredMerchant.setAgentName(user.getFirstName()+" "+user.getLastName());
             }
         }
         return registeredMerchant;
