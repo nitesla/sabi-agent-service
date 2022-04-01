@@ -4,6 +4,7 @@ package com.sabi.agent.service.helper;
 import com.sabi.agent.core.dto.agentDto.requestDto.*;
 import com.sabi.agent.core.dto.requestDto.*;
 import com.sabi.agent.core.integrations.order.PlaceOrder;
+import com.sabi.agent.core.integrations.order.merch.request.MerchPlaceOrderDto;
 import com.sabi.agent.core.merchant_integration.request.MerchantSignUpRequest;
 import com.sabi.agent.core.models.*;
 import com.sabi.agent.core.models.agentModel.Agent;
@@ -25,6 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 
 @SuppressWarnings("All")
 @Slf4j
@@ -43,6 +46,7 @@ public class Validations {
     private AgentVerificationRepository agentVerificationRepository;
     private CountryRepository countryRepository;
     private final MerchantRepository merchantRepository;
+    private  final WardRepository wardRepository;
 
     @Autowired
     private BankRepository bankRepository;
@@ -53,7 +57,7 @@ public class Validations {
                        TargetTypeRepository targetTypeRepository, TaskRepository taskRepository,
                        UserRepository userRepository, AgentRepository agentRepository,
                        SupervisorRepository supervisorRepository, AgentVerificationRepository agentVerificationRepository,
-                       CountryRepository countryRepository, MerchantRepository merchantRepository) {
+                       CountryRepository countryRepository, MerchantRepository merchantRepository, WardRepository wardRepository) {
         this.stateRepository = stateRepository;
         this.lgaRepository = lgaRepository;
         this.agentCategoryRepository = agentCategoryRepository;
@@ -66,6 +70,7 @@ public class Validations {
         this.agentVerificationRepository = agentVerificationRepository;
         this.countryRepository = countryRepository;
         this.merchantRepository = merchantRepository;
+        this.wardRepository = wardRepository;
     }
 
     public void validateState(StateDto stateDto) {
@@ -199,7 +204,8 @@ public class Validations {
         }
         if(marketDto.getWardId() == null || marketDto.getWardId() < 0 )
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Ward Id cannot be empty");
-
+        Ward ward = wardRepository.findById(marketDto.getWardId())
+                    .orElseThrow(()-> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Please enter a valid ward"));
 
     }
 
@@ -225,6 +231,9 @@ public class Validations {
         User user = userRepository.findById(supervisorDto.getUserId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid User ID!"));
+        Agent agent = agentRepository.findById(supervisorDto.getAgentId())
+                .orElseThrow(() ->new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Enter a valid agentId"));
     }
 
     public void validateTargetType (TargetTypeDto targetTypeDto){
@@ -646,6 +655,14 @@ public class Validations {
                         "Agent id does not exist!" ));
         merchantRepository.findById(request.getMerchantId()).orElseThrow(()->
                 new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Merchant id does not exist"));
+    }
+
+    public void newValidateOrderRequest(MerchPlaceOrderDto request) {
+        if (request.getAgentId() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent id cannot be empty");
+        Agent agent  = agentRepository.findById(request.getAgentId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Agent id does not exist!" ));
     }
 
 }

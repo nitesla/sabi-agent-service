@@ -2,6 +2,11 @@ package com.sabi.agent.service.integrations;
 
 
 import com.sabi.agent.core.integrations.order.*;
+import com.sabi.agent.core.integrations.order.merch.request.AgentCommissionInfo;
+import com.sabi.agent.core.integrations.order.merch.request.MerchCustomerDetails;
+import com.sabi.agent.core.integrations.order.merch.request.MerchPlaceOrder;
+import com.sabi.agent.core.integrations.order.merch.request.MerchPlaceOrderDto;
+import com.sabi.agent.core.integrations.order.merch.response.MerchResponseData;
 import com.sabi.agent.core.integrations.order.orderResponse.CompleteOrderResponse;
 import com.sabi.agent.core.integrations.order.orderResponse.CreateOrderResponse;
 import com.sabi.agent.core.integrations.request.CompleteOrderRequest;
@@ -11,25 +16,32 @@ import com.sabi.agent.core.integrations.response.LocalCompleteOrderResponse;
 import com.sabi.agent.core.integrations.response.MerchBuyResponse;
 import com.sabi.agent.core.integrations.response.Payment;
 import com.sabi.agent.core.models.AgentOrder;
+import com.sabi.agent.core.models.agentModel.Agent;
+import com.sabi.agent.core.models.RegisteredMerchant;
 import com.sabi.agent.service.helper.Validations;
+import com.sabi.agent.service.repositories.MerchantRepository;
 import com.sabi.agent.service.repositories.OrderRepository;
+import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.integrations.payment_integration.models.response.PaymentStatusResponse;
 import com.sabi.framework.models.PaymentDetails;
+import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.PaymentDetailRepository;
+import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.PaymentService;
 import com.sabi.framework.utils.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -60,21 +72,29 @@ public class OrderService {
     @Value("${create.order}")
     private String processOrder;
 
+    @Value("${create.order.merch}")
+    private String processOrderMerch;
+
     @Value("${finger.print}")
     private String fingerPrint;
 
     @Value("${merchantbuy.url}")
     private String merchBuyUrl;
 
-    @Value("${merch.comm.order.base.url}")
-    private String merchCommOrderBaseUrl;
-
     private final PaymentService paymentService;
     private final PaymentDetailRepository paymentDetailRepository;
+    private final AgentRepository agentRepository;
+    private final UserRepository userRepository;
+    private final ModelMapper mapper;
+    private final MerchantRepository merchantRepository;
 
-    public OrderService(PaymentService paymentService, PaymentDetailRepository paymentDetailRepository) {
+    public OrderService(PaymentService paymentService, PaymentDetailRepository paymentDetailRepository, MerchantRepository merchantRepository, AgentRepository agentRepository, UserRepository userRepository, ModelMapper mapper) {
         this.paymentService = paymentService;
         this.paymentDetailRepository = paymentDetailRepository;
+        this.merchantRepository = merchantRepository;
+        this.agentRepository = agentRepository;
+        this.userRepository = userRepository;
+        this.mapper = mapper;
     }
 
 
@@ -104,22 +124,58 @@ public class OrderService {
 
     }
 
-    @Deprecated
+    public MerchResponseData merchPlaceOrder(MerchPlaceOrderDto request) {
+        validations.newValidateOrderRequest(request);
+
+        Agent agent = agentRepository.findById(request.getAgentId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested Agent Id is not found"));
+        User agentUser = userRepository.findById(agent.getUserId())
+                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+                        "Requested UserId not found"));
+
+        AgentCommissionInfo agentCommissionInfo = AgentCommissionInfo.builder()
+                .userId(String.valueOf(agent.getUserId()))
+                .agentName(agentUser.getFirstName() + " " + agentUser.getLastName())
+                .phoneNumber(agentUser.getPhone())
+                .commissionType((int) agent.getCommission())
+                .build();
+
+        MerchCustomerDetails customerDetails = MerchCustomerDetails.builder()
+                .firstName(agentUser.getFirstName())
+                .lastName(agentUser.getLastName())
+                .email(agentUser.getEmail())
+                .phoneNumber(agentUser.getPhone())
+                .spacesAccountId("")
+                .build();
+
+        MerchPlaceOrder placeOrder = mapper.map(request, MerchPlaceOrder.class);
+
+        placeOrder.setChannel(4);
+        placeOrder.setCustomerDetails(customerDetails);
+        placeOrder.setAgentCommissionInfo(agentCommissionInfo);
+
+        MerchResponseData response = api.post(processOrderMerch, placeOrder, MerchResponseData.class);
+
+        if(response.isStatus())
+            merchSaveOrder(request, response);
+
+        return response;
+
+    }
+
+    public void testMerchBuy(MerchPlaceOrder request) {
+        Object response = api.post(processOrderMerch, request, Object.class);
+
+        log.info("This is request - {}", response);
+    }
+
+
     public SingleOrderResponse orderDetail(Long id) throws IOException {
         Map map = new HashMap();
         map.put("fingerprint", fingerPrint);
         map.put("Authorization", "Bearer" + " " + externalTokenService.getToken());
         SingleOrderResponse response = api.get(orderDetail + id, SingleOrderResponse.class, map);
-        if(response.getData() != null) {
-            AgentOrder agentOrder = findByOrderId(response.getData().getOrderId());
-            response.getData().setOrderStatus(agentOrder.getOrderStatus());
-            response.getData().setLocalOrderId(agentOrder.getId());
-        }
-        return response;
-    }
-
-    public SingleOrderResponse OrderDetail(Long id){
-        SingleOrderResponse response = api.get(merchCommOrderBaseUrl + id, SingleOrderResponse.class, new HashMap<>());
         if(response.getData() != null) {
             AgentOrder agentOrder = findByOrderId(response.getData().getOrderId());
             response.getData().setOrderStatus(agentOrder.getOrderStatus());
@@ -158,13 +214,9 @@ public class OrderService {
 
 
     private void saveOrder(PlaceOrder request, CreateOrderResponse response, String paymentMethod) {
-
-
-
         AgentOrder order = AgentOrder.builder()
                 .createdDate(new Date())
                 .status(response.isStatus())
-//                .quantity((long) response.getData().getNoOfItems())
                 .orderStatus("PROCESSING")
                 .isSentToThirdParty(false)
                 .paymentMethod(paymentMethod)
@@ -173,9 +225,29 @@ public class OrderService {
                 .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
                 .totalAmount(String.valueOf(request.getOrderDelivery().getTotal()))
                 .userName(response.getData().getUserName())
+                .orderNumber(response.getData().getOrderNumber())
                 .build();
         log.info("validating order " + request);
         validations.validateOrder(request);
+        log.info("::::::::::::ORDER REQUEST::::::::::::::::: " + order);
+        orderRepository.save(order);
+    }
+
+    private void merchSaveOrder(MerchPlaceOrderDto request, MerchResponseData response) {
+
+        AgentOrder order = AgentOrder.builder()
+                .createdDate(new Date())
+                .status(response.isStatus())
+                .orderStatus("PROCESSING")
+                .isSentToThirdParty(false)
+                .agentId(request.getAgentId())
+                .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
+                .orderNumber(response.getData().getOrderNumber())
+                .totalAmount(String.valueOf(request.getOrderDelivery().getTotal()))
+                .userName(response.getData().getUserName())
+                .build();
+        log.info("validating order " + request);
+        validations.newValidateOrderRequest(request);
         log.info("::::::::::::ORDER REQUEST::::::::::::::::: " + order);
         orderRepository.save(order);
     }
@@ -186,6 +258,18 @@ public class OrderService {
         if (agentOrder == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
+        agentOrder.getContent().forEach((myAgentOrder -> {
+            if (myAgentOrder.getMerchantId()!=null)
+            {
+                RegisteredMerchant merchant = merchantRepository.getOne(myAgentOrder.getMerchantId());
+                if (merchant!=null)
+                {
+                    myAgentOrder.setMerchantName(merchant.getFirstName()+" "+merchant.getLastName());
+                }
+
+            }
+
+        }));
         return agentOrder;
     }
 
@@ -218,8 +302,6 @@ public class OrderService {
         if(byOrderId == null ) throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Order not found");
         return byOrderId;
     }
-
-
 
     public LocalCompleteOrderResponse localCompleteOrder(LocalCompleteOrderRequest completeOrderRequest) {
 
@@ -328,7 +410,7 @@ public class OrderService {
     }
 
     @Async
-//    @Scheduled( fixedDelayString = "${order.service.timer}")
+//    @Scheduled(initialDelay=1, fixedDelayString = "${order.service.timer}")
     public void completeOrder(){
         log.info("Order Scheduler running");
         Map map = new HashMap();
@@ -349,8 +431,7 @@ public class OrderService {
             payment.setPaymentMethod(paymentMethodInt(agentOrder.getPaymentMethod()));
             payment.setEmail(paymentDetail.get().getEmail());
             request.setPayment(payment);
-            log.info(merchCommOrderBaseUrl);
-            CompleteOrderResponse post = api.post(merchCommOrderBaseUrl + "ordertransaction", request, CompleteOrderResponse.class, map);
+            CompleteOrderResponse post = api.post(orderDetail + "transaction", request, CompleteOrderResponse.class, map);
             log.info("Response from complete transaction {}", post);
             if (post.isStatus())
                 updateOrder(agentOrder);
@@ -362,10 +443,10 @@ public class OrderService {
         agentOrder.setSentToThirdParty(true);
         orderRepository.save(agentOrder);
     }
-//
-//    public List<Map> adminOrder(String agentName, String orderStatus,
-//                                String totalAmount, String merchName, int page, int pageSize){
-//        log.info("IN orders admin search");
-//        return orderRepository.adminSearch(agentName, orderStatus, totalAmount, merchName );
-//    }
+
+    public Page<Map> getAgentAdminOrderDetails(String status, Long agentId, String agentName, String merchantName, String startDate, String endDate, Pageable pageable) {
+        Page<Map> results = orderRepository.findForAdmin(status, agentId, merchantName, agentName, startDate, endDate, pageable);
+        return results;
+    }
+
 }
