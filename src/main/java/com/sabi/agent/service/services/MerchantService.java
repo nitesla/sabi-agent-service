@@ -74,7 +74,7 @@ public class MerchantService {
     }
 
     public MerchantSignUpResponse createMerchant(MerchantSignUpRequest signUpRequest, String fingerPrint) {
-//        validations.validateCreateMerchant(signUpRequest);
+        validations.validateCreateMerchant(signUpRequest);
         signUpRequest.setCreatedDate(String.valueOf(LocalDateTime.now()));
         MerchantSignUpResponse signUpResponse = api.post(merchantSignUpUrl,
                 signUpRequest, MerchantSignUpResponse.class, getHeaders(fingerPrint));

@@ -98,6 +98,7 @@ public class OrderService {
     }
 
 
+    @Deprecated
     public CreateOrderResponse placeOrder(PlaceOrder request) throws IOException {
         validations.validateOrderRequest(request);
         String paymentMethod = paymentMethodString(request.getPaymentMethod());
@@ -126,6 +127,12 @@ public class OrderService {
 
     public MerchResponseData merchPlaceOrder(MerchPlaceOrderDto request) {
         validations.newValidateOrderRequest(request);
+
+        String paymentMethod = paymentMethodString(request.getPaymentMethod());
+
+        if (paymentMethod.equals("NA")) {
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Payment method not found");
+        }
 
         Agent agent = agentRepository.findById(request.getAgentId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
@@ -158,7 +165,7 @@ public class OrderService {
         MerchResponseData response = api.post(processOrderMerch, placeOrder, MerchResponseData.class);
 
         if(response.isStatus())
-            merchSaveOrder(request, response);
+            saveOrder(request, response, paymentMethod);
 
         return response;
 
@@ -233,19 +240,20 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    private void merchSaveOrder(MerchPlaceOrderDto request, MerchResponseData response) {
+    private void saveOrder(MerchPlaceOrderDto request, MerchResponseData response, String paymentMethod) {
 
         AgentOrder order = AgentOrder.builder()
-                .createdDate(new Date())
+        .createdDate(new Date())
                 .status(response.isStatus())
                 .orderStatus("PROCESSING")
                 .isSentToThirdParty(false)
+                .paymentMethod(paymentMethod)
                 .agentId(request.getAgentId())
+                .merchantId(request.getMerchantId())
                 .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
-                .orderNumber(response.getData().getOrderNumber())
                 .totalAmount(String.valueOf(request.getOrderDelivery().getTotal()))
                 .userName(response.getData().getUserName())
-                .build();
+                .orderNumber(response.getData().getOrderNumber()). build();
         log.info("validating order " + request);
         validations.newValidateOrderRequest(request);
         log.info("::::::::::::ORDER REQUEST::::::::::::::::: " + order);
