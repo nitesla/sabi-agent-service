@@ -164,12 +164,6 @@ public class OrderService {
 
     }
 
-    public void testMerchBuy(MerchPlaceOrder request) {
-        Object response = api.post(processOrderMerch, request, Object.class);
-
-        log.info("This is request - {}", response);
-    }
-
 
     public SingleOrderResponse orderDetail(Long id) throws IOException {
         Map map = new HashMap();
@@ -243,6 +237,7 @@ public class OrderService {
                 .agentId(request.getAgentId())
                 .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
                 .orderNumber(response.getData().getOrderNumber())
+                .profit(request.getProfit())
                 .totalAmount(String.valueOf(request.getOrderDelivery().getTotal()))
                 .userName(response.getData().getUserName())
                 .build();

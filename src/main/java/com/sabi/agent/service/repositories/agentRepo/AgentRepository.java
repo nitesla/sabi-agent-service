@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -36,5 +37,19 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
                            @Param("referralCode") String referralCode,
                            @Param("referrer")String referrer,
                            Pageable pageable);
+
+    @Query(value = "SELECT AgentCategory.name as agentCategory, Agent.* FROM AgentCategory, Agent, User WHERE " +
+            "Agent.agentCategoryId=AgentCategory.id AND Agent.userId = User.id " +
+            "AND ((:verificationStatus IS NULL) OR (:verificationStatus IS NOT NULL AND Agent.verificationStatus = :verificationStatus)) " +
+            "AND ((:agentName IS NULL) OR (CONCAT(User.firstName, \" \" ,User.lastName) LIKE %:agentName%) " +
+            "OR (CONCAT(User.lastName, \" \" ,User.firstName) LIKE %:agentName%)) " +
+            "AND ((:agentCategory IS NULL) OR (:agentCategory IS NOT NULL AND AgentCategory.name LIKE %:agentCategory%)) " +
+            "AND ((:startDate IS NULL) AND (:endDate IS NULL) OR (Agent.createdDate BETWEEN :startDate AND :endDate))", nativeQuery = true)
+    Page<Map> filterAgent(@Param("agentName") String agentName,
+                          @Param("agentCategory") String agentCategory,
+                          @Param("verificationStatus") String verificationStatus,
+                          @Param("startDate") String startDate,
+                          @Param("endDate") String endDate,
+                          Pageable pageable);
 
 }

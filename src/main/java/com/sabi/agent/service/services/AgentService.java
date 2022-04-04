@@ -56,11 +56,13 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 
 
 @SuppressWarnings("ALL")
@@ -646,6 +648,10 @@ public class AgentService {
         List<Agent> agents = agentRepository.findByIsActive(isActive);
         return agents;
 
+    }
+
+    public Page<Map> filterAgent(String agentName, String agentCategory, String verificationStatus, String startDate, String endDate, Pageable pageable) {
+        return agentRepository.filterAgent(agentName,agentCategory,verificationStatus,startDate,endDate,pageable);
     }
 
 

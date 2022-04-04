@@ -20,7 +20,7 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
 
     //RegisteredMerchant
     //Search for a Customer should be across board, Searc by "Customer Order No", "Customer Name", "Phone No"
-    @Query("SELECT t FROM AgentOrder t  WHERE ((:orderId IS NULL) OR (:orderId IS NOT NULL AND t.orderId = :orderId)) " +
+    @Query("SELECT t FROM AgentOrder t  WHERE ((:orderId IS NULL) OR (:orderId IS NOT NULL AND t.orderId = :orderId) OR (:orderId IS NOT NULL AND t.orderNumber = :orderId)) " +
             " AND ((:status IS NULL) OR (:status IS NOT NULL AND t.status = :status))" +
             " AND ((:createdDate IS NULL) OR (:createdDate IS NOT NULL AND t.createdDate = :createdDate))" +
             " AND ((:userName IS NULL) OR (:userName IS NOT NULL AND t.userName = :userName))" +
@@ -62,7 +62,7 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
             " AgentOrder.* FROM RegisteredMerchant, AgentOrder WHERE ((:agentId IS NULL) OR (:agentId IS NOT NULL AND AgentOrder.agentId = :agentId)) " +
             " AND (( CONCAT(RegisteredMerchant.firstName, \" \" ,RegisteredMerchant.lastName)  " +
             "LIKE %:searchTerm% OR (CONCAT (RegisteredMerchant.lastName, \" \" ,RegisteredMerchant.firstName) LIKE %:searchTerm%) " +
-            "OR phoneNumber LIKE %:searchTerm% OR (AgentOrder.orderId LIKE %:searchTerm% ) OR (AgentOrder.orderNumber LIKE %:searchTerm% ))and AgentOrder.merchantId=RegisteredMerchant.id)", nativeQuery = true)
+            "OR phoneNumber LIKE %:searchTerm% OR (AgentOrder.orderId LIKE %:searchTerm% ))and AgentOrder.merchantId=RegisteredMerchant.id)", nativeQuery = true)
     Page<Map> singleSearch(@Param("searchTerm") String searchTerm,
                            @Param("agentId") Long agentId,
                            Pageable pageable);
