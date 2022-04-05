@@ -245,7 +245,6 @@ public class OrderService {
                 .agentId(request.getAgentId())
                 .merchantId(request.getMerchantId())
                 .orderId(Long.valueOf(response.getData().getOrderDelivery().getOrderId()))
-                .orderNumber(response.getData().getOrderNumber())
                 .profit(request.getProfit())
                 .totalAmount(String.valueOf(request.getOrderDelivery().getTotal()))
                 .userName(response.getData().getUserName())
