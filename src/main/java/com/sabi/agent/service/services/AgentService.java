@@ -195,11 +195,11 @@ public class AgentService {
         user = userRepository.save(user);
         log.debug("Create new agent user - {}"+ new Gson().toJson(user));
 
-        UserRole userRole = UserRole.builder()
-                .userId(user.getId())
-                .roleId(user.getRoleId())
-                .build();
-        userRoleRepository.save(userRole);
+//        UserRole userRole = UserRole.builder()
+//                .userId(user.getId())
+//                .roleId(user.getRoleId())
+//                .build();
+//        userRoleRepository.save(userRole);
 
         PreviousPasswords previousPasswords = PreviousPasswords.builder()
                 .userId(user.getId())
