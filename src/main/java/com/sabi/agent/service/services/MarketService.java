@@ -38,18 +38,16 @@ public class MarketService {
     private final Validations validations;
     private final CountryRepository countryRepository;
     private final StateRepository stateRepository;
-    private final LGARepository lgaRepository;
     private final WardRepository wardRepository;
 
 
-    public MarketService(MarketRepository marketRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations, CountryRepository countryRepository, StateRepository stateRepository, LGARepository lgaRepository, WardRepository wardRepository) {
+    public MarketService(MarketRepository marketRepository, ModelMapper mapper, ObjectMapper objectMapper, Validations validations, CountryRepository countryRepository, StateRepository stateRepository, WardRepository wardRepository) {
         this.marketRepository = marketRepository;
         this.mapper = mapper;
         this.objectMapper = objectMapper;
         this.validations = validations;
         this.countryRepository = countryRepository;
         this.stateRepository = stateRepository;
-        this.lgaRepository = lgaRepository;
         this.wardRepository = wardRepository;
     }
 
@@ -102,34 +100,34 @@ public class MarketService {
         Market market = marketRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Market id does not exist!"));
-        MarketResponseDto marketResponseDto = mapper.map(market, MarketResponseDto.class);
+        return mapper.map(market, MarketResponseDto.class);
         //Market marketWithLgaInfo = marketRepository.findMarketAndLocationInfo(market.getId(),market.getWardId());
         //log.info("marketWithLgaInfo=={}",marketWithLgaInfo);
-        return setAndGetWardsLocationDetails(marketResponseDto);
+//        return setAndGetWardsLocationDetails(marketResponseDto);
 
 
     }
 
-    private MarketResponseDto setAndGetWardsLocationDetails(MarketResponseDto marketResponseDto) {
-        Optional<Ward> ward = wardRepository.findById(marketResponseDto.getWardId());
-        marketResponseDto.setWard(ward.isPresent()?ward.get().getName():null);
-        Optional<LGA> lga = lgaRepository.findById(ward.get().getLgaId());
-        if (lga.isPresent()){
-            marketResponseDto.setLgaId(lga.get().getId());
-            marketResponseDto.setLga(lga.get().getName());
-        }
-        Optional<State> state = stateRepository.findById(lga.get().getStateId());
-        if (state.isPresent()){
-            marketResponseDto.setStateId(state.get().getId());
-            marketResponseDto.setState(state.get().getName());
-        }
-        Optional<Country> country = countryRepository.findById(state.get().getCountryId());
-        if (country.isPresent()){
-            marketResponseDto.setCountryId(country.get().getId());
-            marketResponseDto.setCountry(country.get().getName());
-        }
-        return marketResponseDto;
-    }
+//    private MarketResponseDto setAndGetWardsLocationDetails(MarketResponseDto marketResponseDto) {
+//        Optional<Ward> ward = wardRepository.findById(marketResponseDto.getWardId());
+//        marketResponseDto.setWard(ward.isPresent()?ward.get().getName():null);
+//        Optional<LGA> lga = lgaRepository.findById(ward.get().getLgaId());
+//        if (lga.isPresent()){
+//            marketResponseDto.setLgaId(lga.get().getId());
+//            marketResponseDto.setLga(lga.get().getName());
+//        }
+//        Optional<State> state = stateRepository.findById(lga.get().getStateId());
+//        if (state.isPresent()){
+//            marketResponseDto.setStateId(state.get().getId());
+//            marketResponseDto.setState(state.get().getName());
+//        }
+//        Optional<Country> country = countryRepository.findById(state.get().getCountryId());
+//        if (country.isPresent()){
+//            marketResponseDto.setCountryId(country.get().getId());
+//            marketResponseDto.setCountry(country.get().getName());
+//        }
+//        return marketResponseDto;
+//    }
 
     /**
      * <summary>
@@ -181,21 +179,13 @@ public class MarketService {
     private void setsLgaStateCountryInfo(Market marketResponseDto) {
         Optional<Ward> ward = wardRepository.findById(marketResponseDto.getWardId());
         marketResponseDto.setWard(ward.isPresent() ? ward.get().getName() : null);
-        Optional<LGA> lga = lgaRepository.findById(ward.get().getLgaId());
-        if (lga.isPresent()) {
-            marketResponseDto.setLgaId(lga.get().getId());
-            marketResponseDto.setLga(lga.get().getName());
-        }
-        Optional<State> state = stateRepository.findById(lga.get().getStateId());
-        if (state.isPresent()) {
-            marketResponseDto.setStateId(state.get().getId());
-            marketResponseDto.setState(state.get().getName());
-        }
-        Optional<Country> country = countryRepository.findById(state.get().getCountryId());
-        if (country.isPresent()) {
-            marketResponseDto.setCountryId(country.get().getId());
-            marketResponseDto.setCountry(country.get().getName());
-        }
+
+        marketResponseDto.setLgaId(marketResponseDto.getLgaId());
+        marketResponseDto.setLga(marketResponseDto.getLga());
+        marketResponseDto.setStateId(marketResponseDto.getStateId());
+        marketResponseDto.setState(marketResponseDto.getState());
+        marketResponseDto.setCountryId(marketResponseDto.getCountryId());
+        marketResponseDto.setCountry(marketResponseDto.getCountry());
 
     }
 }
