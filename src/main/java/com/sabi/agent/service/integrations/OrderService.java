@@ -452,4 +452,8 @@ public class OrderService {
         return results;
     }
 
+    public Page<AgentOrder> getOrdersByMerchantId(Long merchantId, Pageable pageable) {
+        return orderRepository.findByMerchantId(merchantId, pageable);
+    }
+
 }

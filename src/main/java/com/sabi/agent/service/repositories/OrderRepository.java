@@ -17,6 +17,7 @@ import java.util.Map;
 @Repository
 public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
 
+    Page<AgentOrder> findByMerchantId(Long merchantId, Pageable pageable);
 
     //RegisteredMerchant
     //Search for a Customer should be across board, Searc by "Customer Order No", "Customer Name", "Phone No"
