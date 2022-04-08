@@ -490,14 +490,6 @@ public class Validations {
                 marketRepository.findById(request.getLocationId()).orElseThrow(()->
                         new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Market Id"));
                 break;
-            case "Lga":
-                lgaRepository.findById(request.getLocationId()).orElseThrow(()->
-                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Lga Id"));
-                break;
-            case "State":
-                stateRepository.findById(request.getLocationId()).orElseThrow(()->
-                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid State Id"));
-                break;
             default:
                 throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter a valid location type");
         }
