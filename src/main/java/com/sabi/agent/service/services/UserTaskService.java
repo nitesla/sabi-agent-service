@@ -107,21 +107,7 @@ public class UserTaskService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " User Id does not exist! "));
 
-
-        UserTaskResponseDto response = UserTaskResponseDto.builder()
-                .id(userTask.getId())
-                .userId(user.getId())
-                .taskId(task.getId())
-                .dateAssigned(userTask.getDateAssigned())
-                .endDate(userTask.getEndDate())
-                .status(userTask.getStatus())
-                .createdDate(userTask.getCreatedDate())
-                .createdBy(userTask.getCreatedBy())
-                .updatedBy(userTask.getUpdatedBy())
-                .updatedDate(userTask.getUpdatedDate())
-                .isActive(userTask.getIsActive())
-                .build();
-        return response;
+        return mapper.map(userTask, UserTaskResponseDto.class);
     }
 
     /** <summary>
