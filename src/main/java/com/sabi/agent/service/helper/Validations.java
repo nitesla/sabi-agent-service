@@ -526,6 +526,8 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Address cannot be empty");
         if(request.getId() == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id cannot be empty");
+        if(request.getIdCardType() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "idCardType cannot be empty");
     }
 
 
@@ -534,6 +536,8 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id card cannot be empty");
         if(request.getId() == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id cannot be empty");
+        if(request.getIdCardType() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "idCardType cannot be empty");
     }
 
 
