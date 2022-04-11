@@ -59,10 +59,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @SuppressWarnings("ALL")
@@ -650,8 +647,22 @@ public class AgentService {
 
     }
 
-    public Page<Map> filterAgent(String agentName, String agentCategory, String verificationStatus, String startDate, String endDate, Pageable pageable) {
+    public Page<Map> filterAgent(String agentName, String agentCategory, String verificationStatus, String startDate, String endDate, Pageable pageable) throws ParseException {
+        if((startDate != null && endDate == null) || (endDate != null && startDate == null)){
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Date cannot be empty");
+        }
+
+        if(startDate != null && endDate != null) {
+            if (tryParseDate(startDate).after(tryParseDate(endDate))) {
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "start date cannot be greater than end date");
+            }
+        }
+
         return agentRepository.filterAgent(agentName,agentCategory,verificationStatus,startDate,endDate,pageable);
+    }
+
+    private Date tryParseDate(String date) throws ParseException {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date);
     }
 
 
