@@ -10,6 +10,7 @@ import com.sabi.agent.core.models.UserTask;
 import com.sabi.agent.service.helper.*;
 import com.sabi.agent.service.repositories.TaskRepository;
 import com.sabi.agent.service.repositories.UserTaskRepository;
+import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
@@ -21,8 +22,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -166,6 +170,10 @@ public class UserTaskService {
     public List<UserTask> getAll(Boolean isActive){
         List<UserTask> userTaskList = userTaskRepository.findByIsActive(isActive);
         return userTaskList;
+    }
 
+    public Page<UserTask> filterUserTask(String taskName, String userType, String taskType, String startDate, String endDate, Pageable pageable) {
+        Utility.checkStartAndEndDate(startDate,endDate);
+        return userTaskRepository.filterUserTask(taskName, userType, taskType, startDate, endDate, pageable);
     }
 }

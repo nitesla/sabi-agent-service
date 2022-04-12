@@ -38,9 +38,10 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
                            @Param("referrer")String referrer,
                            Pageable pageable);
 
-    @Query(value = "SELECT AgentCategory.name as agentCategory, Agent.* FROM AgentCategory, Agent, User WHERE " +
+    @Query(value = "SELECT AgentCategory.name as agentCategory, User.firstName as agentFirstName, User.lastName as agentLastName, Agent.* FROM AgentCategory, User, Agent WHERE " +
             "Agent.agentCategoryId=AgentCategory.id AND Agent.userId = User.id " +
             "AND ((:verificationStatus IS NULL) OR (:verificationStatus IS NOT NULL AND Agent.verificationStatus = :verificationStatus)) " +
+            "AND ((:status IS NULL) OR (:status IS NOT NULL AND Agent.status = :status)) " +
             "AND ((:agentName IS NULL) OR (CONCAT(User.firstName, \" \" ,User.lastName) LIKE %:agentName%) " +
             "OR (CONCAT(User.lastName, \" \" ,User.firstName) LIKE %:agentName%)) " +
             "AND ((:agentCategory IS NULL) OR (:agentCategory IS NOT NULL AND AgentCategory.name LIKE %:agentCategory%)) " +
@@ -48,6 +49,7 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
     Page<Map> filterAgent(@Param("agentName") String agentName,
                           @Param("agentCategory") String agentCategory,
                           @Param("verificationStatus") String verificationStatus,
+                          @Param("status") Integer status,
                           @Param("startDate") String startDate,
                           @Param("endDate") String endDate,
                           Pageable pageable);
