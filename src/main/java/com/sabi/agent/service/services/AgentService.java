@@ -59,10 +59,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @SuppressWarnings("ALL")
@@ -650,8 +647,9 @@ public class AgentService {
 
     }
 
-    public Page<Map> filterAgent(String agentName, String agentCategory, String verificationStatus, String startDate, String endDate, Pageable pageable) {
-        return agentRepository.filterAgent(agentName,agentCategory,verificationStatus,startDate,endDate,pageable);
+    public Page<Map> filterAgent(String agentName, String agentCategory, String verificationStatus, Integer status, String startDate, String endDate, Pageable pageable) {
+        com.sabi.agent.service.helper.Utility.checkStartAndEndDate(startDate, endDate);
+        return agentRepository.filterAgent(agentName,agentCategory,verificationStatus,status,startDate,endDate,pageable);
     }
 
 
