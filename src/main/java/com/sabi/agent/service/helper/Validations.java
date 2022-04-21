@@ -231,9 +231,6 @@ public class Validations {
         User user = userRepository.findById(supervisorDto.getUserId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Enter a valid User ID!"));
-        Agent agent = agentRepository.findById(supervisorDto.getAgentId())
-                .orElseThrow(() ->new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        "Enter a valid agentId"));
     }
 
     public void validateTargetType (TargetTypeDto targetTypeDto){
@@ -296,9 +293,9 @@ public class Validations {
 
     public void validateAgentSupervisor(AgentSupervisorDto request) {
         if (request.getAgentId() == null )
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent cannot be empty");
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Agent Id cannot be empty");
         if (request.getSupervisorId() == null)
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Supervisor cannot be empty");
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Supervisor Id cannot be empty");
 
         agentRepository.findById(request.getAgentId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,

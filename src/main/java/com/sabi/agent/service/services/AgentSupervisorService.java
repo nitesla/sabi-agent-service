@@ -23,8 +23,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -71,9 +74,9 @@ public class AgentSupervisorService {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentSupervisor already exist");
         }
         agentSupervisor.setCreatedBy(userCurrent.getId());
-        agentSupervisor.setIsActive(false);
+        agentSupervisor.setIsActive(true); // so that one can easily fetch/query by 'isActive' status
         agentSupervisor = agentSupervisorRepository.save(agentSupervisor);
-        log.debug("Create new agentSupervisor - {}" + new Gson().toJson(agentSupervisor));
+        log.debug("Create new agentSupervisor - {}" + agentSupervisor);
         return mapper.map(agentSupervisor, AgentSupervisorResponseDto.class);
     }
 
@@ -124,17 +127,38 @@ public class AgentSupervisorService {
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      * @return
      */
+    /**
+     * @Description: new Feature: Search by supervisorname, agentName and createdDate.
+     * Fixed a bug: Also changed the return tyoe to be a Page instead of just a list.
+     * @Date: 20/04/2022
+     * @Author: Afam Okonkwo
+     * @param supervisorName
+     * @param agentName
+     * @param isActive
+     * @param createdDate
+     * @param pageable
+     * @return
+     */
+    /**
     public List<AgentSupervisorResponseDto> findAll(PageRequest pageRequest) {
         Page<AgentSupervisor> agentSupervisor = agentSupervisorRepository
                 .findAll(pageRequest);
+     */
+    public  Page<AgentSupervisor> findAll(String supervisorName, String agentName, Boolean isActive, LocalDate createdDate, Pageable pageable) {
+        LocalDateTime lowerDateTime = null, upperDateTime = null;
+        if (createdDate!=null){
+            lowerDateTime = LocalDateTime.of(createdDate.getYear(),createdDate.getMonthValue(),createdDate.getDayOfMonth(),00,00,00);
+            upperDateTime = lowerDateTime.plusDays(1l);
+            log.info("my lowerDate =={}",lowerDateTime);
+            log.info("my upperDate=={}",upperDateTime);
+        }
+        Page<AgentSupervisor> agentSupervisor = agentSupervisorRepository
+                                                .searchAgentSupervisors(supervisorName, agentName, isActive, lowerDateTime, upperDateTime, pageable);
         if (agentSupervisor == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
-        List<AgentSupervisorResponseDto> agentSupervisorResponseDtos = new ArrayList<>();
-        agentSupervisor.forEach((agentSupervisor1 -> {
-            agentSupervisorResponseDtos.add(composeAgentSupervisorResponse(agentSupervisor1));
-        }));
-        return agentSupervisorResponseDtos;
+        agentSupervisor.getContent().stream().forEach(this::composeAgentSupervisor);
+        return agentSupervisor;
     }
 
 
@@ -162,18 +186,34 @@ public class AgentSupervisorService {
         Optional<Agent> agent= agentRepository.findById(agentSupervisor.getAgentId());
         Optional<Supervisor> supervisor = supervisorRepository.findById(agentSupervisor.getSupervisorId());
 
-        Optional<User> agentAsUser = userRepository.findById(agent.get().getId());
-        Optional<User> supervisorAsUser = userRepository.findById(supervisor.get().getId());
+        Optional<User> agentAsUser = userRepository.findById(agent.get().getUserId());
+        Optional<User> supervisorAsUser = userRepository.findById(supervisor.get().getUserId());
         agentSupervisorResponseDto.setAgentName(agentAsUser.get().getFirstName() + " " + agentAsUser.get().getLastName());
         agentSupervisorResponseDto.setSupervisorName(supervisorAsUser.get().getFirstName() + " " + supervisorAsUser.get().getLastName());
         return agentSupervisorResponseDto;
     }
 
     public List<AgentSupervisorResponseDto> getAllByStatus(Boolean isActive) {
-        List<AgentSupervisor> supervisors = agentSupervisorRepository.findByIsActive(isActive);
-        return supervisors
+        List<AgentSupervisor> agentSupervisorsList = agentSupervisorRepository.findByIsActive(isActive);
+        List<AgentSupervisorResponseDto> agentSupervisorResponseDtos = new ArrayList<>();
+        agentSupervisorsList
                 .stream()
-                .map(user -> mapper.map(user, AgentSupervisorResponseDto.class))
-                .collect(Collectors.toList());
+                .forEach((agentSupervisor)->{
+                    agentSupervisorResponseDtos.add(composeAgentSupervisorResponse(agentSupervisor));
+                });
+
+        return agentSupervisorResponseDtos;
+
+    }
+
+    private AgentSupervisor composeAgentSupervisor(AgentSupervisor agentSupervisor){
+        Optional<Agent> agent= agentRepository.findById(agentSupervisor.getAgentId());
+        Optional<Supervisor> supervisor = supervisorRepository.findById(agentSupervisor.getSupervisorId());
+
+        Optional<User> agentAsUser = userRepository.findById(agent.get().getUserId());
+        Optional<User> supervisorAsUser = userRepository.findById(supervisor.get().getUserId());
+        agentSupervisor.setAgentName(agentAsUser.get().getFirstName() + " " + agentAsUser.get().getLastName());
+        agentSupervisor.setSupervisorName(supervisorAsUser.get().getFirstName() + " " + supervisorAsUser.get().getLastName());
+        return agentSupervisor;
     }
 }
