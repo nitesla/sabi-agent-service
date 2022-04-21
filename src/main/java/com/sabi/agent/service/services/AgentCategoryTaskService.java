@@ -88,10 +88,10 @@ public class AgentCategoryTaskService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         "Requested Agent Category Task does not exist!"));
         mapper.map(request, agentCategoryTask);
+        agentCategoryTask.setName(request.getName());
         agentCategoryTask.setUpdatedBy(userCurrent.getId());
-        exists.agentCategoryTaskExist(request);
+//        exists.agentCategoryTaskExist(request);
 //        exists.agentCategoryTaskUpateExist(request);
-
         agentCategoryTaskRepository.save(agentCategoryTask);
         log.debug("Agent Category Task record updated - {}" + new Gson().toJson(agentCategoryTask));
         return mapper.map(agentCategoryTask, AgentCategoryTaskResponseDto.class);

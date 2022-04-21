@@ -104,7 +104,7 @@ public class MerchantService {
         registeredMerchant.setState(signUpRequest.getState());
         registeredMerchant.setCountry(signUpRequest.getCountry());
         Long createdby = TokenService.getCurrentUserFromSecurityContext().getId();
-        registeredMerchant.setCreatedBy(createdby !=null ? createdby:null);
+        registeredMerchant.setCreatedBy(createdby);
         return repository.save(registeredMerchant);
     }
 
@@ -173,6 +173,8 @@ public class MerchantService {
         return registeredMerchants;
     }
 
+
+
     public MerchantDetailResponse merchantDetails(String userId, String fingerPrint){
         return api.get(baseUrl + "/api/users/public/" + userId, MerchantDetailResponse.class, getHeaders(fingerPrint));
     }
@@ -187,7 +189,7 @@ public class MerchantService {
             Agent agent =agentRepository.findById(registeredMerchant.getAgentId()).orElse(null);
             if(agent!=null){
                 User user =userRepository.findById(agent.getUserId()).get();
-                registeredMerchant.setAgentName((user!=null?user.getFirstName()+" "+user.getLastName():null));
+                registeredMerchant.setAgentName(user.getFirstName()+" "+user.getLastName());
             }
         }
         return registeredMerchant;
@@ -217,4 +219,20 @@ public class MerchantService {
         merchant.setUpdatedBy(userCurrent.getId());
         repository.save(merchant);
     }
+
+//    public Page<RegisteredMerchant> searchMerchant(Long agentId, String searchTerm, Date startDate, Date endDate,PageRequest pageRequest){
+//        return repository.searchMerchants(searchTerm, agentId, startDate, endDate, pageRequest);
+//    }
+
+//    public void enableDisableMerchant(EnableDisEnableDto request){
+//        validations.validateStatus(request.getIsActive());
+//        User userCurrent = TokenService.getCurrentUserFromSecurityContext();
+//        RegisteredMerchant task = repository.findById(request.getId())
+//                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
+//                        "Requested Merchant does not exist!"));
+//        task.setIsActive(request.getIsActive());
+//        task.setUpdatedBy(userCurrent.getId());
+//        repository.save(task);
+//
+//    }
 }

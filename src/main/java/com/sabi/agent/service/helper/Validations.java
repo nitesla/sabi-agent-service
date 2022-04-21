@@ -487,14 +487,6 @@ public class Validations {
                 marketRepository.findById(request.getLocationId()).orElseThrow(()->
                         new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Market Id"));
                 break;
-            case "Lga":
-                lgaRepository.findById(request.getLocationId()).orElseThrow(()->
-                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid Lga Id"));
-                break;
-            case "State":
-                stateRepository.findById(request.getLocationId()).orElseThrow(()->
-                        new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter valid State Id"));
-                break;
             default:
                 throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Enter a valid location type");
         }
@@ -531,6 +523,8 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Address cannot be empty");
         if(request.getId() == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id cannot be empty");
+        if(request.getIdCardType() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "idCardType cannot be empty");
     }
 
 
@@ -539,6 +533,8 @@ public class Validations {
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id card cannot be empty");
         if(request.getId() == null)
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "id cannot be empty");
+        if(request.getIdCardType() == null)
+            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "idCardType cannot be empty");
     }
 
 
@@ -561,46 +557,47 @@ public class Validations {
     }
 
     public void validateCreateMerchant(MerchantSignUpRequest request) {
-        //businessName
-        checkIsNullOrEmpty(request.getBusinessName(), "Business Name");
-
-        //countryCode
-        checkIsNullOrEmpty(request.getCountry(), "country");
-
-        //firstname
-        checkIsNullOrEmpty(request.getFirstName(), "firstname");
-        checkStringLength(2, 24, request.getFirstName(), "firstName");
-        if (!Utility.validateName(request.getFirstName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for first name ");
-
-        //lastname
-        if (!Utility.validateName(request.getLastName()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for last name ");
-
-        //lga
-        checkIsNullOrEmpty(request.getLga(), "lga");
-        LGA lga = lgaRepository.findByName(request.getLga());
-        if ( lga==null)
-            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested lga is not found");
-        State state = stateRepository.findById(lga.getStateId())
-                .orElseThrow(() ->new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The state of this "+lga.getName()+" lga can't be found"));
+//        //businessName
+//        checkIsNullOrEmpty(request.getBusinessName(), "Business Name");
+//
+//        //countryCode
+//        checkIsNullOrEmpty(request.getCountry(), "country");
+//
+//        //firstname
+//        checkIsNullOrEmpty(request.getFirstName(), "firstname");
+//        checkStringLength(2, 24, request.getFirstName(), "firstName");
+//        if (!Utility.validateName(request.getFirstName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for first name ");
+//
+//        //lastname
+//        if (!Utility.validateName(request.getLastName()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for last name ");
+//
+//        //agent
+//        checkIsNullOrEmpty(request.getLga(), "agent");
+        Agent agent = agentRepository.findById(request.getAgentId()).orElseThrow(() ->
+                new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Agent not found"));
+//        if ( agent==null)
+//            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested agent is not found");
+//        State state = stateRepository.findById(agent.getStateId())
+//                .orElseThrow(() ->new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The state of this "+agent.getName()+" agent can't be found"));
         //phoneNumber
-        checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
-        checkStringLength(8, 14, request.getPhoneNumber(), "Phone Number");
-        if (!Utility.isNumeric(request.getPhoneNumber()))
-            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
+//        checkIsNullOrEmpty(request.getPhoneNumber(), "Phone Number");
+//        checkStringLength(8, 14, request.getPhoneNumber(), "Phone Number");
+//        if (!Utility.isNumeric(request.getPhoneNumber()))
+//            throw new BadRequestException(CustomResponseCode.BAD_REQUEST, "Invalid data type for phone number ");
 
         //state
-        checkIsNullOrEmpty(request.getState(), "state");
-        if (!request.getState().equalsIgnoreCase(state.getName()))
-            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested state can't be found.");
-        //country
-        checkIsNullOrEmpty(request.getCountry(),"country");
-        if (countryRepository.findByName(request.getCountry()) == null)
-            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested country can't be found");
-        //password
-        checkIsNullOrEmpty(request.getPassword(), "password");
-        checkPassword(request.getPassword());
+//        checkIsNullOrEmpty(request.getState(), "state");
+//        if (!request.getState().equalsIgnoreCase(state.getName()))
+//            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested state can't be found.");
+//        //country
+//        checkIsNullOrEmpty(request.getCountry(),"country");
+//        if (countryRepository.findByName(request.getCountry()) == null)
+//            throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"The requested country can't be found");
+//        //password
+//        checkIsNullOrEmpty(request.getPassword(), "password");
+//        checkPassword(request.getPassword());
     }
 
     private void checkStringLength(int minLength, int maxLength, String string, String field) {

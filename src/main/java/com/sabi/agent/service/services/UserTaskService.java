@@ -10,6 +10,7 @@ import com.sabi.agent.core.models.UserTask;
 import com.sabi.agent.service.helper.*;
 import com.sabi.agent.service.repositories.TaskRepository;
 import com.sabi.agent.service.repositories.UserTaskRepository;
+import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
@@ -21,8 +22,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -107,21 +111,7 @@ public class UserTaskService {
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " User Id does not exist! "));
 
-
-        UserTaskResponseDto response = UserTaskResponseDto.builder()
-                .id(userTask.getId())
-                .userId(user.getId())
-                .taskId(task.getId())
-                .dateAssigned(userTask.getDateAssigned())
-                .endDate(userTask.getEndDate())
-                .status(userTask.getStatus())
-                .createdDate(userTask.getCreatedDate())
-                .createdBy(userTask.getCreatedBy())
-                .updatedBy(userTask.getUpdatedBy())
-                .updatedDate(userTask.getUpdatedDate())
-                .isActive(userTask.getIsActive())
-                .build();
-        return response;
+        return mapper.map(userTask, UserTaskResponseDto.class);
     }
 
     /** <summary>
@@ -129,7 +119,7 @@ public class UserTaskService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<UserTask> findAll(Date endDate, Date dateAssigned, String status, Integer agentId, PageRequest pageRequest ) {
+    public Page<UserTask> findAll(Date endDate, Date dateAssigned, String status, Long userId, PageRequest pageRequest ) {
         GenericSpecification<UserTask> genericSpecification = new GenericSpecification<UserTask>();
 
         if (endDate != null && endDate.after(dateAssigned))
@@ -146,8 +136,8 @@ public class UserTaskService {
         {
             genericSpecification.add(new SearchCriteria("status", status, SearchOperation.EQUAL));
         }
-        if (agentId != null) {
-            genericSpecification.add(new SearchCriteria("agentId", agentId, SearchOperation.EQUAL));
+        if (userId != null) {
+            genericSpecification.add(new SearchCriteria("userId", userId, SearchOperation.EQUAL));
         }
 
 
@@ -180,6 +170,10 @@ public class UserTaskService {
     public List<UserTask> getAll(Boolean isActive){
         List<UserTask> userTaskList = userTaskRepository.findByIsActive(isActive);
         return userTaskList;
+    }
 
+    public Page<UserTask> filterUserTask(String taskName, String userType, String taskType, String startDate, String endDate, Pageable pageable) {
+        Utility.checkStartAndEndDate(startDate,endDate);
+        return userTaskRepository.filterUserTask(taskName, userType, taskType, startDate, endDate, pageable);
     }
 }

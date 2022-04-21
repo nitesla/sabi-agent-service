@@ -56,11 +56,10 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
 
 
 @SuppressWarnings("ALL")
@@ -193,11 +192,11 @@ public class AgentService {
         user = userRepository.save(user);
         log.debug("Create new agent user - {}"+ new Gson().toJson(user));
 
-        UserRole userRole = UserRole.builder()
-                .userId(user.getId())
-                .roleId(user.getRoleId())
-                .build();
-        userRoleRepository.save(userRole);
+//        UserRole userRole = UserRole.builder()
+//                .userId(user.getId())
+//                .roleId(user.getRoleId())
+//                .build();
+//        userRoleRepository.save(userRole);
 
         PreviousPasswords previousPasswords = PreviousPasswords.builder()
                 .userId(user.getId())
@@ -646,6 +645,11 @@ public class AgentService {
         List<Agent> agents = agentRepository.findByIsActive(isActive);
         return agents;
 
+    }
+
+    public Page<Map> filterAgent(String agentName, String agentCategory, String verificationStatus, Integer status, String startDate, String endDate, Pageable pageable) {
+        com.sabi.agent.service.helper.Utility.checkStartAndEndDate(startDate, endDate);
+        return agentRepository.filterAgent(agentName,agentCategory,verificationStatus,status,startDate,endDate,pageable);
     }
 
 
