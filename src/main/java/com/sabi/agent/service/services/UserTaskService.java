@@ -10,7 +10,6 @@ import com.sabi.agent.core.models.UserTask;
 import com.sabi.agent.service.helper.*;
 import com.sabi.agent.service.repositories.TaskRepository;
 import com.sabi.agent.service.repositories.UserTaskRepository;
-import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.repositories.UserRepository;
@@ -25,10 +24,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -87,7 +86,6 @@ public class UserTaskService {
                         "Requested User Task does not exist!"));
         mapper.map(request, userTask);
         userTask.setUpdatedBy(userCurrent.getId());
-//        exists.userTaskUpateExist(request);
         userTaskRepository.save(userTask);
         log.debug("User Task record updated - {}" + new Gson().toJson(userTask));
         return mapper.map(userTask, UserTaskResponseDto.class);
@@ -172,7 +170,7 @@ public class UserTaskService {
         return userTaskList;
     }
 
-    public Page<UserTask> filterUserTask(String taskName, String userType, String taskType, String startDate, String endDate, Pageable pageable) {
+    public Page<Map> filterUserTask(String taskName, String userType, String taskType, String startDate, String endDate, Pageable pageable) {
         Utility.checkStartAndEndDate(startDate,endDate);
         return userTaskRepository.filterUserTask(taskName, userType, taskType, startDate, endDate, pageable);
     }
