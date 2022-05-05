@@ -48,6 +48,9 @@ public class GlobalAdminAuthService {
     @Value("${loginUrl}")
     private String loginUrl;
 
+    @Value("{agent.code}")
+    private String agentCode;
+
     private final NotificationService notificationService;
 
     public GlobalAdminAuthService(API api, UserRepository userRepository, TokenService tokenService, UserService userService, PermissionService permissionService, PasswordEncoder passwordEncoder, NotificationService notificationService) {
@@ -61,24 +64,23 @@ public class GlobalAdminAuthService {
     }
 
     public GlobalAdminAuthResponse authenticateUser(GlobalAdminAuthRequestDto requestDto) {
-        requestDto.setApplicationCode("SP");
+        requestDto.setApplicationCode(agentCode);
         String accessToken = null;
         GlobalAdminAuthResponse globalAdminAuthResponse = new  GlobalAdminAuthResponse();
         NotificationRequestDto notificationRequestDto = new NotificationRequestDto();
         AuthenticateUserResponseDto authResponse = authenticateUser(
                 requestDto.getApplicationCode(),requestDto.getAuthKey(),
                 requestDto.getUserId());
-        log.info("Response for Global Admin ::::::::::::::::::::::::: {} " + authResponse);
+        log.info("Response for Global Admin ::::::::::::::::::::::::: {} ", authResponse);
         if (!authResponse .getCode().equals("200") ){
-            log.info("404 Error logged ::::::::::::::::::::::{}");
+            log.info("404 Error logged ::::::::::::::::::::::");
             throw new BadRequestException(CustomResponseCode.UNAUTHORIZED, "Unauthorized");
         }else{
             User user = confirmUser(authResponse);
             if (user != null){
-                log.info("User should be logged in :::::::::::::::::: {}");
+                log.info("User should be logged in :::::::::::::::::: ");
                 accessToken = "Bearer" +" "+this.tokenService.generateNewToken();
-            } else
-            if (user == null){
+            } else {
                 Random rand = new Random();
                 User userTosave = new User();
                 String passwrd = String.valueOf(rand.nextInt(9999999));
