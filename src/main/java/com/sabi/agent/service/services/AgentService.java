@@ -647,9 +647,9 @@ public class AgentService {
 
     }
 
-    public Page<Map> filterAgent(String agentName, String agentCategory, String verificationStatus, Integer status, String startDate, String endDate, Pageable pageable) {
+    public Page<Map> filterAgent(String agentName, String agentCategory, String verificationStatus, Integer status, Boolean isActive, String startDate, String endDate, Pageable pageable) {
         com.sabi.agent.service.helper.Utility.checkStartAndEndDate(startDate, endDate);
-        return agentRepository.filterAgent(agentName,agentCategory,verificationStatus,status,startDate,endDate,pageable);
+        return agentRepository.filterAgent(agentName,agentCategory,verificationStatus,status,isActive,startDate,endDate,pageable);
     }
 
 

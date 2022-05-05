@@ -42,6 +42,7 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
             "Agent.agentCategoryId=AgentCategory.id AND Agent.userId = User.id " +
             "AND ((:verificationStatus IS NULL) OR (:verificationStatus IS NOT NULL AND Agent.verificationStatus = :verificationStatus)) " +
             "AND ((:status IS NULL) OR (:status IS NOT NULL AND Agent.status = :status)) " +
+            "AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND Agent.isActive = :isActive)) " +
             "AND ((:agentName IS NULL) OR (CONCAT(User.firstName, \" \" ,User.lastName) LIKE %:agentName%) " +
             "OR (CONCAT(User.lastName, \" \" ,User.firstName) LIKE %:agentName%)) " +
             "AND ((:agentCategory IS NULL) OR (:agentCategory IS NOT NULL AND AgentCategory.name LIKE %:agentCategory%)) " +
@@ -50,6 +51,7 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
                           @Param("agentCategory") String agentCategory,
                           @Param("verificationStatus") String verificationStatus,
                           @Param("status") Integer status,
+                          @Param("isActive") Boolean isActive,
                           @Param("startDate") String startDate,
                           @Param("endDate") String endDate,
                           Pageable pageable);
