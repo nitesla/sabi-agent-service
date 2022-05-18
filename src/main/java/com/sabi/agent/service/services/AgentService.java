@@ -205,7 +205,7 @@ public class AgentService {
                 .build();
         previousPasswordRepository.save(previousPasswords);
         AgentCategory savedCategory = agentCategoryRepository.findAgentCategoriesByIsDefault(true);
-
+        System.out.println("::::: CATEGORY ID " +savedCategory.getId());
         Agent saveAgent = new Agent();
                 saveAgent.setUserId(user.getId());
                 saveAgent.setCountryCode(request.getCountryCode());
