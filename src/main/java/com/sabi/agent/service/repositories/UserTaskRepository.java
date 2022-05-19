@@ -32,11 +32,15 @@ public interface    UserTaskRepository extends JpaRepository<UserTask, Long>, Jp
             "AND ((:taskName IS NULL) OR (:taskName IS NOT NULL AND UserTask.taskName LIKE %:taskName%)) " +
             "AND ((:userType IS NULL) OR (:userType IS NOT NULL AND UserTask.userType = :userType)) " +
             "AND ((:taskType IS NULL) OR (:taskType IS NOT NULL AND UserTask.taskType LIKE %:taskType%)) " +
+            "AND ((:userId IS NULL) OR (:userId IS NOT NULL AND UserTask.userId = :userId)) " +
+            "AND ((:taskId IS NULL) OR (:taskId IS NOT NULL AND UserTask.taskId = :taskId)) " +
             "AND ((:startDate IS NULL) AND (:endDate IS NULL) OR (UserTask.createdDate BETWEEN :startDate AND :endDate))", nativeQuery = true)
     Page<Map> filterUserTask(@Param("taskName") String taskName,
                              @Param("userType") String userType,
                              @Param("taskType") String taskType,
                              @Param("startDate") String startDate,
                              @Param("endDate") String endDate,
+                             @Param("userId") Long userId,
+                             @Param("taskId") Long taskId,
                              Pageable pageable);
 }
