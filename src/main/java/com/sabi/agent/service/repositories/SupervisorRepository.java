@@ -23,18 +23,15 @@ public interface SupervisorRepository extends JpaRepository<Supervisor, Long>, J
 
     Page<Supervisor> findAll(Pageable pageable);
 
-    Supervisor findByUserIdAndAgentId(Long userId, Long agentId);
+    Supervisor findByUserId(Long userId);
 
     List<Supervisor> findByIsActive(Boolean isActive);
 
     @Query("SELECT s FROM Supervisor s " +
-            "INNER JOIN Agent at ON s.agentId = at.id " +
             "INNER JOIN User supervisorUser ON s.userId = supervisorUser.id " +
-            "INNER JOIN User agentUser ON agentUser.id = at.userId " +
-            "WHERE (((:supervisorName IS NULL) OR (:supervisorName IS NOT NULL AND (supervisorUser.firstName LIKE %:supervisorName% OR supervisorUser.lastName LIKE %:supervisorName%)))" +
-            "AND ((:agentName IS NULL) OR (:agentName IS NOT NULL AND (agentUser.firstName LIKE %:agentName% OR agentUser.lastName LIKE %:agentName%)))" +
+            "WHERE (((:supervisorUserName IS NULL) OR (:supervisorUserName IS NOT NULL AND ( CONCAT(supervisorUser.firstName,' ',supervisorUser.lastName)  LIKE %:supervisorUserName% )))" +
             "AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND s.isActive =:isActive))" +
             "AND ((((:lowerDateTime IS NULL) AND (:upperDateTime IS  NULL))) OR (((:lowerDateTime IS NOT NULL) AND (:upperDateTime IS NOT NULL)) AND (s.createdDate >= :lowerDateTime AND s.createdDate < :upperDateTime)))" +
-            ")")
-    Page<Supervisor> searchSupervisors(String supervisorName, String agentName, Boolean isActive, LocalDateTime lowerDateTime, LocalDateTime upperDateTime, Pageable pageable);
+            ") ")
+    Page<Supervisor> searchSupervisors(String supervisorUserName, Boolean isActive, LocalDateTime lowerDateTime, LocalDateTime upperDateTime, Pageable pageable);
 }
