@@ -170,8 +170,8 @@ public class UserTaskService {
         return userTaskList;
     }
 
-    public Page<Map> filterUserTask(String taskName, String userType, String taskType, String startDate, String endDate, Pageable pageable) {
+    public Page<Map> filterUserTask(String taskName, String userType, String taskType, String startDate, String endDate, Long userId, Long taskId, Pageable pageable) {
         Utility.checkStartAndEndDate(startDate,endDate);
-        return userTaskRepository.filterUserTask(taskName, userType, taskType, startDate, endDate, pageable);
+        return userTaskRepository.filterUserTask(taskName, userType, taskType, startDate, endDate, userId, taskId, pageable);
     }
 }

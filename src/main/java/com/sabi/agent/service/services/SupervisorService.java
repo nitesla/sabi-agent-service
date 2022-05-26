@@ -57,7 +57,7 @@ public class SupervisorService {
         User userCurrent = TokenService.getCurrentUserFromSecurityContext();
         log.info("User fetched " + userCurrent);
         Supervisor supervisor = mapper.map(request,Supervisor.class);
-        Supervisor userExist = supervisorRepository.findByUserIdAndAgentId(request.getUserId(),request.getAgentId());
+        Supervisor userExist = supervisorRepository.findByUserId(request.getUserId());
         if(userExist !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " This Supervisor already exist");
         }
@@ -101,16 +101,10 @@ public class SupervisorService {
         User user = userRepository.findById(supervisor.getUserId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Supervisor UserId does not exist!"));
-        Agent agent = agentRepository.findById(supervisor.getAgentId())
-                .orElseThrow(()->new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,"Supervisor agentId does not exist!"));
-       User agentUser = userRepository.findById(supervisor.getUserId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Supervisor UserId does not exist!"));
         SupervisorResponseDto response = SupervisorResponseDto.builder()
                 .id(supervisor.getId())
                 .userId(supervisor.getUserId())
-                .supervisorName((user.getFirstName())+ " " + (user.getLastName()))
-                .agentName((agentUser.getFirstName())+ " " + (agentUser.getLastName()))
+                .user((user.getFirstName())+ " " + (user.getLastName()))
                 .createdDate(supervisor.getCreatedDate())
                 .createdBy(supervisor.getCreatedBy())
                 .updatedBy(supervisor.getUpdatedBy())
@@ -124,7 +118,7 @@ public class SupervisorService {
      * </summary>
      * <remarks>this method is responsible for searching all records and getting a pagination</remarks>
      */
-    public Page<Supervisor> findAll(String supervisorName, String agentName,LocalDate createdDate,Boolean isActive, Pageable pageable ) {
+    public Page<Supervisor> findAll(String supervisorName, LocalDate createdDate,Boolean isActive, Pageable pageable ) {
         LocalDateTime lowerDateTime = null, upperDateTime = null;
         if (createdDate!=null){
             lowerDateTime = LocalDateTime.of(createdDate.getYear(),createdDate.getMonthValue(),createdDate.getDayOfMonth(),00,00,00);
@@ -132,7 +126,7 @@ public class SupervisorService {
             log.info("my lowerDate =={}",lowerDateTime);
             log.info("my upperDate=={}",upperDateTime);
         }
-        Page<Supervisor> supervisors = supervisorRepository.searchSupervisors(supervisorName,agentName,isActive,lowerDateTime,upperDateTime,pageable);
+        Page<Supervisor> supervisors = supervisorRepository.searchSupervisors(supervisorName,isActive,lowerDateTime,upperDateTime,pageable);
         if (supervisors == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
@@ -169,14 +163,6 @@ public class SupervisorService {
         User user = userRepository.findById(supervisor.getUserId())
                 .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
                         " Supervisor UserId does not exist!"));
-        Agent agent = agentRepository.findById(supervisor.getAgentId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, "Supervisor agentId does not exist!"));
-        User agentUser = userRepository.findById(agent.getUserId())
-                .orElseThrow(() -> new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION,
-                        " Supervisor UserId does not exist!"));
-        String fullName = (user.getFirstName()) + " " + (user.getLastName());
-        supervisor.setSupervisorName(fullName);
-        fullName = (agentUser.getFirstName()) + " " + (agentUser.getLastName());
-        supervisor.setAgentName(fullName);
+        supervisor.setUser(user.getFirstName() + " " + user.getLastName());
     }
 }
