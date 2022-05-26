@@ -25,7 +25,7 @@ public class Utility {
     private static Date tryParseDate(String date) {
         Date response = null;
         try {
-            response = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date);
+            response = new SimpleDateFormat("yyyy-MM-dd").parse(date);
         }catch (Exception e){
             throw new BadRequestException(CustomResponseCode.BAD_REQUEST, e.getMessage());
         }
