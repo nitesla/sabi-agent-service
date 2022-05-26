@@ -33,6 +33,7 @@ import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.service.ExternalTokenService;
 import com.sabi.framework.service.PaymentService;
 import com.sabi.framework.utils.CustomResponseCode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,7 @@ import java.util.*;
 @Service
 @Slf4j
 @EnableAsync
+@RequiredArgsConstructor
 public class OrderService {
 
     @Autowired
@@ -88,14 +90,6 @@ public class OrderService {
     private final ModelMapper mapper;
     private final MerchantRepository merchantRepository;
 
-    public OrderService(PaymentService paymentService, PaymentDetailRepository paymentDetailRepository, MerchantRepository merchantRepository, AgentRepository agentRepository, UserRepository userRepository, ModelMapper mapper) {
-        this.paymentService = paymentService;
-        this.paymentDetailRepository = paymentDetailRepository;
-        this.merchantRepository = merchantRepository;
-        this.agentRepository = agentRepository;
-        this.userRepository = userRepository;
-        this.mapper = mapper;
-    }
 
 
     @Deprecated

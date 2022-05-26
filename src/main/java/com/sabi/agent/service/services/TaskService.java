@@ -6,6 +6,7 @@ import com.sabi.agent.core.dto.requestDto.EnableDisEnableDto;
 import com.sabi.agent.core.dto.requestDto.TaskDto;
 import com.sabi.agent.core.dto.responseDto.TaskResponseDto;
 import com.sabi.agent.core.models.Task;
+import com.sabi.agent.service.helper.Utility;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.TaskRepository;
 import com.sabi.framework.exceptions.ConflictException;
@@ -19,7 +20,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 
 @Slf4j
@@ -101,8 +108,11 @@ public class TaskService {
      * </summary>
      * <remarks>this method is responsible for getting all records in pagination</remarks>
      */
-    public Page<Task> findAll(String name,String taskType, String priority, PageRequest pageRequest ){
-        Page<Task> task = taskRepository.findTask(name,taskType,priority,pageRequest);
+    public Page<Map> findAll(String name,String taskType, String priority, String startDate, String endDate,PageRequest pageRequest ){
+        Utility.checkStartAndEndDate(startDate,endDate);
+
+
+        Page<Map> task = taskRepository.findTask(name, taskType, priority,  startDate,  endDate, pageRequest);
         if(task == null){
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
