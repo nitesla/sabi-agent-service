@@ -467,6 +467,7 @@ public class AgentService {
             agent.setFirstName(user.getFirstName());
             agent.setEmail(user.getEmail());
             agent.setPhone(user.getPhone());
+            agent.setRoleId(user.getRoleId());
 //            agent.setAgentCategoryName(agentCategory.getName());
 
         });
@@ -513,6 +514,7 @@ public class AgentService {
             users.setRegistrationTokenExpiration(agent.getRegistrationTokenExpiration());
             users.setRegistrationToken(agent.getRegistrationToken());
             users.setIsEmailVerified(agent.getIsEmailVerified());
+            users.setRoleId(agent.getRoleId());
 
         });
         return agentUser;
