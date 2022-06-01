@@ -146,7 +146,8 @@ public class AgentCategoryTaskService {
 
 
 
-    public Page<AgentCategoryTask> findAll(String name, Boolean isActive, PageRequest pageRequest ) {
+    public Page<AgentCategoryTask> findAll(String name, Long agentCategoryId,
+                                           Long taskId, Boolean isActive, PageRequest pageRequest ) {
 
         GenericSpecification<AgentCategoryTask> genericSpecification = new GenericSpecification<AgentCategoryTask>();
 
@@ -154,6 +155,18 @@ public class AgentCategoryTaskService {
         {
             genericSpecification.add(new SearchCriteria("name", name, SearchOperation.MATCH));
         }
+
+        if(agentCategoryId != null){
+            genericSpecification.add(new SearchCriteria("agentCategoryId", agentCategoryId, SearchOperation.EQUAL));
+        }
+
+        if(taskId != null){
+            genericSpecification.add(new SearchCriteria("taskId", taskId, SearchOperation.EQUAL));
+        }
+
+//        if(agentCategoryName != null && !agentCategoryName.isEmpty()){
+//            genericSpecification.add(new SearchCriteria("agentCategoryName", agentCategoryName, SearchOperation.MATCH));
+//        }
 
         if (isActive != null )
         {
