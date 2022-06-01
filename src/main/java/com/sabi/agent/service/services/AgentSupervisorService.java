@@ -144,7 +144,7 @@ public class AgentSupervisorService {
         Page<AgentSupervisor> agentSupervisor = agentSupervisorRepository
                 .findAll(pageRequest);
      */
-    public  Page<AgentSupervisor> findAll(String supervisorName, String agentName, Boolean isActive, LocalDate createdDate, Pageable pageable) {
+    public  Page<AgentSupervisor> findAll(String supervisorName, String agentName, Long agentId, Boolean isActive, LocalDate createdDate, Pageable pageable) {
         LocalDateTime lowerDateTime = null, upperDateTime = null;
         if (createdDate!=null){
             lowerDateTime = LocalDateTime.of(createdDate.getYear(),createdDate.getMonthValue(),createdDate.getDayOfMonth(),00,00,00);
@@ -153,7 +153,7 @@ public class AgentSupervisorService {
             log.info("my upperDate=={}",upperDateTime);
         }
         Page<AgentSupervisor> agentSupervisor = agentSupervisorRepository
-                                                .searchAgentSupervisors(supervisorName, agentName, isActive, lowerDateTime, upperDateTime, pageable);
+                                                .searchAgentSupervisors(supervisorName, agentName, agentId,isActive, lowerDateTime, upperDateTime, pageable);
         if (agentSupervisor == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
