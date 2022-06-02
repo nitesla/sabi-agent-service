@@ -15,6 +15,7 @@ import com.sabi.agent.service.helper.*;
 import com.sabi.agent.service.repositories.TaskRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentCategoryTaskRepository;
+import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
 import com.sabi.framework.service.TokenService;
@@ -26,6 +27,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -146,7 +150,10 @@ public class AgentCategoryTaskService {
 
 
 
-    public Page<AgentCategoryTask> findAll(String name, Boolean isActive, PageRequest pageRequest ) {
+    public Page<AgentCategoryTask> findAll(String name, Long agentCategoryId,
+                                           Long taskId, Boolean isActive, LocalDate fromDate, LocalDate toDate, PageRequest pageRequest ) {
+        LocalDateTime from  = fromDate.atStartOfDay();
+        LocalDateTime to = toDate.atStartOfDay();
 
         GenericSpecification<AgentCategoryTask> genericSpecification = new GenericSpecification<AgentCategoryTask>();
 
@@ -154,6 +161,29 @@ public class AgentCategoryTaskService {
         {
             genericSpecification.add(new SearchCriteria("name", name, SearchOperation.MATCH));
         }
+
+        if(agentCategoryId != null){
+            genericSpecification.add(new SearchCriteria("agentCategoryId", agentCategoryId, SearchOperation.EQUAL));
+        }
+
+        if(taskId != null){
+            genericSpecification.add(new SearchCriteria("taskId", taskId, SearchOperation.EQUAL));
+        }
+
+
+        if (from!=null){
+            if (to!=null && from.isAfter(to))
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"fromDate can't be greater than toDate");
+            genericSpecification.add(new SearchCriteria("createdDate", from,SearchOperation.GREATER_THAN_EQUAL));
+        }
+        if (to!=null){
+            if (from == null)
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"'fromDate' must be included along with 'toDate' in the request");
+            genericSpecification.add(new SearchCriteria("createdDate", to,SearchOperation.LESS_THAN_EQUAL));
+        }
+//        if(agentCategoryName != null && !agentCategoryName.isEmpty()){
+//            genericSpecification.add(new SearchCriteria("agentCategoryName", agentCategoryName, SearchOperation.MATCH));
+//        }
 
         if (isActive != null )
         {
