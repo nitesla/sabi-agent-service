@@ -69,8 +69,8 @@ public class AgentSupervisorService {
 //        genericSpecification.add(new SearchCriteria("agentId", request.getAgentId(), SearchOperation.EQUAL));
 //        genericSpecification.add(new SearchCriteria("supervisorId", request.getSupervisorId(), SearchOperation.EQUAL));
 //        Optional agentSupervisorExist = agentSupervisorRepository.findOne(genericSpecification);
-        boolean exists = agentSupervisorRepository.exists(Example.of(agentSupervisor));
-        if (exists) {
+        AgentSupervisor exists = agentSupervisorRepository.findByAgentId(request.getAgentId());
+        if (exists != null) {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentSupervisor already exist");
         }
         agentSupervisor.setCreatedBy(userCurrent.getId());
@@ -218,4 +218,8 @@ public class AgentSupervisorService {
         agentSupervisor.setSupervisorName(supervisorAsUser.get().getFirstName() + " " + supervisorAsUser.get().getLastName());
         return agentSupervisor;
     }
+
+//    public Page<AgentSupervisor> getSupervisorAgents(Long supervisorId, PageRequest pageRequest){
+//        return
+//    }
 }

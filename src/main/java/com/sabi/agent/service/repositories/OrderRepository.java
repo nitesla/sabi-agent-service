@@ -3,6 +3,7 @@ package com.sabi.agent.service.repositories;
 import com.sabi.agent.core.dto.responseDto.OrderSearchResponse;
 import com.sabi.agent.core.models.AgentOrder;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -92,5 +93,6 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
                            Pageable pageable);
 
 
+    Page<AgentOrder> findByAgentId(Long agentId, Pageable of);
 }
 

@@ -450,4 +450,23 @@ public class OrderService {
         return orderRepository.findByMerchantId(merchantId, pageable);
     }
 
+    public Object paymentHistory(Long agentId, int page, int pageSize){
+        List<PaymentDetails> paymentDetails = new ArrayList<>();
+        if(agentId != null) {
+             paymentDetails = new ArrayList<>();
+            Page<AgentOrder> orders = orderRepository.findByAgentId(agentId, PageRequest.of(page, pageSize));
+            List<PaymentDetails> finalPaymentDetails = paymentDetails;
+            orders.forEach(order -> {
+                List<PaymentDetails> byOrderId = paymentDetailRepository.findAllByOrderId(order.getOrderId());
+                if(byOrderId != null)
+                finalPaymentDetails.addAll(byOrderId);
+            });
+            return  paymentDetails;
+        }
+
+        return paymentDetailRepository.findAll(PageRequest.of(page, pageSize));
+
+
+    }
+
 }
