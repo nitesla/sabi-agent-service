@@ -3,6 +3,7 @@ package com.sabi.agent.service.repositories;
 import com.sabi.agent.core.dto.responseDto.OrderSearchResponse;
 import com.sabi.agent.core.models.AgentOrder;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -80,15 +81,18 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
             "AND ((:merchantName IS NULL) OR (CONCAT(RegisteredMerchant.firstName, \" \" ,RegisteredMerchant.lastName) LIKE %:merchantName%) " +
             "OR (CONCAT(RegisteredMerchant.lastName, \" \" ,RegisteredMerchant.firstName) LIKE %:merchantName%))" +
             "AND ((:agentName IS NULL) OR (:agentName IS NOT NULL AND AgentOrder.userName LIKE %:agentName%)) " +
+            "AND ((:orderId IS NULL) OR (:orderId IS NOT NULL AND AgentOrder.orderId = :orderId)) " +
             "AND ((:startDate IS NULL) AND (:endDate IS NULL) OR (AgentOrder.createdDate BETWEEN :startDate AND :endDate))", nativeQuery = true)
-    Page<Map> findForAdmin(@Param("status") String status,
+    Page<Map> findForAdmin(@Param("status") Integer status,
                            @Param("agentId") Long agentId,
                            @Param("merchantName") String merchantName,
                            @Param("agentName") String agentName,
                            @Param("startDate") String startDate,
+                           @Param("orderId") Long orderId,
                            @Param("endDate") String endDate,
                            Pageable pageable);
 
 
+    Page<AgentOrder> findByAgentId(Long agentId, Pageable of);
 }
 

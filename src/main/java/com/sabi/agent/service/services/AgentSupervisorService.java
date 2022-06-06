@@ -69,8 +69,8 @@ public class AgentSupervisorService {
 //        genericSpecification.add(new SearchCriteria("agentId", request.getAgentId(), SearchOperation.EQUAL));
 //        genericSpecification.add(new SearchCriteria("supervisorId", request.getSupervisorId(), SearchOperation.EQUAL));
 //        Optional agentSupervisorExist = agentSupervisorRepository.findOne(genericSpecification);
-        boolean exists = agentSupervisorRepository.exists(Example.of(agentSupervisor));
-        if (exists) {
+        AgentSupervisor exists = agentSupervisorRepository.findByAgentId(request.getAgentId());
+        if (exists != null) {
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " agentSupervisor already exist");
         }
         agentSupervisor.setCreatedBy(userCurrent.getId());
@@ -144,7 +144,8 @@ public class AgentSupervisorService {
         Page<AgentSupervisor> agentSupervisor = agentSupervisorRepository
                 .findAll(pageRequest);
      */
-    public  Page<AgentSupervisor> findAll(String supervisorName, String agentName, Long agentId, Boolean isActive, LocalDate createdDate, Pageable pageable) {
+    public  Page<AgentSupervisor> findAll(String supervisorName, String agentName, Long agentId,
+                                          Boolean isActive, LocalDate createdDate, Long id, Pageable pageable) {
         LocalDateTime lowerDateTime = null, upperDateTime = null;
         if (createdDate!=null){
             lowerDateTime = LocalDateTime.of(createdDate.getYear(),createdDate.getMonthValue(),createdDate.getDayOfMonth(),00,00,00);
@@ -152,8 +153,9 @@ public class AgentSupervisorService {
             log.info("my lowerDate =={}",lowerDateTime);
             log.info("my upperDate=={}",upperDateTime);
         }
+        log.info("Superviser id {}", id);
         Page<AgentSupervisor> agentSupervisor = agentSupervisorRepository
-                                                .searchAgentSupervisors(supervisorName, agentName, agentId,isActive, lowerDateTime, upperDateTime, pageable);
+                                                .searchAgentSupervisors(supervisorName, agentName, agentId, isActive, id, lowerDateTime, upperDateTime, pageable);
         if (agentSupervisor == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
@@ -216,4 +218,8 @@ public class AgentSupervisorService {
         agentSupervisor.setSupervisorName(supervisorAsUser.get().getFirstName() + " " + supervisorAsUser.get().getLastName());
         return agentSupervisor;
     }
+
+//    public Page<AgentSupervisor> getSupervisorAgents(Long supervisorId, PageRequest pageRequest){
+//        return
+//    }
 }
