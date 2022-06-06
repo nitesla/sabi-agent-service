@@ -32,7 +32,9 @@ public interface AgentSupervisorRepository extends JpaRepository<AgentSupervisor
             "AND ((:agentName IS NULL) OR (:agentName IS NOT NULL AND (CONCAT(agentUser.firstName, agentUser.lastName)  LIKE %:agentName%)))" +
             "AND ((:isActive IS NULL) OR (:isActive IS NOT NULL AND s.isActive =:isActive))" +
             "AND ((:agentId IS NULL) OR (:agentId IS NOT NULL AND asr.agentId =:agentId))" +
+            "AND ((:id IS NULL) OR (:id IS NOT NULL AND asr.supervisorId =:agentId))" +
             "AND ((((:lowerDateTime IS NULL) AND (:upperDateTime IS  NULL))) OR (((:lowerDateTime IS NOT NULL) AND (:upperDateTime IS NOT NULL)) AND (s.createdDate >= :lowerDateTime AND s.createdDate < :upperDateTime)))" +
             ")")
-    Page<AgentSupervisor> searchAgentSupervisors(String supervisorName, String agentName, Long agentId, Boolean isActive, LocalDateTime lowerDateTime, LocalDateTime upperDateTime, Pageable pageable);
+    Page<AgentSupervisor> searchAgentSupervisors(String supervisorName, String agentName,
+                                                 Long agentId, Boolean isActive, Long id, LocalDateTime lowerDateTime, LocalDateTime upperDateTime, Pageable pageable);
 }

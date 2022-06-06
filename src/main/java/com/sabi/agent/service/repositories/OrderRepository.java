@@ -81,7 +81,7 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
             "OR (CONCAT(RegisteredMerchant.lastName, \" \" ,RegisteredMerchant.firstName) LIKE %:merchantName%))" +
             "AND ((:agentName IS NULL) OR (:agentName IS NOT NULL AND AgentOrder.userName LIKE %:agentName%)) " +
             "AND ((:startDate IS NULL) AND (:endDate IS NULL) OR (AgentOrder.createdDate BETWEEN :startDate AND :endDate))", nativeQuery = true)
-    Page<Map> findForAdmin(@Param("status") String status,
+    Page<Map> findForAdmin(@Param("status") Integer status,
                            @Param("agentId") Long agentId,
                            @Param("merchantName") String merchantName,
                            @Param("agentName") String agentName,

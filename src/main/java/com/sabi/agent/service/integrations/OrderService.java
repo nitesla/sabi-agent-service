@@ -441,7 +441,7 @@ public class OrderService {
         orderRepository.save(agentOrder);
     }
 
-    public Page<Map> getAgentAdminOrderDetails(String status, Long agentId, String agentName, String merchantName, String startDate, String endDate, Pageable pageable) {
+    public Page<Map> getAgentAdminOrderDetails(Integer status, Long agentId, String agentName, String merchantName, String startDate, String endDate, Pageable pageable) {
         Page<Map> results = orderRepository.findForAdmin(status, agentId, merchantName, agentName, startDate, endDate, pageable);
         return results;
     }
