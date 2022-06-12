@@ -8,10 +8,13 @@ import com.sabi.agent.core.dto.responseDto.AgentSupervisorResponseDto;
 import com.sabi.agent.core.models.Supervisor;
 import com.sabi.agent.core.models.agentModel.Agent;
 import com.sabi.agent.core.models.agentModel.AgentSupervisor;
+import com.sabi.agent.service.helper.SearchCriteria;
+import com.sabi.agent.service.helper.SearchOperation;
 import com.sabi.agent.service.helper.Validations;
 import com.sabi.agent.service.repositories.SupervisorRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentRepository;
 import com.sabi.agent.service.repositories.agentRepo.AgentSupervisorRepository;
+import com.sabi.framework.exceptions.BadRequestException;
 import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.models.User;
@@ -145,17 +148,19 @@ public class AgentSupervisorService {
                 .findAll(pageRequest);
      */
     public  Page<AgentSupervisor> findAll(String supervisorName, String agentName, Long agentId,
-                                          Boolean isActive, LocalDate createdDate, Long id, Pageable pageable) {
-        LocalDateTime lowerDateTime = null, upperDateTime = null;
-        if (createdDate!=null){
-            lowerDateTime = LocalDateTime.of(createdDate.getYear(),createdDate.getMonthValue(),createdDate.getDayOfMonth(),00,00,00);
-            upperDateTime = lowerDateTime.plusDays(1l);
-            log.info("my lowerDate =={}",lowerDateTime);
-            log.info("my upperDate=={}",upperDateTime);
+                                          Boolean isActive, LocalDateTime from, LocalDateTime to,
+                                          LocalDate createdDate, Long id, Pageable pageable) {
+        if (from!=null){
+            if (to!=null && from.isAfter(to))
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"fromDate can't be greater than toDate");
+        }
+        if (to!=null){
+            if (from == null)
+                throw new BadRequestException(CustomResponseCode.BAD_REQUEST,"'fromDate' must be included along with 'toDate' in the request");
         }
         log.info("Superviser id {}", id);
         Page<AgentSupervisor> agentSupervisor = agentSupervisorRepository
-                                                .searchAgentSupervisors(supervisorName, agentName, agentId, isActive, id, lowerDateTime, upperDateTime, pageable);
+                                                .searchAgentSupervisors(supervisorName, agentName, agentId, isActive, id, from, to, pageable);
         if (agentSupervisor == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
