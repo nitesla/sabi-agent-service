@@ -37,7 +37,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 //ken
-@SuppressWarnings("ALL")
 @Slf4j
 @Service
 public class AgentSupervisorService {
@@ -164,7 +163,7 @@ public class AgentSupervisorService {
         if (agentSupervisor == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");
         }
-        agentSupervisor.getContent().stream().forEach(this::composeAgentSupervisor);
+        agentSupervisor.getContent().forEach(this::composeAgentSupervisor);
         return agentSupervisor;
     }
 
