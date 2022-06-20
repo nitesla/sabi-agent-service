@@ -118,14 +118,17 @@ public class SupervisorService {
      * </summary>
      * <remarks>this method is responsible for searching all records and getting a pagination</remarks>
      */
-    public Page<Supervisor> findAll(String supervisorName, LocalDate createdDate,Boolean isActive, Pageable pageable ) {
-        LocalDateTime lowerDateTime = null, upperDateTime = null;
-        if (createdDate!=null){
-            lowerDateTime = LocalDateTime.of(createdDate.getYear(),createdDate.getMonthValue(),createdDate.getDayOfMonth(),00,00,00);
-            upperDateTime = lowerDateTime.plusDays(1l);
-            log.info("my lowerDate =={}",lowerDateTime);
-            log.info("my upperDate=={}",upperDateTime);
-        }
+    public Page<Supervisor> findAll(String supervisorName, LocalDate createdDate, LocalDateTime lowerDateTime,
+                                    LocalDateTime upperDateTime, Boolean isActive, Pageable pageable ) {
+//        LocalDateTime lowerDateTime = null, upperDateTime = null;
+//        if (createdDate!=null){
+//            lowerDateTime = LocalDateTime.of(createdDate.getYear(),
+//                    createdDate.getMonthValue(),createdDate.getDayOfMonth(),00,00,00);
+
+//            upperDateTime = lowerDateTime.plusDays(1l);
+//            log.info("my lowerDate == {}",lowerDateTime);
+//            log.info("my upperDate == {}",upperDateTime);
+//        }
         Page<Supervisor> supervisors = supervisorRepository.searchSupervisors(supervisorName,isActive,lowerDateTime,upperDateTime,pageable);
         if (supervisors == null) {
             throw new NotFoundException(CustomResponseCode.NOT_FOUND_EXCEPTION, " No record found !");

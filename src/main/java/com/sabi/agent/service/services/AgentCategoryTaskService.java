@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Optional;
 
 
-@SuppressWarnings("ALL")
 @Slf4j
 @Service
 public class AgentCategoryTaskService {
@@ -152,8 +151,8 @@ public class AgentCategoryTaskService {
 
     public Page<AgentCategoryTask> findAll(String name, Long agentCategoryId,
                                            Long taskId, Boolean isActive, LocalDate fromDate, LocalDate toDate, PageRequest pageRequest ) {
-        LocalDateTime from  = fromDate.atStartOfDay();
-        LocalDateTime to = toDate.atStartOfDay();
+        LocalDateTime from  = fromDate != null ? fromDate.atStartOfDay() : null;
+        LocalDateTime to = fromDate != null ? toDate.atStartOfDay() : null;
 
         GenericSpecification<AgentCategoryTask> genericSpecification = new GenericSpecification<AgentCategoryTask>();
 
