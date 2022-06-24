@@ -152,7 +152,7 @@ public class AgentCategoryTaskService {
     public Page<AgentCategoryTask> findAll(String name, Long agentCategoryId,
                                            Long taskId, Boolean isActive, LocalDate fromDate, LocalDate toDate, PageRequest pageRequest ) {
         LocalDateTime from  = fromDate != null ? fromDate.atStartOfDay() : null;
-        LocalDateTime to = fromDate != null ? toDate.atStartOfDay() : null;
+        LocalDateTime to = fromDate != null ? toDate.plusDays(1).atStartOfDay() : null;
 
         GenericSpecification<AgentCategoryTask> genericSpecification = new GenericSpecification<AgentCategoryTask>();
 
