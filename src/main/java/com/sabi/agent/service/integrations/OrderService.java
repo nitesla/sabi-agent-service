@@ -1,6 +1,7 @@
 package com.sabi.agent.service.integrations;
 
 
+import com.sabi.agent.core.dto.responseDto.PaymentHistoryResponse;
 import com.sabi.agent.core.integrations.order.*;
 import com.sabi.agent.core.integrations.order.merch.request.AgentCommissionInfo;
 import com.sabi.agent.core.integrations.order.merch.request.MerchCustomerDetails;
@@ -450,21 +451,13 @@ public class OrderService {
         return orderRepository.findByMerchantId(merchantId, pageable);
     }
 
-    public Object paymentHistory(Long agentId, int page, int pageSize){
-        List<PaymentDetails> paymentDetails = new ArrayList<>();
-        if(agentId != null) {
-             paymentDetails = new ArrayList<>();
-            Page<AgentOrder> orders = orderRepository.findByAgentId(agentId, PageRequest.of(page, pageSize));
-            List<PaymentDetails> finalPaymentDetails = paymentDetails;
-            orders.forEach(order -> {
-                List<PaymentDetails> byOrderId = paymentDetailRepository.findAllByOrderId(order.getOrderId());
-                if(byOrderId != null)
-                finalPaymentDetails.addAll(byOrderId);
-            });
-            return  paymentDetails;
-        }
+    public Page<Map> paymentHistory(Long agentId, int page, int pageSize){
 
-        return paymentDetailRepository.findAll(PageRequest.of(page, pageSize));
+
+        Page<Map> maps = orderRepository.paymentHistory(agentId, PageRequest.of(page, pageSize));
+        System.out.println("Printing maps");
+        maps.forEach(map -> log.info(map.values().toString()));
+        return maps;
 
 
     }
