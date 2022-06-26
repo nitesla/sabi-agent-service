@@ -1,6 +1,7 @@
 package com.sabi.agent.service.repositories;
 
 import com.sabi.agent.core.dto.responseDto.OrderSearchResponse;
+import com.sabi.agent.core.dto.responseDto.PaymentHistoryResponse;
 import com.sabi.agent.core.models.AgentOrder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,7 +50,7 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
             " AgentOrder.* FROM RegisteredMerchant, AgentOrder WHERE ((:agentId IS NULL) OR (:agentId IS NOT NULL AND AgentOrder.agentId = :agentId)) " +
             " AND (( CONCAT(RegisteredMerchant.firstName, \" \" ,RegisteredMerchant.lastName)  " +
             "LIKE %:searchTerm% OR (CONCAT (RegisteredMerchant.lastName, \" \" ,RegisteredMerchant.firstName) LIKE %:searchTerm%) " +
-            "OR phoneNumber LIKE %:searchTerm% OR (AgentOrder.orderId LIKE %:searchTerm% ) OR (AgentOrder.orderNumber LIKE %:searchTerm% ))and AgentOrder.merchantId=RegisteredMerchant.id)"+
+            "OR phoneNumber LIKE %:searchTerm% OR (AgentOrder.orderId LIKE %:searchTerm% ) OR (AgentOrder.orderNumber LIKE %:searchTerm% ))and AgentOrder.merchantId=RegisteredMerchant.id)" +
             "AND AgentOrder.createdDate BETWEEN :startDate AND :endDate", nativeQuery = true)
     Page<Map> singleSearch(@Param("searchTerm") String searchTerm,
                            @Param("agentId") Long agentId,
@@ -94,5 +95,15 @@ public interface OrderRepository extends JpaRepository<AgentOrder, Long> {
 
 
     Page<AgentOrder> findByAgentId(Long agentId, Pageable of);
+
+    @Query(value = "SELECT RegisteredMerchant.firstName, RegisteredMerchant.lastName, PaymentDetails.amount , PaymentDetails.approvedAmount , PaymentDetails.country ," +
+            "PaymentDetails.createdBy , PaymentDetails.currency, PaymentDetails.email , PaymentDetails.isActive," +
+            "PaymentDetails.callbackUrl, PaymentDetails.productDescription, PaymentDetails.linkingReference ," +
+            " PaymentDetails.paymentReference , PaymentDetails.productId , AgentOrder.*  from AgentOrder, PaymentDetails, RegisteredMerchant  where " +
+            " ((:agentId IS NULL) OR (:agentId IS NOT NULL AND AgentOrder.agentId = :agentId)) " +
+            "and AgentOrder.orderId = PaymentDetails.orderId " +
+            "AND AgentOrder.merchantId=RegisteredMerchant.id", nativeQuery = true)
+    Page<Map> paymentHistory(@Param("agentId") Long agentId,
+                                                Pageable pageable);
 }
 
