@@ -180,7 +180,7 @@ public class GlobalAdminAuthService {
         String accessList = permissionService.getPermissionsByUserId(user.getId());
         log.info("The AccessList is  :::{}",accessList);
         AuthenticationWithToken authWithToken = new AuthenticationWithToken(user, null,
-                AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER,"+accessList));
+                AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_ADMIN"));
         accessToken = "Bearer" +" "+this.tokenService.generateNewToken();
         authWithToken.setToken(accessToken);
         tokenService.store(accessToken, authWithToken);
