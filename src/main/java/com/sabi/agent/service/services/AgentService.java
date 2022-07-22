@@ -32,6 +32,7 @@ import com.sabi.framework.exceptions.ConflictException;
 import com.sabi.framework.exceptions.NotFoundException;
 import com.sabi.framework.helpers.API;
 import com.sabi.framework.models.PreviousPasswords;
+import com.sabi.framework.models.Role;
 import com.sabi.framework.models.User;
 import com.sabi.framework.models.UserRole;
 import com.sabi.framework.notification.requestDto.NotificationRequestDto;
@@ -39,6 +40,7 @@ import com.sabi.framework.notification.requestDto.RecipientRequest;
 import com.sabi.framework.notification.requestDto.SmsRequest;
 import com.sabi.framework.notification.requestDto.WhatsAppRequest;
 import com.sabi.framework.repositories.PreviousPasswordRepository;
+import com.sabi.framework.repositories.RoleRepository;
 import com.sabi.framework.repositories.UserRepository;
 import com.sabi.framework.repositories.UserRoleRepository;
 import com.sabi.framework.service.*;
@@ -93,6 +95,7 @@ public class AgentService {
     private final AuditTrailService auditTrailService;
     private final WhatsAppService whatsAppService;
     private final UserRoleRepository userRoleRepository;
+    private final RoleRepository roleRepository;
 
     public AgentService(AgentVerificationRepository agentVerificationRepository,ExternalTokenService externalTokenService,CountryRepository countryRepository,
                         BankRepository bankRepository,StateRepository stateRepository,IdTypeRepository idTypeRepository,
@@ -100,7 +103,7 @@ public class AgentService {
                         PreviousPasswordRepository previousPasswordRepository,UserRepository userRepository,AgentRepository agentRepository,
                         AgentCategoryRepository agentCategoryRepository,NotificationService notificationService, ModelMapper mapper, ObjectMapper objectMapper,
                         Validations validations,AuditTrailService auditTrailService,WhatsAppService whatsAppService,
-                        UserRoleRepository userRoleRepository) {
+                        UserRoleRepository userRoleRepository,RoleRepository roleRepository) {
         this.agentVerificationRepository = agentVerificationRepository;
         this.externalTokenService = externalTokenService;
         this.countryRepository = countryRepository;
@@ -120,6 +123,7 @@ public class AgentService {
         this.auditTrailService = auditTrailService;
         this.whatsAppService = whatsAppService;
         this.userRoleRepository = userRoleRepository;
+        this.roleRepository = roleRepository;
     }
 
 
@@ -181,13 +185,14 @@ public class AgentService {
         }else if(exist !=null && exist.getPasswordChangedOn() !=null){
             throw new ConflictException(CustomResponseCode.CONFLICT_EXCEPTION, " Agent user already exist");
         }
-
+        Role roleExist = roleRepository.findByName(Constants.AGENT_ROLE);
         String password = Utility.getSaltString();
         user.setPassword(passwordEncoder.encode(password));
         user.setUserCategory(Constants.OTHER_USER);
         user.setUsername(request.getPhone());
         user.setLoginAttempts(0);
         user.setCreatedBy(0l);
+        user.setRoleId(roleExist.getId());
         user.setIsActive(false);
         user = userRepository.save(user);
         log.debug("Create new agent user - {}"+ new Gson().toJson(user));
@@ -467,6 +472,7 @@ public class AgentService {
             agent.setFirstName(user.getFirstName());
             agent.setEmail(user.getEmail());
             agent.setPhone(user.getPhone());
+            agent.setRoleId(user.getRoleId());
 //            agent.setAgentCategoryName(agentCategory.getName());
 
         });
@@ -513,6 +519,7 @@ public class AgentService {
             users.setRegistrationTokenExpiration(agent.getRegistrationTokenExpiration());
             users.setRegistrationToken(agent.getRegistrationToken());
             users.setIsEmailVerified(agent.getIsEmailVerified());
+            users.setRoleId(agent.getRoleId());
 
         });
         return agentUser;

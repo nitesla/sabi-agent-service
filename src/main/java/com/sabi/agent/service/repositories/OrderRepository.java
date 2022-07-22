@@ -1,7 +1,6 @@
 package com.sabi.agent.service.repositories;
 
-import com.sabi.agent.core.dto.responseDto.OrderSearchResponse;
-import com.sabi.agent.core.dto.responseDto.PaymentHistoryResponse;
+
 import com.sabi.agent.core.models.AgentOrder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
