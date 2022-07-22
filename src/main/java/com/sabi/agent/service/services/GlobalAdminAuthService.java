@@ -165,8 +165,8 @@ public class GlobalAdminAuthService {
                 globalAdminAuthResponse.setGlobalAdminToken(authResponse.getData().getToken());
                 globalAdminAuthResponse.setActionDate(authResponse.getData().getActionDate());
                 globalAdminAuthResponse.setAuthKeyExpirationDate(authResponse.getData().getAuthKeyExpirationDate());
-                String accessList = permissionService.getPermissionsByUserId(user != null ? user.getId() : null);
-                globalAdminAuthResponse.setAccessList(accessList);
+//                String accessList = permissionService.getPermissionsByUserId(user != null ? user.getId() : null);
+                globalAdminAuthResponse.setPermissions(authResponse.getData().getPermissions());
                 log.info("User Access token ::::::::::::::::::::: " + globalAdminAuthResponse.getAccessToken());
             }
             return globalAdminAuthResponse;
